@@ -1,8 +1,8 @@
 # Documento de diseño — juego de motos
 
 **Autor:** Tomás Ardila Marín
-**Versión:** borrador 0.2 — 29/09/2026 (cambia la vista a primera persona y el mapa a una ciudad grande)
-**Estado:** propuesta. Nada es definitivo hasta que Tomás lo confirme (ver §15, decisiones abiertas).
+**Versión:** 0.3 — 29/09/2026 (incluye las respuestas de Tomás: ciudad tipo Bogotá de 40×80 cuadras, ciclo día/noche, minimapa, voces grabadas por Tomás)
+**Estado:** aprobado por Tomás como base. Las decisiones tomadas están en §15.
 
 ---
 
@@ -62,7 +62,7 @@ Para que se pueda terminar:
 - **La ciudad se genera por código**, no se construye a mano: una cuadrícula de manzanas con
   edificios de caja texturizados, andenes, esquinas y semáforos. Cada zona cambia texturas, altura
   de edificios y tráfico (§6).
-- **Cinco zonas**, una por moto. Recorrer la ciudad de punta a punta toma unos 3–4 minutos.
+- **Cinco zonas**, una por moto, en una ciudad de 40 × 80 cuadras (§6).
 - **Duración objetivo:** 30–45 minutos para llegar a la Ninja 300 y ver el final. Cada pedido dura
   entre 1 y 3 minutos.
 
@@ -82,8 +82,7 @@ Para que se pueda terminar:
 ### 3.2 No-objetivos
 
 Multijugador, bajarse de la moto y caminar, peleas o armas, personalización de la moto, varias
-ciudades, clima dinámico complejo, ciclo día/noche completo (la ciudad es siempre de noche o
-siempre de día, a decidir), policía que persigue, guardado de varias partidas, Mac/Linux, móvil.
+ciudades, clima dinámico complejo, policía que persigue, guardado de varias partidas, Mac/Linux, móvil.
 
 ---
 
@@ -179,8 +178,22 @@ El humor apunta a la fe y a la prisa, no a burlarse de las víctimas reales.
 
 ## 6. La ciudad
 
-Ciudad latinoamericana inventada, con aire de Bogotá o Medellín pero sin nombrarlas. Se genera por
-código a partir de una cuadrícula con algunas avenidas diagonales y lomas.
+Ciudad inventada **parecida a Bogotá**, pero más pequeña: **40 calles de ancho por 80 de largo**.
+Como en Bogotá, las **calles** van de oriente a occidente y las **carreras** de norte a sur, numeradas,
+y las direcciones son del tipo «Calle 45 # 12-30». Los cerros quedan al oriente, como referencia
+para orientarse.
+
+**Que no se vea cuadriculada:**
+
+- Las cuadras **no son todas iguales**: unas más largas, otras más cortas (entre ~0,6 y 1,6 veces la
+  cuadra normal), con semilla fija para que la ciudad sea siempre la misma.
+- Algunas calles se cortan o no continúan, hay diagonales y avenidas anchas que rompen la cuadrícula,
+  glorietas y algunos parques que ocupan varias cuadras.
+- Cada zona cambia texturas, altura de edificios y tráfico.
+
+**Tamaño y rendimiento:** con cuadras de ~100 m la ciudad mide unos 4 × 8 km; cruzarla de punta a
+punta toma varios minutos incluso con la Ninja. Se genera por código y **solo se dibujan las
+cuadras cercanas** a la moto (por trozos), para que corra en PCs modestos.
 
 | Zona | Moto con la que se abre | Cómo se ve | Peligros |
 |---|---|---|---|
@@ -190,11 +203,17 @@ código a partir de una cuadrícula con algunas avenidas diagonales y lomas.
 | **Avenida / autopista** | NKD 125 | Avenida de varios carriles, puentes, letreros verdes de vía | Velocidad alta, esquinas de salida cerradas |
 | **Zona rica / loma** | Ninja 300 | Edificios altos de vidrio, curvas de montaña con vista a la ciudad (la curva del meme) | Curvas cerradas, lluvia |
 
-- **Navegación:** una flecha en el tablero y un minimapa en la app (Tab). Los letreros verdes de vía
+- **Minimapa:** en una esquina de la pantalla, siempre visible, girando con la moto. Marca la ruta
+  hasta el restaurante o el cliente (el camino más corto por las calles, recalculado si te desvías),
+  como un GPS. Con Tab se abre el mapa completo en la app.
+- **Letreros:** en cada esquina, el número de la calle y la carrera; los letreros verdes de vía
   nombran las zonas, como en la referencia.
 - **Tráfico:** carros y buses siguen carriles simples; peatones cruzan en esquinas. Todos son
   sprites planos que miran a la cámara.
-- **Día o noche:** a decidir (§15). La noche encaja con el meme y esconde lo simple de los edificios.
+- **Día y noche:** la ciudad pasa de día a noche y de noche a día **cada 10 minutos**, con una
+  animación continua a lo largo de esos 10 minutos (el sol baja, el cielo cambia de color, se
+  prenden el alumbrado naranja, las ventanas y las farolas de los carros). Un ciclo completo dura
+  20 minutos. De noche se ve menos y las farolas de las motos importan (la NKD ve más lejos).
 
 ---
 
@@ -238,9 +257,9 @@ mejor piloto de la ciudad.
 
 - Cada momento tiene 4–6 variantes para que no se repitan; nunca dos voces seguidas en menos de
   ~3 s.
-- **Cómo se graban:** la opción recomendada es que Tomás o un amigo las grabe con Audacity (libre, y
-  más gracioso que una voz sintética). Alternativa sin grabar: un sintetizador de voz de código
-  abierto (p. ej. Piper), verificando la licencia de cada voz.
+- **Cómo se graban:** las graba Tomás con Audacity. Se entregan como `.wav` con un nombre por
+  momento y variante (p. ej. `voz_casi_choque_03.wav`); un script las normaliza de volumen, corta
+  silencios y comprueba que no saturen.
 - La cinemática de muerte también se puede **narrar en voz**, leyendo el nombre de la moto, como
   pidió Tomás.
 - Todas las voces llevan subtítulo (sirve también para la versión en inglés).
@@ -331,7 +350,6 @@ Es un proyecto de ocio, así que se usa software libre siempre que se pueda:
 | Audacity | GPL | PC | Grabar las voces y revisar el audio |
 | OBS Studio | GPL | PC | Grabar partidas de prueba y tráiler |
 | LibreSprite / Krita | GPL | PC | Solo si hay que retocar sprites a mano |
-| Piper (opcional) | MIT (cada voz con su licencia) | PC | Voces sintéticas si no se graban |
 | Fuentes | SIL OFL | — | Interfaz |
 
 Claude Code escribe el código en la nube desde el repositorio; lo que necesita ventana, sonido,
@@ -346,25 +364,36 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | Fase | Qué sale | Criterio de salida |
 |---|---|---|
 | **F0** Andamiaje | Proyecto Godot 4.7.2 (Compatibility), `.gitattributes`, `.gitignore`, corredor de pruebas, `CLAUDE.md`, registros de licencias | Pruebas en verde en headless; arranca |
-| **F1** Prototipo gris | Unas pocas manzanas de cajas grises, moto en primera persona, regla de la esquina y el andén, caída con texto plano, script de capturas | Tomás juega y confirma que frenar antes de la esquina es divertido |
+| **F1** Prototipo gris | Unas pocas cuadras de cajas grises (de distintos largos), moto en primera persona, regla de la esquina y el andén, caída con texto plano, script de capturas | Tomás juega y confirma que frenar antes de la esquina es divertido |
 | **F2** Dirección visual | Paleta, fuentes, maqueta del HUD, un manubrio y la cinemática de muerte | Tomás aprueba el look |
-| **F3** Ciudad | Generador de la ciudad con las cinco zonas, tráfico y peatones | Se recorre de punta a punta sin errores |
+| **F3** Ciudad | Generador de la ciudad de 40 × 80 cuadras irregulares con sus cinco zonas, carga por trozos, minimapa con ruta, ciclo día/noche, tráfico y peatones | Se recorre de punta a punta sin errores ni tirones, y el minimapa lleva a cualquier dirección |
 | **F4** Arte y audio | Texturas, los cinco manubrios, cinemática ilustrada, motores, efectos, música | Capturas y medidas de audio aprobadas |
-| **F5** Contenido | Pedidos, economía, garaje, casi-choques, voces, final | Se juega de principio a fin |
+| **F5** Contenido | Pedidos, economía, garaje, casi-choques, voces (grabadas por Tomás), final | Se juega de principio a fin |
 | **F6** Menús | Menú, opciones, idiomas, créditos, advertencia | Lista de §3.1 casi completa |
 | **F7** Entrega | `.exe` y `.zip` | Probado en otro PC |
 
 ---
 
-## 15. Decisiones abiertas
+## 15. Decisiones
+
+### 15.1 Tomadas (29/09/2026)
+
+| # | Decisión |
+|---|---|
+| D1 | Vista en primera persona tipo *Doom*: mundo de aspecto 2D con sprites, como en las imágenes de referencia |
+| D2 | Ciudad parecida a Bogotá, 40 calles × 80 carreras, con cuadras de distinto largo para que no se vea cuadriculada |
+| D3 | Minimapa que guía hasta el restaurante y el cliente |
+| D4 | Día y noche cambian cada 10 minutos con una animación continua |
+| D5 | Las voces del domiciliario las graba Tomás |
+| D6 | Fases F0–F7 como en §14 |
+| D7 | Todo con herramientas de código abierto |
+
+### 15.2 Abiertas (con la recomendación que se sigue mientras tanto)
 
 | # | Pregunta | Recomendación |
 |---|---|---|
 | D-pendiente 1 | ¿Nombres reales de las motos o parodia? | Reales mientras sea privado; parodia antes de publicar |
-| D-pendiente 2 | ¿La ciudad de día o de noche? | Noche: encaja con el meme y el alumbrado naranja da carácter |
-| D-pendiente 3 | ¿Voces grabadas o sintéticas? | Grabadas por Tomás o un amigo con Audacity |
-| D-pendiente 4 | ¿Orden de las motos intermedias? | Boxer → Crypton → NKD (§7) |
-| D-pendiente 5 | ¿Final? | Último pedido con la Ninja en la loma de la zona rica, la curva del meme. Se puede completar; la clienta es la mamá del domiciliario y el pedido llegó frío |
-| D-pendiente 6 | ¿Título? | *Tu fe era más grande*. Otras: *Llegó frío*, *Fe > Agarre*, *Domicilio final* |
-| D-pendiente 7 | ¿Soporte de mando? | Solo teclado en la v1 |
-| D-pendiente 8 | ¿Tamaño de la ciudad? | Cinco zonas generadas por código, 3–4 min de punta a punta. Crecer solo si la F1 sale divertida |
+| D-pendiente 2 | ¿Orden de las motos intermedias? | Boxer → Crypton → NKD (§7) |
+| D-pendiente 3 | ¿Final? | Último pedido con la Ninja en la loma de los cerros, la curva del meme. Se puede completar; la clienta es la mamá del domiciliario y el pedido llegó frío |
+| D-pendiente 4 | ¿Título? | *Tu fe era más grande*. Otras: *Llegó frío*, *Fe > Agarre*, *Domicilio final* |
+| D-pendiente 5 | ¿Soporte de mando? | Solo teclado en la v1 |
