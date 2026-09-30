@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://wg3e5jrnnywc"
+
+[deps]
+
+files=["res://localization/pantallas.es.translation", "res://localization/pantallas.en.translation"]
+
+source_file="res://localization/pantallas.csv"
+dest_files=["res://localization/pantallas.es.translation", "res://localization/pantallas.en.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -1,0 +1,90 @@
+extends Control
+## Menú de pausa (F6, pedido de Tomás): Esc en plena partida congela todo (el tiempo del pedido,
+## la hora, el tráfico, los peatones y los sonidos de la calle; la música sigue) y ofrece
+## Continuar, Opciones y Volver al menú inicial. Esc otra vez reanuda.
+
+signal al_menu
+
+const UI := preload("res://scripts/ui.gd")
+const PANTALLA_OPCIONES := preload("res://scenes/opciones.tscn")
+
+var opciones # opciones.gd; lo pasa el recorrido (que lo recibe del director)
+var _botones: VBoxContainer
+var _panel: Control
+
+
+func _ready() -> void:
+	name = "Pausa"
+	process_mode = Node.PROCESS_MODE_ALWAYS # es lo único que se mueve mientras el juego está en pausa
+	size = Vector2(640, 360)
+	visible = false
+	var velo := ColorRect.new()
+	velo.name = "Velo"
+	velo.color = Color(0.05, 0.05, 0.08, 0.72)
+	velo.size = size
+	add_child(velo)
+	_botones = VBoxContainer.new()
+	_botones.name = "Botones"
+	_botones.position = Vector2(170, 110)
+	_botones.size = Vector2(300, 0)
+	_botones.add_theme_constant_override("separation", 6)
+	add_child(_botones)
+	UI.texto(_botones, "PAUSA", Vector2.ZERO, 16, UI.C_AMARILLO, 300.0, "Titulo").custom_minimum_size.y = 34
+	UI.boton(_botones, "CONTINUAR", "Continuar").pressed.connect(cerrar)
+	UI.boton(_botones, "OPCIONES", "Opciones").pressed.connect(_abrir_opciones)
+	UI.boton(_botones, "VOLVER AL MENÚ INICIAL", "MenuInicial").pressed.connect(_salir)
+	var nota := UI.texto(_botones, "El pedido espera: el reloj está quieto.", Vector2.ZERO, 8, UI.C_GRIS, 300.0, "Nota")
+	nota.custom_minimum_size.y = 20
+
+
+func abierta() -> bool:
+	return visible
+
+
+func abrir() -> void:
+	visible = true
+	_botones.visible = true
+	get_tree().paused = true
+	(_botones.get_node("Continuar") as Button).grab_focus.call_deferred()
+
+
+func cerrar() -> void:
+	_cerrar_opciones()
+	visible = false
+	get_tree().paused = false
+
+
+func _salir() -> void:
+	_cerrar_opciones()
+	get_tree().paused = false
+	al_menu.emit()
+
+
+func _abrir_opciones() -> void:
+	_panel = PANTALLA_OPCIONES.instantiate()
+	_panel.name = "PanelOpciones"
+	_panel.opciones = opciones
+	_panel.volver.connect(_cerrar_opciones_y_enfocar)
+	add_child(_panel)
+	_botones.visible = false
+
+
+func _cerrar_opciones() -> void:
+	if _panel != null:
+		_panel.queue_free()
+		remove_child(_panel)
+		_panel = null
+	_botones.visible = true
+
+
+func _cerrar_opciones_y_enfocar() -> void:
+	_cerrar_opciones()
+	(_botones.get_node("Opciones") as Button).grab_focus.call_deferred()
+
+
+func _input(event: InputEvent) -> void:
+	if not visible or _panel != null: # con las opciones abiertas, su Esc lo maneja el panel
+		return
+	if event.is_action_pressed("menu"):
+		get_viewport().set_input_as_handled()
+		cerrar()

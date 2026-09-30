@@ -37,7 +37,7 @@ const CAUSAS := ["curva", "hueco", "perro", "lluvia", "bus", "contravia"]
 
 
 static func remate(causa: String, nombre: String) -> String:
-	return str(REMATES.get(causa, REMATE)) % nombre
+	return TranslationServer.translate(str(REMATES.get(causa, REMATE))) % nombre
 
 const MOTOS := {
 	"bws": {
@@ -101,7 +101,7 @@ static func get_moto(id: String) -> Dictionary:
 	m.merge(MOTOS[id], true)
 	m["id"] = id
 	if not m.has("remate"):
-		m["remate"] = REMATE % m.nombre
+		m["remate"] = TranslationServer.translate(REMATE) % m.nombre
 	return m
 
 

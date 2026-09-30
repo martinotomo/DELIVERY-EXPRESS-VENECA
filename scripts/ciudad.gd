@@ -131,7 +131,7 @@ func fachada(i: int, j: int) -> String:
 
 
 func nombre_zona(z: String) -> String:
-	return NOMBRES_ZONA.get(z, "")
+	return TranslationServer.translate(NOMBRES_ZONA.get(z, "")) if NOMBRES_ZONA.has(z) else ""
 
 
 ## Centro de la carrera i (0..40) cruzando con la calle j (0..80).

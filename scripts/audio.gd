@@ -4,6 +4,7 @@ extends Node
 ## aquí solo se mezclan volúmenes. Las voces (D11) van aparte, en recorrido.gd.
 
 const SONIDO_MOTOR := preload("res://scripts/sonido_motor.gd")
+const OPCIONES := preload("res://scripts/opciones.gd")
 const RUTA := "res://assets/sonidos/%s.wav"
 const EFECTOS := {
 	"estrellado": "choque", "golpe": "golpe", "casi": "casi", "fundido": "fundido",
@@ -25,6 +26,7 @@ var ultimo_efecto := ""   # para las pruebas
 
 
 func preparar(datos_moto: Dictionary) -> void:
+	OPCIONES.crear_buses()
 	motor = SONIDO_MOTOR.new(datos_moto)
 	for rpm in datos_moto.rpm_muestras:
 		_motores.append(_bucle("Motor%d" % rpm, "motor_%s_%d" % [datos_moto.id, rpm]))
@@ -35,6 +37,7 @@ func preparar(datos_moto: Dictionary) -> void:
 	for k in 4:
 		var p := AudioStreamPlayer.new()
 		p.name = "Efecto%d" % k
+		p.bus = &"Efectos"
 		add_child(p)
 		_efectos.append(p)
 
@@ -42,6 +45,7 @@ func preparar(datos_moto: Dictionary) -> void:
 func _bucle(nombre: String, sonido: String) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
 	p.name = nombre
+	p.bus = &"Efectos" # todo lo de la calle va por el bus de efectos (su volumen está en Opciones)
 	p.stream = load(RUTA % sonido)
 	p.volume_db = SILENCIO
 	add_child(p)

@@ -73,3 +73,20 @@ static func columna(padre: Node, pos: Vector2, ancho: float) -> VBoxContainer:
 	v.add_theme_constant_override("separation", 6)
 	padre.add_child(v)
 	return v
+
+
+## Texto que se parte en varias líneas dentro de una caja de ancho fijo (centrado).
+static func parrafo(padre: Node, t: String, pos: Vector2, tam_caja: Vector2, tam := 8, color := C_TEXTO, nombre := "") -> Label:
+	var l := Label.new()
+	if nombre != "":
+		l.name = nombre
+	l.text = t
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.custom_minimum_size = Vector2(tam_caja.x, 0)
+	l.position = pos
+	l.size = tam_caja
+	l.add_theme_font_size_override("font_size", tam)
+	l.add_theme_color_override("font_color", color)
+	padre.add_child(l)
+	return l

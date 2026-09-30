@@ -42,23 +42,23 @@ func _ready() -> void:
 	_tope = {"vel_max": float(ultima.vel_max), "acel": float(ultima.acel)}
 	# El fondo y la tarima se dibujan en _draw (debajo de todo); luego las motos y encima el texto.
 	for k in MOTOS.ORDEN.size():
-		var tr := TextureRect.new()
-		tr.name = "Moto_" + MOTOS.ORDEN[k]
+		var spr := TextureRect.new() # no «tr»: taparía tr() de traducir
+		spr.name = "Moto_" + MOTOS.ORDEN[k]
 		var at := AtlasTexture.new()
 		at.atlas = HOJA
 		at.region = Rect2(Vector2(k * MOTO_TAM.x, 0), MOTO_TAM)
-		tr.texture = at
-		tr.size = MOTO_TAM
-		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(tr)
-		_sprites.append(tr)
+		spr.texture = at
+		spr.size = MOTO_TAM
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		spr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(spr)
+		_sprites.append(spr)
 
-	UI.texto(self, "TALLER", Vector2(16, 10), 24, UI.C_ROJO, 0.0, "Titulo")
+	UI.texto(self, tr("TALLER"), Vector2(16, 10), 24, UI.C_ROJO, 0.0, "Titulo")
 	_l_plata = UI.texto(self, "", Vector2(424, 10), 16, UI.C_AMARILLO, 0.0, "Plata")
 	_l_plata.size = Vector2(200, 22)
 	_l_plata.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var l_p := UI.texto(self, "PLATA", Vector2(424, 32), 8, UI.C_GRIS)
+	var l_p := UI.texto(self, tr("PLATA"), Vector2(424, 32), 8, UI.C_GRIS)
 	l_p.size = Vector2(200, 14)
 	l_p.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	for lado in [-1, 1]:
@@ -84,7 +84,7 @@ func _ready() -> void:
 	_l_falta.size = Vector2(310, 30)
 
 	# Mejoras y compra, abajo a la derecha.
-	UI.texto(self, "MEJORAS", Vector2(342, 190), 8, UI.C_GRIS)
+	UI.texto(self, tr("MEJORAS"), Vector2(342, 190), 8, UI.C_GRIS)
 	var col := UI.columna(self, Vector2(342, 204), 282.0)
 	for mej in MOTOS.MEJORAS:
 		var b := UI.boton(col, "", "Mejora_" + mej)
@@ -95,10 +95,10 @@ func _ready() -> void:
 	b_moto.custom_minimum_size = Vector2(282, 26)
 	b_moto.pressed.connect(_comprar_moto)
 	_botones["moto"] = b_moto
-	var b_volver := UI.boton(col, "VOLVER", "Volver")
+	var b_volver := UI.boton(col, tr("VOLVER"), "Volver")
 	b_volver.custom_minimum_size = Vector2(282, 26)
 	b_volver.pressed.connect(func(): volver.emit())
-	UI.texto(self, "< >  ELEGIR MOTO      ESC  VOLVER      Morir no quita la plata.", Vector2(0, 342), 8, UI.C_GRIS, 640.0, "Ayuda")
+	UI.texto(self, tr("< >  ELEGIR MOTO      ESC  VOLVER      Morir no quita la plata."), Vector2(0, 342), 8, UI.C_GRIS, 640.0, "Ayuda")
 
 	if progreso != null:
 		escogida = maxi(MOTOS.ORDEN.find(progreso.moto), 0)
@@ -169,11 +169,11 @@ func actualizar() -> void:
 
 	_candado.visible = estado in [PROGRESO.BLOQUEADA, PROGRESO.SIN_PLATA]
 	var textos := {
-		PROGRESO.EN_USO: ["EN USO", C_VERDE],
-		PROGRESO.TENIDA: ["EN TU GARAJE", UI.C_TEXTO],
-		PROGRESO.COMPRABLE: ["A LA VENTA  " + PROGRESO.pesos(precio), UI.C_AMARILLO],
-		PROGRESO.SIN_PLATA: ["BLOQUEADA  " + PROGRESO.pesos(precio), UI.C_ROJO],
-		PROGRESO.BLOQUEADA: ["BLOQUEADA  " + PROGRESO.pesos(precio), UI.C_ROJO],
+		PROGRESO.EN_USO: [tr("EN USO"), C_VERDE],
+		PROGRESO.TENIDA: [tr("EN TU GARAJE"), UI.C_TEXTO],
+		PROGRESO.COMPRABLE: [tr("A LA VENTA") + "  " + PROGRESO.pesos(precio), UI.C_AMARILLO],
+		PROGRESO.SIN_PLATA: [tr("BLOQUEADA") + "  " + PROGRESO.pesos(precio), UI.C_ROJO],
+		PROGRESO.BLOQUEADA: [tr("BLOQUEADA") + "  " + PROGRESO.pesos(precio), UI.C_ROJO],
 	}
 	_l_estado.text = textos[estado][0]
 	_l_estado.add_theme_color_override("font_color", textos[estado][1])
@@ -183,41 +183,41 @@ func actualizar() -> void:
 	var faltan := ""
 	match estado:
 		PROGRESO.SIN_PLATA:
-			faltan = "Te faltan %s para comprarla." % PROGRESO.pesos(progreso.falta_para(id))
+			faltan = tr("Te faltan %s para comprarla.") % PROGRESO.pesos(progreso.falta_para(id))
 		PROGRESO.BLOQUEADA:
-			faltan = "Primero compra la %s." % MOTOS.get_moto(MOTOS.ORDEN[escogida - 1]).nombre
+			faltan = tr("Primero compra la %s.") % MOTOS.get_moto(MOTOS.ORDEN[escogida - 1]).nombre
 		PROGRESO.TENIDA:
-			faltan = "Es tuya, con sus mejoras. Sácala con USAR; las mejoras se compran con la moto en uso."
+			faltan = tr("Es tuya, con sus mejoras. Sácala con USAR; las mejoras se compran con la moto en uso.")
 		PROGRESO.COMPRABLE:
-			faltan = "Tu %s se queda en el garaje." % MOTOS.get_moto(progreso.moto).nombre
+			faltan = tr("Tu %s se queda en el garaje.") % MOTOS.get_moto(progreso.moto).nombre
 		PROGRESO.EN_USO:
-			faltan = "Con todas las mejoras sigue siendo peor que la siguiente de fábrica." if id != MOTOS.ORDEN[-1] else "La mejor moto de la ciudad."
+			faltan = tr("Con todas las mejoras sigue siendo peor que la siguiente de fábrica.") if id != MOTOS.ORDEN[-1] else tr("La mejor moto de la ciudad.")
 	_l_falta.text = faltan
 
-	_l_datos[0].text = "VELOCIDAD  %d km/h" % roundi(float(datos.vel_max) * 3.6)
-	_l_datos[1].text = "ACELERACIÓN  %.1f" % float(datos.acel)
+	_l_datos[0].text = tr("VELOCIDAD  %d km/h") % roundi(float(datos.vel_max) * 3.6)
+	_l_datos[1].text = tr("ACELERACIÓN  %.1f") % float(datos.acel)
 	for k in 2:
 		_l_datos[k].position = Vector2(BARRA.position.x, BARRA.position.y - 13 + k * 26)
 
 	for mej in MOTOS.MEJORAS:
 		var b: Button = _botones[mej]
-		var nombre: String = MOTOS.NOMBRE_MEJORA[mej].to_upper()
+		var nombre: String = tr(MOTOS.NOMBRE_MEJORA[mej]).to_upper()
 		var precio_mej := int(de_fabrica.mejoras[mej].precio)
 		if progreso.tenidas.get(id, {}).get(mej, false):
-			b.text = "%s  (ya instalado)" % nombre
+			b.text = tr("%s  (ya instalado)") % nombre
 		else:
 			b.text = "%s  %s" % [nombre, PROGRESO.pesos(precio_mej)]
 		b.disabled = estado != PROGRESO.EN_USO or not progreso.puede_mejorar(mej)
 	var bm: Button = _botones["moto"]
 	match estado:
 		PROGRESO.EN_USO:
-			bm.text = "ESTA ES TU MOTO"
+			bm.text = tr("ESTA ES TU MOTO")
 		PROGRESO.TENIDA:
-			bm.text = "USAR ESTA MOTO"
+			bm.text = tr("USAR ESTA MOTO")
 		PROGRESO.BLOQUEADA:
-			bm.text = "BLOQUEADA"
+			bm.text = tr("BLOQUEADA")
 		_:
-			bm.text = "COMPRAR %s  %s" % [str(de_fabrica.nombre).to_upper(), PROGRESO.pesos(precio)]
+			bm.text = tr("COMPRAR %s  %s") % [str(de_fabrica.nombre).to_upper(), PROGRESO.pesos(precio)]
 	bm.disabled = estado not in [PROGRESO.COMPRABLE, PROGRESO.TENIDA]
 	_candado.queue_redraw()
 	_acomodar()

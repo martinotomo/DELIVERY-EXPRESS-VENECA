@@ -127,5 +127,5 @@ func frase(evento: String) -> String:
 	if lista.size() > 1 and k == _ultima.get(evento, -1):
 		k = (k + 1) % lista.size()
 	_ultima[evento] = k
-	return lista[k]
+	return TranslationServer.translate(lista[k]) # idioma: localization/textos.csv
 

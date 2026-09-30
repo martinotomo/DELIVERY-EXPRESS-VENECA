@@ -72,6 +72,10 @@ menu={
 
 theme/custom_font="res://assets/fuentes/PressStart2P-Regular.ttf"
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://localization/pantallas.es.translation", "res://localization/pantallas.en.translation", "res://localization/textos.es.translation", "res://localization/textos.en.translation")
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
