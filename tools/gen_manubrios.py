@@ -238,11 +238,19 @@ def bws():
     L.pieza(cub, c("carbon"), bisel=4, luz=0.7, grad=0.25, brillo=0.12)
     for s in (-1, 1):
         L.pieza(L.poly([(160 + s * 44, 41), (160 + s * 74, 46), (160 + s * 76, 49), (160 + s * 46, 45)]), c("azul_bwis_oscuro"), bisel=1, luz=0.6, linea=False)
-    # tablero digital: marco negro y pantalla LCD (los números los pone el juego)
-    L.pieza(L.caja(134, 39, 186, 57, r=3), c("negro"), bisel=2, luz=0.9, brillo=0.15)
-    L.pieza(L.caja(138, 42, 182, 54, r=1), c("lcd"), bisel=1.5, luz=0.25, grad=0.12, linea=False)
+    # tablero análogo (Tomás, 30/09): velocímetro redondo en una cápsula negra en el centro de la
+    # cubierta (la aguja la pone el juego), con la gasolina en una esfera chiquita al lado
+    L.pieza(L.elipse(160, 48, 18, 14.5), c("negro"), bisel=3, luz=0.9, brillo=0.25)
+    L.cromo(L.elipse(160, 48, 15.5, 12.5), oscuro=True)
+    L.pieza(L.elipse(160, 48, 13.5, 10.8), c("hueso"), bisel=2, luz=-0.25, grad=0.1, linea=False)
+    for k in range(11):
+        a = np.pi * (0.8 + 1.4 * k / 10)
+        r0, r1 = (8.5, 11.8) if k % 2 == 0 else (10.2, 11.8)
+        L.plano(L.tubo([(160 + np.cos(a) * r0, 48 + np.sin(a) * r0 * 0.8), (160 + np.cos(a) * r1, 48 + np.sin(a) * r1 * 0.8)], 0.9),
+                c("rojo") if k >= 9 else c("negro"))
+    L.plano(L.caja(155, 52.5, 165, 55), c("lcd_oscuro"))                                             # cuentakilómetros
     for s in (-1, 1):                                                                                # testigos de direccional
-        L.plano(L.poly([(160 + s * 29, 47), (160 + s * 26, 45), (160 + s * 26, 49)]), c("pasto_claro"))
+        L.plano(L.poly([(160 + s * 24, 48), (160 + s * 21, 46), (160 + s * 21, 50)]), c("pasto_claro"))
     # escudo interno (el tapizado de las rodillas), con encendido y guantera
     esc = L.poly([(102, 63), (218, 63), (240, H + 2), (80, H + 2)])
     L.pieza(esc, c("asfalto_oscuro"), bisel=5, luz=0.45, grad=0.35)
@@ -329,10 +337,14 @@ def ninja():
         L.pieza(cuerpo, c("carbon"), bisel=3, luz=0.9, brillo=0.25)
         vidrio(L, L.poly([(f(57), 18), (f(84), 11), (f(97), 14), (f(98), 23), (f(90), 26), (f(61), 24)]), 18)
     # parabrisas ahumado: medio transparente (tramado), con un reflejo y su borde
+    # Muy transparente (Tomás, 30/09: con el vidrio oscuro no se veía la calle y uno se estrellaba):
+    # apenas un tramado ralo del tinte, dos reflejos finos y el marco.
     pb = L.poly([(124, 8), (196, 8), (214, 30), (106, 30)])
-    L.pieza(pb, c("vidrio_oscuro"), bisel=2, luz=0.6, grad=-0.2, linea=False, alfa=0.45)
-    L.plano(L.tubo([(132, 12), (122, 26)], 1.4), c("vidrio_brillo"), alfa=0.8)
-    L.plano(L.tubo([(137, 12), (129, 24)], 0.9), c("vidrio_brillo"), alfa=0.6)
+    L.pieza(pb, c("vidrio"), bisel=2, luz=0.6, grad=-0.2, linea=False, alfa=0.1)
+    L.plano(L.tubo([(132, 12), (124, 23)], 1.0), c("vidrio_brillo"), alfa=0.8)
+    L.plano(L.tubo([(137, 12), (131, 20)], 0.7), c("vidrio_brillo"), alfa=0.6)
+    for x0, x1 in ((124, 106), (196, 214)):
+        L.plano(L.tubo([(x0, 8), (x1, 30)], 1.0), c("carbon"))
     L.plano(L.tubo([(124, 8), (196, 8)], 1.2), c("negro"))
     # cúpula verde: se abre hacia los lados y hacia abajo como una proa (trazada con curvas)
     t = np.linspace(0, 1, 12)
