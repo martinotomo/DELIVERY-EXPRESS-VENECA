@@ -1,7 +1,7 @@
 # Documento de diseño — juego de motos
 
 **Autor:** Tomás Ardila Marín
-**Versión:** 0.3 — 29/09/2026 (incluye las respuestas de Tomás: ciudad tipo Bogotá de 40×80 cuadras, ciclo día/noche, minimapa, voces grabadas por Tomás)
+**Versión:** 0.4 — 30/09/2026 (tres motos con dos mejoras cada una, el dinero no se pierde al morir, menú de inicio y aviso de derrape más discreto)
 **Estado:** aprobado por Tomás como base. Las decisiones tomadas están en §15.
 
 ---
@@ -62,15 +62,15 @@ Para que se pueda terminar:
 - **La ciudad se genera por código**, no se construye a mano: una cuadrícula de manzanas con
   edificios de caja texturizados, andenes, esquinas y semáforos. Cada zona cambia texturas, altura
   de edificios y tráfico (§6).
-- **Cinco zonas**, una por moto, en una ciudad de 40 × 80 cuadras (§6).
-- **Duración objetivo:** 30–45 minutos para llegar a la Ninja 300 y ver el final. Cada pedido dura
+- **Tres motos** con dos mejoras cada una (§7), en una ciudad de 40 × 80 cuadras (§6).
+- **Duración objetivo:** 20–30 minutos para llegar a la Ninja 300 y ver el final. Cada pedido dura
   entre 1 y 3 minutos.
 
 ### 3.1 Definición de «terminado»
 
 1. Arranca, se entiende sin explicación y se puede jugar de principio a fin.
-2. Las cinco motos se pueden conseguir y cada una se siente y se ve distinta (manubrio y tablero
-   propios).
+2. Las tres motos y sus mejoras se pueden conseguir, y cada moto se siente y se ve distinta
+   (manubrio y tablero propios).
 3. Cada caída muestra la cinemática del meme con la moto correcta y su nombre.
 4. Las voces del domiciliario suenan al recoger, entregar, casi chocar y caerse.
 5. Menú, opciones que se recuerdan (volumen de voces, música y efectos, pantalla completa, idioma),
@@ -94,11 +94,15 @@ ciudades, clima dinámico complejo, policía que persigue, guardado de varias pa
  │   3. ENTREGAR: cruzar la ciudad. Casi-choques dan propina extra y comentario
  │   4a. ENTREGA: pago + propina + estrellas. Voz del domiciliario ─► 5
  │   4b. CAÍDA: cinemática del meme ─► «Pulsa START» ─► reaparece en el restaurante
- │   5. GARAJE: ahorrar y comprar la siguiente moto (abre la zona siguiente)
+ │   5. GARAJE: gastar en mejoras (exosto, motor) o ahorrar para la siguiente moto
  └───────────────────────────────────────────────────────────────┘
 ```
 
-Una partida son unos 20 pedidos (≈4 por moto). El dinero solo sirve para comprar motos.
+**El dinero no se pierde al morir.** Se va acumulando con cada entrega y la caída solo cuesta el
+pedido en curso (no se cobra) y el tiempo de volver. Así morir es el chiste, no un castigo.
+
+El dinero sirve para dos cosas, las dos en el garaje: **mejorar la moto actual** o **comprar la
+siguiente** (§7). Una partida son unos 15–20 pedidos.
 
 ---
 
@@ -139,6 +143,14 @@ peligrosas (mojadas, con aceite) se ven distintas en el suelo.
 
 Así el jugador aprende a frenar antes de cada esquina. Con una moto nueva la velocidad máxima sube
 más que el agarre, así que las esquinas hay que volver a aprenderlas.
+
+**El aviso de derrape** (cuando la moto se empieza a ir de lado):
+
+- Va en una **esquina de la pantalla y pequeño**, no en el centro, para que no tape la calle.
+- **No es tan sensible:** a baja velocidad girar a tope no hace irse de lado ni dispara el aviso;
+  solo aparece cuando de verdad se está pasando de la velocidad segura de ese giro.
+- Además del aviso, el manubrio tiembla un poco y suena el chirrido de la llanta, para que se
+  sienta sin tener que leerlo.
 
 ### 5.3 Casi-choques
 
@@ -198,10 +210,13 @@ cuadras cercanas** a la moto (por trozos), para que corra en PCs modestos.
 | Zona | Moto con la que se abre | Cómo se ve | Peligros |
 |---|---|---|---|
 | **Barrio** (inicio) | BWS 125 | Casas de ladrillo de 2–3 pisos, tiendas, calles estrechas | Perros, huecos, niños jugando fútbol |
-| **Centro** | Boxer CT 100 | Edificios viejos, buses, vendedores ambulantes | Buses, peatones, trancones |
-| **Zona industrial** | Crypton Fi | Bodegas, tractomulas, calles anchas | Aceite en el piso, tractomulas |
+| **Centro** | BWS 125 | Edificios viejos, buses, vendedores ambulantes | Buses, peatones, trancones |
+| **Zona industrial** | NKD 125 | Bodegas, tractomulas, calles anchas | Aceite en el piso, tractomulas |
 | **Avenida / autopista** | NKD 125 | Avenida de varios carriles, puentes, letreros verdes de vía | Velocidad alta, esquinas de salida cerradas |
 | **Zona rica / loma** | Ninja 300 | Edificios altos de vidrio, curvas de montaña con vista a la ciudad (la curva del meme) | Curvas cerradas, lluvia |
+
+La columna «se abre» es de dónde salen los pedidos: con cada moto aparecen pedidos más lejos y
+mejor pagados. Se puede andar por toda la ciudad desde el principio.
 
 - **Minimapa:** en una esquina de la pantalla, siempre visible, girando con la moto. Marca la ruta
   hasta el restaurante o el cliente (el camino más corto por las calles, recalculado si te desvías),
@@ -217,22 +232,40 @@ cuadras cercanas** a la moto (por trozos), para que corra en PCs modestos.
 
 ---
 
-## 7. Las motos (progresión)
+## 7. Las motos y sus mejoras
 
-Valores **de juego** (escala 1–10), no fichas técnicas. La velocidad crece más rápido que el
-agarre: eso es el chiste.
+Solo **tres motos**, para que el juego no se alargue. Cada una tiene **dos mejoras**: **exosto** y
+**motor**.
 
-| # | Moto | Personalidad | Vel. máx | Acel. | Freno | Agarre | Manubrio y tablero |
-|---|---|---|---|---|---|---|---|
-| 1 | **Yamaha BWS 125** (inicial) | Scooter de llantas gordas, estable pero lenta | 3 | 4 | 5 | 6 | Manubrio alto con carenaje, tablero redondo |
-| 2 | **Bajaj Boxer CT 100** | La moto de domicilios por excelencia, indestructible | 4 | 3 | 3 | 5 | Manubrio recto, velocímetro análogo sencillo |
-| 3 | **Yamaha Crypton Fi** | Semiautomática, ligera, nerviosa | 5 | 5 | 4 | 5 | Manubrio con carenaje, tablero de aguja |
-| 4 | **AKT NKD 125** | Clásica, farola grande | 6 | 5 | 5 | 5 | Farola redonda visible abajo, velocímetro redondo |
-| 5 | **Kawasaki Ninja 300** (final) | La soñada, bicilíndrica, mucho más rápida | 10 | 9 | 7 | 7 | Semimanubrios bajos, tablero digital, parabrisas |
+| # | Moto | Personalidad | Manubrio y tablero |
+|---|---|---|---|
+| 1 | **Yamaha BWS 125** (inicial) | Scooter de llantas gordas, estable pero lenta | Manubrio alto con carenaje, tablero redondo |
+| 2 | **AKT NKD 125** | Clásica de domicilios, farola grande | Farola redonda visible abajo, velocímetro redondo |
+| 3 | **Kawasaki Ninja 300** (final) | La soñada, bicilíndrica, mucho más rápida | Semimanubrios bajos, tablero digital, parabrisas |
 
-Precio de cada moto: lo que se gana con unos 4 pedidos bien hechos con la anterior (se afina
-jugando). En el garaje cada moto muestra sus barras y, como chiste, una barra de **FE** que siempre
-es la más larga.
+### 7.1 Reglas de progresión
+
+1. **La moto mejorada es la base de la siguiente:** las mejoras suben la moto actual, pero **una moto
+   con las dos mejoras sigue siendo peor que la siguiente de fábrica**, en velocidad máxima y en
+   aceleración. Una prueba automática lo comprueba con los valores del juego.
+2. **Las mejoras suben velocidad y aceleración, no el agarre.** Llegas más rápido a la misma
+   esquina: el chiste se mantiene.
+   - **Exosto:** sobre todo aceleración (y suena más duro).
+   - **Motor:** sobre todo velocidad máxima.
+3. **Qué se puede comprar:** exosto y motor de la moto actual (en cualquier orden) o saltar
+   directo a la siguiente moto si alcanza el dinero. Las mejoras no pasan a la moto nueva.
+4. **Precios orientativos** (en pedidos bien hechos con la moto actual): cada mejora ≈ 2 pedidos,
+   la siguiente moto ≈ 6 pedidos.
+
+### 7.2 Valores
+
+Los números exactos (velocidad en m/s, aceleración, freno, agarre, cuánto suma cada mejora y los
+precios) viven en un solo archivo del juego, `scripts/motos.gd`, y se afinan jugando. Este documento
+solo fija las reglas de arriba. Como referencia, el prototipo usa para la BWS una velocidad máxima
+de 25 m/s (90 km/h).
+
+En el garaje cada moto muestra sus barras y, como chiste, una barra de **FE** que siempre es la más
+larga.
 
 ---
 
@@ -270,13 +303,16 @@ mejor piloto de la ciudad.
 
 1. **Advertencia de contenido** (humor negro, sangre pixelada, muertes de tráfico), saltable tras
    2 s.
-2. **Menú principal:** vista en primera persona con la moto parada en la esquina del barrio.
+2. **Menú de inicio:** el título del juego sobre la vista en primera persona con la moto parada en
+   una esquina del barrio (y el ciclo de día y noche corriendo de fondo). Opciones: **Jugar**
+   (o **Continuar** si hay dinero guardado), **Opciones**, **Créditos** y **Salir**.
 3. **App de pedidos:** celular pixelado con el pedido, el pago, el tiempo y el minimapa.
 4. **Conducción** (§5), con el HUD estilo *Doom*.
 5. **Entrega:** pago, propina, estrellas y comentario del cliente.
 6. **Cinemática de muerte:** la ilustración del meme en la esquina donde caíste, la frase con el
    nombre de la moto y «Pulsa [START] para continuar».
-7. **Garaje:** motos compradas y por comprar.
+7. **Garaje:** la moto actual con sus dos mejoras, la siguiente moto con su precio y el dinero
+   acumulado.
 8. **Opciones, créditos.**
 
 Un único director (`main.gd`) cambia entre pantallas, como en los juegos anteriores.
@@ -293,10 +329,10 @@ Un único director (`main.gd`) cambia entre pantallas, como en los juegos anteri
   Ambas escalan entero a 720p, 1080p, 1440p y 4K.
 - **Paleta fija** (~32 colores) en `tools/paleta.py`: ladrillo, concreto, asfalto, verdes de los
   letreros, naranjas del alumbrado de sodio, rojos del HUD y la sangre, y el color propio de cada
-  moto (azul claro BWS, negro y rojo Boxer, negro y plata Crypton, gris NKD, verde lima Ninja).
+  moto (azul claro BWS, gris NKD, verde lima Ninja).
 - **Assets por código** (paleta → cuantizar → *dithering*): texturas de fachadas, asfalto, andenes,
   letreros; sprites de carros, buses y peatones.
-- **Los manubrios** son el asset más visible y el más difícil: cinco sprites grandes con manos y
+- **Los manubrios** son el asset más visible y el más difícil: tres sprites grandes con manos y
   tablero. Primero por código (polígonos por piezas, rasterizados a la paleta); si no alcanza, se
   retocan a mano con LibreSprite o Krita.
 - **Fuente:** pixelada con licencia OFL. Una estilo *Doom* para los números del HUD y una
@@ -312,7 +348,7 @@ Efectos y música sintetizados por código y definidos con números antes de gen
 
 | Sonido | Descripción | Requisito medible (borrador) |
 |---|---|---|
-| Motor de cada moto | Tono que sube con las RPM. BWS: zumbido de CVT; Boxer, Crypton, NKD: monocilíndrico «pum-pum»; Ninja: bicilíndrico agudo | Fundamental 30–250 Hz según RPM; paso-alto a 90 Hz; bucle sin clic |
+| Motor de cada moto | Tono que sube con las RPM. BWS: zumbido de CVT; NKD: monocilíndrico «pum-pum»; Ninja: bicilíndrico agudo. El exosto mejorado suena más duro | Fundamental 30–250 Hz según RPM; paso-alto a 90 Hz; bucle sin clic |
 | Frenazo | Chirrido de llanta | 0,4–1,0 s, ≥ 50 % de la energía sobre 1 kHz |
 | Golpe con el andén | Golpe seco corto | ≤ 0,5 s |
 | Caída | Golpe + metal arrastrándose + silencio | ≤ 1,5 s, final en silencio |
@@ -327,7 +363,7 @@ Efectos y música sintetizados por código y definidos con números antes de gen
 
 - **Tono:** humor negro sobre la prisa y la fe del domiciliario, no burla de las víctimas ni de los
   venezolanos. Advertencia de contenido al inicio.
-- **Marcas reales:** los modelos (BWS, Boxer, Crypton, NKD, Ninja) y los logos (Yamaha, Bajaj, AKT,
+- **Marcas reales:** los modelos (BWS, NKD, Ninja) y los logos (Yamaha, AKT,
   Kawasaki) son marcas registradas. Para un `.exe` entre amigos el riesgo es bajo; para publicar,
   mejor nombres parodia reconocibles («Yamajá Bwis», «Kawasuki Ninya 300») y logos inventados. Los
   nombres viven en un solo archivo de datos para cambiarlos con una línea.
@@ -366,17 +402,17 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | **F0** Andamiaje | Proyecto Godot 4.7.2 (Compatibility), `.gitattributes`, `.gitignore`, corredor de pruebas, `CLAUDE.md`, registros de licencias | Pruebas en verde en headless; arranca |
 | **F1** Prototipo gris | Unas pocas cuadras de cajas grises (de distintos largos), moto en primera persona, regla de la esquina y el andén, caída con texto plano, script de capturas | Tomás juega y confirma que frenar antes de la esquina es divertido |
 | **F2** Dirección visual | Paleta, fuentes, maqueta del HUD, un manubrio y la cinemática de muerte | Tomás aprueba el look |
-| **F3** Ciudad | Generador de la ciudad de 40 × 80 cuadras irregulares con sus cinco zonas, carga por trozos, minimapa con ruta, ciclo día/noche, tráfico y peatones | Se recorre de punta a punta sin errores ni tirones, y el minimapa lleva a cualquier dirección |
-| **F4** Arte y audio | Texturas, los cinco manubrios, cinemática ilustrada, motores, efectos, música | Capturas y medidas de audio aprobadas |
-| **F5** Contenido | Pedidos, economía, garaje, casi-choques, voces (grabadas por Tomás), final | Se juega de principio a fin |
-| **F6** Menús | Menú, opciones, idiomas, créditos, advertencia | Lista de §3.1 casi completa |
+| **F3** Ciudad | Generador de la ciudad de 40 × 80 cuadras irregulares con sus zonas, carga por trozos, minimapa con ruta, ciclo día/noche, tráfico y peatones | Se recorre de punta a punta sin errores ni tirones, y el minimapa lleva a cualquier dirección |
+| **F4** Arte y audio | Texturas, los tres manubrios, cinemática ilustrada, motores, efectos, música | Capturas y medidas de audio aprobadas |
+| **F5** Contenido | Pedidos, dinero acumulado, garaje con mejoras, casi-choques, voces (grabadas por Tomás), final | Se juega de principio a fin |
+| **F6** Menús | Menú de inicio, opciones, idiomas, créditos, advertencia | Lista de §3.1 casi completa |
 | **F7** Entrega | `.exe` y `.zip` | Probado en otro PC |
 
 ---
 
 ## 15. Decisiones
 
-### 15.1 Tomadas (29/09/2026)
+### 15.1 Tomadas
 
 | # | Decisión |
 |---|---|
@@ -387,13 +423,17 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | D5 | Las voces del domiciliario las graba Tomás |
 | D6 | Fases F0–F7 como en §14 |
 | D7 | Todo con herramientas de código abierto |
+| D8 (30/09) | Solo tres motos: BWS 125 → NKD 125 → Ninja 300 |
+| D9 (30/09) | Dos mejoras por moto, exosto y motor. La moto con las dos mejoras sigue siendo peor que la siguiente de fábrica |
+| D10 (30/09) | El dinero se acumula y no se pierde al morir |
+| D11 (30/09) | Menú de inicio |
+| D12 (30/09) | El aviso de derrape va en una esquina, más pequeño, y no salta a baja velocidad |
 
 ### 15.2 Abiertas (con la recomendación que se sigue mientras tanto)
 
 | # | Pregunta | Recomendación |
 |---|---|---|
 | D-pendiente 1 | ¿Nombres reales de las motos o parodia? | Reales mientras sea privado; parodia antes de publicar |
-| D-pendiente 2 | ¿Orden de las motos intermedias? | Boxer → Crypton → NKD (§7) |
-| D-pendiente 3 | ¿Final? | Último pedido con la Ninja en la loma de los cerros, la curva del meme. Se puede completar; la clienta es la mamá del domiciliario y el pedido llegó frío |
-| D-pendiente 4 | ¿Título? | *Tu fe era más grande*. Otras: *Llegó frío*, *Fe > Agarre*, *Domicilio final* |
-| D-pendiente 5 | ¿Soporte de mando? | Solo teclado en la v1 |
+| D-pendiente 2 | ¿Final? | Último pedido con la Ninja en la loma de los cerros, la curva del meme. Se puede completar; la clienta es la mamá del domiciliario y el pedido llegó frío |
+| D-pendiente 3 | ¿Título? | *Tu fe era más grande*. Otras: *Llegó frío*, *Fe > Agarre*, *Domicilio final* |
+| D-pendiente 4 | ¿Soporte de mando? | Solo teclado en la v1 |
