@@ -44,7 +44,7 @@ func run(t) -> void:
 			baja = false
 		anterior = w
 	t.check(baja, "de 2 m/s en adelante, cuanto más rápido menos gira (progresivo)")
-	t.check(m.giro_max_a(2.0) > 6.0 * m.giro_max_a(vmax), "casi parada gira mucho más que a tope (%.2f rad/s)" % m.giro_max_a(2.0))
+	t.check(absf(m.giro_max_a(2.0) / m.giro_max_a(vmax) - 9.0) < 0.05, "a 7 km/h gira 9 veces lo de tope (Tomás) (%.2f rad/s)" % m.giro_max_a(2.0))
 	t.check(m.giro_max_a(10.0) > 1.5 * 0.6, "a 36 km/h gira más que antes (antes 0,60 rad/s; ahora %.2f)" % m.giro_max_a(10.0))
 	m.vel = 5.0
 	var h0: float = m.rumbo
