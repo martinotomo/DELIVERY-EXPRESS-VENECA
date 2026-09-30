@@ -1285,7 +1285,7 @@ def flecha_via(img, rng, x_cola, x_punta, yc, alto, sesgo=-1.0):
     lienzo = Image.new("L", (W * 4, H * 4), 0)
     ImageDraw.Draw(lienzo).polygon([(x * 4, y * 4) for x, y in pts], fill=255)
     m = np.array(lienzo.resize((W, H), Image.BILINEAR), np.float32) / 255.0
-    m *= ruido(rng, (H, W), 0.8) > -1.4
+    m *= ruido(rng, (H, W), 0.8) > -1.8
     img[:] = img * (1 - m[..., None]) + c("hueso", 0.92)[None, None] * m[..., None]
 
 
@@ -1296,7 +1296,7 @@ def escena_contravia(clave):
     rng = np.random.default_rng(20260934)
     img, anden, via = fondo(rng, z_borde=Z_BORDE_CONTRA)
     yb = HOR + F * CAM_H / Z_BORDE_CONTRA
-    flecha_via(img, rng, 124, 16, 131.5, 15.0)
+    flecha_via(img, rng, 120, 14, 131.5, 17.0, sesgo=-0.7)
     taxi = vehiculo(GV.Carro(color="amarillo_taxi", tipo="hatch", taxi=True, franja=True, largo=4.0, ejes=(1.2, -1.22)).modelo(),
                     270.0, 30.0, 160, 70, 8.0)
     th, tw = taxi.shape[:2]
