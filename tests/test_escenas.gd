@@ -109,7 +109,7 @@ func run(t) -> void:
 	var f10 := InputEventKey.new()
 	f10.keycode = KEY_F10
 	f10.pressed = true
-	t.check(taller.trucos == OS.is_debug_build(), "F10 solo existe en desarrollo (taller)")
+	t.check(taller.trucos == (OS.is_debug_build() and not OS.has_feature("entrega")), "F10 solo existe en desarrollo (taller)")
 	var antes_f10: int = main.progreso.dinero
 	taller.trucos = true
 	taller._input(f10)
@@ -430,7 +430,7 @@ func run(t) -> void:
 	f9.keycode = KEY_F9
 	f9.pressed = true
 	var cl = r2.partida.clima
-	t.check(r2.trucos == OS.is_debug_build(), "las teclas de prueba solo existen en desarrollo")
+	t.check(r2.trucos == (OS.is_debug_build() and not OS.has_feature("entrega")), "las teclas de prueba solo existen en desarrollo")
 	r2.trucos = true
 	r2._input(f9)
 	t.check(not cl.lloviendo(), "F9 con lluvia la quita")

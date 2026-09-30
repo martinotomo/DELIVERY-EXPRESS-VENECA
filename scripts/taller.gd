@@ -34,7 +34,7 @@ var _l_datos: Array[Label] = []
 var _candado: Control
 var _tope := {}              # vel_max y acel de la mejor moto con todo
 ## F10 = +$50.000 para probar: solo en versiones de desarrollo, nunca en el .exe exportado.
-var trucos := OS.is_debug_build()
+var trucos := OS.is_debug_build() and not OS.has_feature("entrega") # F9/F10: solo en desarrollo
 
 
 func _ready() -> void:
