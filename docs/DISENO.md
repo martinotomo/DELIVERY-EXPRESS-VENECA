@@ -1,4 +1,4 @@
-# Documento de diseño — juego de motos
+# Documento de diseño — Delivery Express
 
 **Autor:** Tomás Ardila Marín
 **Versión:** 0.4 — 30/09/2026 (tres motos con dos mejoras cada una, el dinero no se pierde al morir, menú de inicio y aviso de derrape más discreto)
@@ -15,7 +15,7 @@ esquina más rápido de lo que aguanta tu moto, te montas en el andén, te caes 
 de siempre: **«Has muerto al girar demasiado rápido en la esquina, tu fe era más grande que el
 agarre de tu {moto}»**.
 
-**Título provisional:** *Tu fe era más grande* (alternativas en §15).
+**Título:** *Delivery Express* (D13).
 
 **El chiste central:** la prisa (propina, estrellas, tiempo prometido) contra el agarre real de una
 moto de bajo cilindraje. Mejorar de moto no te salva: solo te deja llegar más rápido a la misma
@@ -433,6 +433,7 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | D10 (30/09) | El dinero se acumula y no se pierde al morir |
 | D11 (30/09) | Menú de inicio |
 | D12 (30/09) | El aviso de derrape va abajo a la izquierda, más pequeño, y solo salta por encima del 75 % de la velocidad máxima |
+| D13 (30/09) | El juego se llama **Delivery Express** |
 
 ### 15.2 Abiertas (con la recomendación que se sigue mientras tanto)
 
@@ -440,5 +441,4 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 |---|---|---|
 | D-pendiente 1 | ¿Nombres reales de las motos o parodia? | Reales mientras sea privado; parodia antes de publicar |
 | D-pendiente 2 | ¿Final? | Último pedido con la Ninja en la loma de los cerros, la curva del meme. Se puede completar; la clienta es la mamá del domiciliario y el pedido llegó frío |
-| D-pendiente 3 | ¿Título? | *Tu fe era más grande*. Otras: *Llegó frío*, *Fe > Agarre*, *Domicilio final* |
-| D-pendiente 4 | ¿Soporte de mando? | Solo teclado en la v1 |
+| D-pendiente 3 | ¿Soporte de mando? | Solo teclado en la v1 |
