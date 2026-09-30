@@ -29,6 +29,8 @@ func run(t) -> void:
 	for b in ["Jugar", "Taller", "Salir"]:
 		t.check(menu.find_child(b, true, false) is Button, "el menú tiene el botón %s" % b)
 	t.check(menu.get_node("Titulo").text == str(ProjectSettings.get_setting("application/config/name")).to_upper(), "el título sale de project.godot")
+	t.check_eq(ProjectSettings.get_setting("application/config/name"), "Delivery Express", "el juego se llama Delivery Express (D14)")
+	t.check_eq(menu.get_node("Titulo").text, "DELIVERY EXPRESS", "el menú muestra el nombre nuevo")
 	t.check(menu.get_node("Estado").text.contains("BWS"), "el menú dice qué moto se tiene")
 
 	# Taller: con plata se compra; sin plata los botones están apagados.
