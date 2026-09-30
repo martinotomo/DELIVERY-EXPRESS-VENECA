@@ -237,6 +237,29 @@ func run(t) -> void:
 	var cam: Camera3D = ride.get_node("Vista/Mundo/Camara")
 	var p: Vector2 = ride.partida.moto.pos
 	t.check(Vector2(cam.position.x, cam.position.z).distance_to(p) < 0.5, "la cámara va donde va la moto")
+	# Se ve la calle de enfrente por encima del tablero, como en una moto de verdad (Tomás, 30/09):
+	# entre el horizonte y lo primero que tapa el centro de la pantalla quedan al menos 55 px.
+	var adelante := -cam.global_transform.basis.z
+	adelante.y = 0.0
+	var lejos := cam.global_position + adelante.normalized() * 2000.0
+	lejos.y = 0.0
+	var horizonte: float = cam.unproject_position(lejos).y * 2.0
+	var MAN := load("res://scripts/manubrio.gd")
+	for id in MAN.SPRITES:
+		var im: Image = MAN.SPRITES[id].get_image()
+		var fila := im.get_height()
+		var seguidas := 0   # filas tapadas seguidas (una rayita, como el marco del parabrisas, no cuenta)
+		for y in im.get_height():
+			var tapados := 0
+			for x in range(130, 190):
+				if im.get_pixel(x, y).a > 0.5:
+					tapados += 1
+			seguidas = seguidas + 1 if tapados > 30 else 0
+			if seguidas == 4:
+				fila = y - 3
+				break
+		var tope: float = MAN.ARRIBA + fila * MAN.ESCALA
+		t.check(tope - horizonte >= 55.0, "%s: se ven %d px de calle entre el horizonte y el tablero" % [id, tope - horizonte])
 
 	# Un evento pone subtítulo.
 	ride.partida.evento.emit("casi")

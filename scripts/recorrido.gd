@@ -15,7 +15,8 @@ const PROGRESO := preload("res://scripts/progreso.gd")
 const AUDIO := preload("res://scripts/audio.gd")
 const LLUVIA := preload("res://scripts/lluvia_pantalla.gd")
 
-const ALTURA_OJOS := 1.35
+const ALTURA_OJOS := 1.5
+const MIRADA_ABAJO := 0.1   # rad que se inclina la vista hacia la calle (se ve más camino por encima del tablero)
 const ANDEN_ALTO := 0.2
 const SUBTITULO_S := 3.5
 const SUBTITULO_POS := Vector2(150, 310) # a la derecha del aviso de derrape, sobre la barra (y 334)
@@ -629,7 +630,7 @@ func _actualizar_vista(delta: float) -> void:
 	if not _cinematica:
 		var cabeceo := sin(Time.get_ticks_msec() / 90.0) * 0.015 * clampf(m.vel / 25.0, 0.0, 1.0)
 		_camara.position = Vector3(m.pos.x, ALTURA_OJOS + cabeceo, m.pos.y)
-		_camara.rotation = Vector3(0.0, -m.rumbo - PI / 2.0, -_giro_visual * 0.07)
+		_camara.rotation = Vector3(-MIRADA_ABAJO, -m.rumbo - PI / 2.0, -_giro_visual * 0.07)
 
 	_actualizar_cielo(delta)
 
