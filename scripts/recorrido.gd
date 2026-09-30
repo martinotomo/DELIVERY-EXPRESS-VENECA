@@ -1,6 +1,6 @@
 extends Control
 ## Pantalla de juego, en gris y estilo Doom: el mundo se dibuja a 320×180 y se escala entero;
-## encima va el manubrio de la BWS, el minimapa y el HUD a 640×360.
+## encima va el manubrio de la moto, el minimapa y el HUD a 640×360.
 ## Solo dibuja la partida y le pasa los mandos; la lógica vive en partida.gd.
 
 signal terminado(estado: String, mensaje: String)
@@ -531,6 +531,8 @@ func _construir_hud() -> void:
 
 	_manubrio = MANUBRIO.new()
 	_manubrio.name = "Manubrio"
+	_manubrio.moto_id = partida.moto.moto.id
+	_manubrio.tope_kmh = ceilf(float(partida.moto.moto.vel_max) * 3.6 / 20.0) * 20.0 + 20.0
 	_manubrio.size = Vector2(640, 360)
 	_manubrio.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_manubrio)

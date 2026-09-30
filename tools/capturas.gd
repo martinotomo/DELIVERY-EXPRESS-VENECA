@@ -63,7 +63,21 @@ func _correr() -> void:
 	_main.progreso.comprar_mejora("exosto")
 	_ride().actualizar()
 	await process_frame
+	await create_timer(0.2).timeout
 	await _foto("0b_taller")
+	# La vitrina: la NKD bloqueada, luego a la venta, y la Ninja que pide primero la NKD.
+	var tl := _ride()
+	tl.mover(1)
+	await create_timer(0.8).timeout
+	await _foto("0c_taller_bloqueada")
+	_main.progreso.dinero = 61500
+	tl.actualizar()
+	await create_timer(0.2).timeout
+	await _foto("0d_taller_a_la_venta")
+	tl.mover(1)
+	await create_timer(0.8).timeout
+	await _foto("0e_taller_ninja")
+	_main.progreso.dinero = 23500
 	_main.reiniciar()
 	await process_frame
 	await process_frame
@@ -158,6 +172,17 @@ func _correr() -> void:
 	r.partida._revisar_atropello()
 	await _colocar(cb2.centro - Vector2(6.5, 0), 0.0, 0.0, 200.0)
 	await _foto("11_atropello")
+
+	# Cada moto con su puesto de mando.
+	for id in ["nkd", "ninja"]:
+		_main.progreso.moto = id
+		_main.progreso.mejoras = {}
+		_main.reiniciar()
+		await process_frame
+		await process_frame
+		await _colocar(c.cruce(20, 40) + Vector2(-30, 0), 0.0, 20.0, 100.0)
+		await _foto("12_manubrio_" + id)
+	_main.progreso.moto = "bws"
 
 	_hoja()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))

@@ -21,6 +21,9 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | texturas/fachada_casa.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_casa_luz.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | ui/manubrio.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| ui/manubrio_nkd.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| ui/manubrio_ninja.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| ui/motos_taller.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/motor_bws_1700.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/motor_bws_2350.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/motor_bws_3240.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |

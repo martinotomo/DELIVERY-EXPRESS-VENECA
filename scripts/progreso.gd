@@ -98,6 +98,31 @@ func comprar_moto() -> bool:
 	return true
 
 
+## Cómo está cada moto para el taller.
+const EN_USO := "en_uso"
+const ENTREGADA := "entregada"     # la anterior: se entregó al comprar la siguiente
+const COMPRABLE := "comprable"     # la siguiente, y alcanza la plata
+const SIN_PLATA := "sin_plata"     # la siguiente, pero no alcanza
+const BLOQUEADA := "bloqueada"     # más adelante: primero hay que comprar la del medio
+
+
+func estado_moto(id: String) -> String:
+	var i := MOTOS.ORDEN.find(id)
+	var actual := MOTOS.ORDEN.find(moto)
+	if i == actual:
+		return EN_USO
+	if i < actual:
+		return ENTREGADA
+	if i > actual + 1:
+		return BLOQUEADA
+	return COMPRABLE if puede_comprar_moto() else SIN_PLATA
+
+
+## Cuánta plata falta para comprar esa moto (0 si alcanza).
+func falta_para(id: String) -> int:
+	return maxi(int(MOTOS.get_moto(id).precio) - dinero, 0)
+
+
 static func pesos(n: int) -> String:
 	var s := str(absi(n))
 	var out := ""

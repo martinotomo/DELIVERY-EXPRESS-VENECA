@@ -48,6 +48,11 @@ PALETA = {
     "guante_claro": (148, 110, 72),
     "chaqueta": (170, 60, 30),
     "chaqueta_oscura": (110, 36, 18),
+    # pintura de las motos del taller (sin logos: solo el color que las evoca)
+    "azul_bwis": (150, 170, 196),
+    "azul_bwis_oscuro": (84, 100, 126),
+    "verde_ninja": (74, 168, 42),
+    "verde_ninja_oscuro": (30, 92, 22),
     # peatones
     "piel_clara": (214, 166, 128),
     "piel": (168, 114, 78),
