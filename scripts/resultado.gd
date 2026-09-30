@@ -1,7 +1,8 @@
 extends Control
-## Pantalla del remate: caja con el mensaje y «Pulsa ENTER para continuar».
+## Pantalla del remate: caja con el mensaje y «ENTER: otra jornada / ESC: menú».
 
 signal continuar
+signal al_menu
 
 const ESPERA_MINIMA := 0.6 # que una tecla sostenida no se salte el chiste
 
@@ -38,7 +39,7 @@ func _ready() -> void:
 
 	var pista := Label.new()
 	pista.name = "Pista"
-	pista.text = "Pulsa ENTER para continuar"
+	pista.text = "ENTER: otra jornada      ESC: menú"
 	pista.position = Vector2(0, 322)
 	pista.size = Vector2(640, 20)
 	pista.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -63,3 +64,6 @@ func _process(delta: float) -> void:
 	if _t >= ESPERA_MINIMA and Input.is_action_just_pressed("continuar"):
 		set_process(false)
 		continuar.emit()
+	elif _t >= ESPERA_MINIMA and Input.is_action_just_pressed("menu"):
+		set_process(false)
+		al_menu.emit()

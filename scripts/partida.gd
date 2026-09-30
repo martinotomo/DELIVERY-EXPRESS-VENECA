@@ -3,6 +3,7 @@ extends RefCounted
 
 signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado
 signal terminada_por(mensaje: String)
+signal pagado(pesos: int)           # al entregar: tarifa más propina por el tiempo que sobró
 
 const CIUDAD := preload("res://scripts/ciudad.gd")
 const MOTO := preload("res://scripts/moto_logic.gd")
@@ -15,6 +16,8 @@ const RADIO_LLEGADA := 7.0
 const VEL_PARADA := 3.0      # m/s: hay que parar para recoger o entregar
 const VEL_PROMEDIO := 8.0    # m/s con que se calcula el tiempo del pedido
 const TIEMPO_EXTRA := 25.0
+const TARIFA := 5000         # pesos por pedido entregado
+const PROPINA_POR_S := 50    # pesos por cada segundo que sobró
 
 const PLATOS := ["Bandeja paisa", "Ajiaco", "Hamburguesa doble", "Salchipapa", "Empanadas x10",
 	"Arepa de choclo", "Pizza familiar", "Changua", "Tamal con chocolate", "Perro caliente"]
@@ -27,16 +30,18 @@ var fase := RECOGER
 var tiempo_restante := 0.0
 var entregados := 0
 var cancelados := 0
+var ganado := 0              # pesos de esta jornada (ya quedan guardados al cobrarlos)
 var terminada := false
 var _rng := RandomNumberGenerator.new()
 
 
-func _init(semilla := 1) -> void:
+func _init(semilla := 1, datos_moto: Dictionary = {}) -> void:
 	_rng.seed = semilla
 	ciudad = CIUDAD.new(semilla)
 	reloj = CICLO.new()
 	moto = MOTO.new()
-	moto.setup(MOTOS.get_moto(MOTOS.MOTO_INICIAL), ciudad, ciudad.cruce(20, 40), 0.0)
+	var datos := datos_moto if not datos_moto.is_empty() else MOTOS.get_moto(MOTOS.MOTO_INICIAL)
+	moto.setup(datos, ciudad, ciudad.cruce(20, 40), 0.0)
 	moto.estrellado.connect(_al_estrellarse)
 	moto.casi.connect(func(_tipo): evento.emit("casi"))
 	moto.golpe.connect(func(): evento.emit("golpe"))
@@ -74,8 +79,16 @@ func _revisar_llegada() -> void:
 		evento.emit("recogido")
 	else:
 		entregados += 1
+		var pago := pago_por(tiempo_restante)
+		ganado += pago
 		evento.emit("entregado")
+		pagado.emit(pago)
 		_nuevo_pedido()
+
+
+## Lo que paga un pedido según los segundos que sobraron, redondeado a cientos.
+static func pago_por(segundos_sobrantes: float) -> int:
+	return TARIFA + int(round(maxf(segundos_sobrantes, 0.0) * PROPINA_POR_S / 100.0)) * 100
 
 
 func _cuadra_cerca(desde: Vector2, min_d: int, max_d: int) -> Vector2i:

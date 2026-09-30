@@ -52,14 +52,23 @@ func run(t) -> void:
 	var giro_lento := absf(m.rumbo - h0)
 	t.check(giro_lento > 1.4, "a 18 km/h gira fuerte (%.2f rad en 1 s)" % giro_lento)
 	t.check(not m.derrapando, "a 18 km/h no derrapa")
+	# «Se va de lado»: solo muy rápido, casi a tope de manubrio y sostenido (Tomás, 30/09).
 	m = _nueva()
-	m.vel = 20.0
+	m.vel = 15.0 # 54 km/h: antes ya avisaba
+	m.advance(1.0, true, false, 1.0)
+	t.check(not m.derrapando, "a 54 km/h girando a tope ya no avisa")
+	m = _nueva()
+	m.vel = 23.0
 	m.advance(PASO * 6, true, false, 1.0)
-	t.check(m.derrapando, "a 72 km/h girando a tope se va de lado")
+	t.check(not m.derrapando, "un toque de manubrio a 83 km/h no avisa")
+	m.advance(0.5, true, false, 1.0)
+	t.check(m.derrapando, "sostener el giro a tope a 83 km/h sí avisa")
+	m.advance(PASO, true, false, 0.5)
+	t.check(not m.derrapando, "al soltar el manubrio se quita")
 	m = _nueva()
-	m.vel = 20.0
-	m.advance(PASO * 6, true, false, 0.5)
-	t.check(not m.derrapando, "a 72 km/h con medio manubrio no se va de lado")
+	m.vel = 23.0
+	m.advance(1.0, true, false, 0.6)
+	t.check(not m.derrapando, "a 83 km/h con medio manubrio no avisa")
 
 	# Contra el andén rápido: muerto, con el remate de la BWS.
 	m = _nueva()

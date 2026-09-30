@@ -6,19 +6,60 @@ func _pantallas(main: Node) -> Array:
 	return main.get_node("Pantallas").get_children()
 
 
+const RUTA := "user://prueba_escenas.cfg"
+
+
 func run(t) -> void:
 	var escena = load("res://scenes/main.tscn")
 	t.check(escena != null, "carga main.tscn")
 	if escena == null:
 		return
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(RUTA))
+	var DIRECTOR = load("res://scripts/main.gd")
+	DIRECTOR.ruta_progreso = RUTA
 	var main: Node = escena.instantiate()
 	t.root.add_child(main)
 	await t.process_frame
 	await t.process_frame
 
+	# Menú de inicio.
 	t.check_eq(_pantallas(main).size(), 1, "al arrancar hay una sola pantalla")
+	var menu: Node = main.pantalla_actual()
+	t.check_eq(menu.name, "Menu", "arranca en el menú")
+	for b in ["Jugar", "Taller", "Salir"]:
+		t.check(menu.find_child(b, true, false) is Button, "el menú tiene el botón %s" % b)
+	t.check(menu.get_node("Titulo").text == str(ProjectSettings.get_setting("application/config/name")).to_upper(), "el título sale de project.godot")
+	t.check(menu.get_node("Estado").text.contains("BWS"), "el menú dice qué moto se tiene")
+
+	# Taller: con plata se compra; sin plata los botones están apagados.
+	menu.find_child("Taller", true, false).pressed.emit()
+	await t.process_frame
+	var taller: Node = main.pantalla_actual()
+	t.check_eq(taller.name, "Taller", "el botón Taller abre el taller")
+	var b_exosto: Button = taller.find_child("Mejora_exosto", true, false)
+	t.check(b_exosto.disabled, "sin plata el exosto está apagado")
+	main.progreso.dinero = 13000
+	taller.actualizar()
+	t.check(not b_exosto.disabled, "con plata se puede comprar el exosto")
+	b_exosto.pressed.emit()
+	t.check(main.progreso.tiene_mejora("exosto"), "comprar el exosto lo instala")
+	t.check(b_exosto.disabled and b_exosto.text.contains("instalado"), "el botón dice que ya está instalado")
+	t.check(taller.get_node("Plata").text == "$5.000", "el taller cobra y muestra el saldo (%s)" % taller.get_node("Plata").text)
+	t.check(taller.find_child("ComprarMoto", true, false).text.contains("NKD"), "el taller ofrece la siguiente moto")
+	for hijo in taller.get_children():
+		if hijo is Label:
+			t.check(hijo.position.x >= 0.0 and hijo.position.x + hijo.size.x <= 640.0, "el texto «%s» cabe en el taller" % hijo.text.left(24))
+	taller.find_child("Volver", true, false).pressed.emit()
+	await t.process_frame
+	t.check_eq(main.pantalla_actual().name, "Menu", "Volver regresa al menú")
+	t.check_eq(_pantallas(main).size(), 1, "sigue habiendo una sola pantalla")
+	main.pantalla_actual().find_child("Jugar", true, false).pressed.emit()
+	await t.process_frame
+	await t.process_frame
+
 	var ride: Node = main.pantalla_actual()
-	t.check_eq(ride.name, "Recorrido", "arranca en el recorrido")
+	t.check_eq(ride.name, "Recorrido", "Jugar abre el recorrido")
+	t.check(ride.partida.moto.moto.vel_max > 25.0, "se juega con la moto mejorada del taller")
 	for ruta in ["Vista/Mundo/Camara", "Vista/Mundo/Sol", "HUD/Manubrio", "HUD/Minimapa",
 			"HUD/Velocidad", "HUD/Reloj", "HUD/Hora", "HUD/Pedido", "HUD/Subtitulo"]:
 		t.check(ride.has_node(ruta), "existe %s" % ruta)
@@ -117,6 +158,32 @@ func run(t) -> void:
 	await t.process_frame
 	t.check_eq(_pantallas(main).size(), 1, "tras reintentar hay una sola pantalla")
 	t.check_eq(main.pantalla_actual().name, "Recorrido", "reintentar vuelve al recorrido")
+
+	# Entregar paga y la plata sale en la barra.
+	var r2: Node = main.pantalla_actual()
+	var antes: int = main.progreso.dinero
+	r2.partida.moto.pos = r2.partida.pedido.restaurante
+	r2.partida._revisar_llegada()
+	r2.partida.moto.pos = r2.partida.pedido.cliente
+	r2.partida._revisar_llegada()
+	t.check(main.progreso.dinero > antes, "entregar en el recorrido suma plata al progreso")
+	r2._actualizar_vista(0.0)
+	t.check_eq(r2.get_node("HUD/Plata").text, main.progreso.pesos(main.progreso.dinero), "la barra muestra la plata")
+	# El aviso de derrape: pequeño, en la esquina, y solo cuando toca.
+	var aviso: Label = r2.get_node("HUD/Derrape")
+	t.check(not aviso.visible, "sin derrapar no hay aviso")
+	r2.partida.moto.derrapando = true
+	r2._actualizar_vista(0.0)
+	t.check(aviso.visible, "derrapando sale el aviso")
+	t.check(aviso.position.x < 100 and aviso.position.y > 280, "el aviso va abajo a la izquierda, no en el centro")
+	t.check(aviso.get_theme_font_size("font_size") <= 8, "el aviso es pequeño")
+	main.menu()
+	await t.process_frame
+	t.check_eq(main.pantalla_actual().name, "Menu", "se puede volver al menú")
+	t.check_eq(_pantallas(main).size(), 1, "con una sola pantalla")
+	t.check(main.pantalla_actual().get_node("Estado").text.contains(main.progreso.pesos(main.progreso.dinero)), "el menú muestra la plata ganada")
+	DIRECTOR.ruta_progreso = "user://progreso.cfg"
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(RUTA))
 
 	main.queue_free()
 	await t.process_frame

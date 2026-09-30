@@ -26,6 +26,7 @@ func _colocar(pos: Vector2, rumbo: float, vel: float, reloj_t: float, giro := 0.
 	m.pos = pos
 	m.rumbo = rumbo
 	m.vel = vel
+	m.derrapando = false
 	r.partida.reloj.t = reloj_t
 	r._giro_visual = giro
 	r._actualizar_vista(0.0)
@@ -44,8 +45,25 @@ func _foto(nombre: String) -> void:
 func _correr() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SALIDA))
 	root.size = Vector2i(640, 360)
+	var ruta := "user://capturas_progreso.cfg"
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
+	load("res://scripts/main.gd").ruta_progreso = ruta # no tocar la partida guardada de verdad
 	_main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(_main)
+	await process_frame
+	await process_frame
+	_main.progreso.dinero = 23500
+	_main.menu()
+	await process_frame
+	await process_frame
+	await _foto("0a_menu")
+	_main.taller()
+	await process_frame
+	_main.progreso.comprar_mejora("exosto")
+	_ride().actualizar()
+	await process_frame
+	await _foto("0b_taller")
+	_main.reiniciar()
 	await process_frame
 	await process_frame
 	var c = _ride().partida.ciudad
@@ -54,8 +72,11 @@ func _correr() -> void:
 	await _colocar(c.cruce(20, 40) + Vector2(-30, 0), 0.0, 12.0, 60.0)
 	await _foto("1_manana")
 	# Mediodía, mirando hacia el norte por una carrera, girando.
-	await _colocar(c.cruce(18, 38) + Vector2(0, -40), PI / 2.0, 18.0, 150.0, 0.7)
-	await _foto("2_mediodia_girando")
+	await _colocar(c.cruce(18, 38) + Vector2(0, -40), PI / 2.0, 23.0, 150.0, 1.0)
+	_ride().partida.moto.derrapando = true
+	_ride()._actualizar_vista(0.0)
+	await process_frame
+	await _foto("2_mediodia_derrape")
 	# Atardecer.
 	await _colocar(c.cruce(22, 44) + Vector2(-50, 0), 0.0, 20.0, 290.0)
 	await _foto("3_atardecer")
@@ -91,13 +112,14 @@ func _correr() -> void:
 	await _foto("7_caida_noche")
 
 	_hoja()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
 	quit(0)
 
 
 func _hoja() -> void:
 	var w := 640
 	var h := 360
-	var hoja := Image.create(w * 2, h * 4, false, Image.FORMAT_RGBA8)
+	var hoja := Image.create(w * 2, h * 5, false, Image.FORMAT_RGBA8)
 	for i in _fotos.size():
 		var f := _fotos[i]
 		f.convert(Image.FORMAT_RGBA8)

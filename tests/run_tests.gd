@@ -9,6 +9,7 @@ const SUITES := {
 	"ciudad": "res://tests/test_ciudad.gd",
 	"moto": "res://tests/test_moto.gd",
 	"partida": "res://tests/test_partida.gd",
+	"progreso": "res://tests/test_progreso.gd",
 	"ciclo": "res://tests/test_ciclo.gd",
 	"voces": "res://tests/test_voces.gd",
 	"mensajes": "res://tests/test_mensajes.gd",
