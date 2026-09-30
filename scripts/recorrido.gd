@@ -6,6 +6,7 @@ extends Control
 signal terminado(estado: String, mensaje: String)
 signal reintentar
 signal al_menu
+signal hablo(segundos: float) # el domiciliario dice algo en voz alta (el director baja la música)
 
 const PARTIDA := preload("res://scripts/partida.gd")
 const VOCES := preload("res://scripts/voces.gd")
@@ -53,6 +54,10 @@ var _l_derrape: Label
 var _l_motor: Label
 var _l_bono: Label
 var _l_ubicacion: Label
+var _l_racha: Label
+var _l_estrellas: Label
+var _t_estrellas := 0.0
+const ESTRELLAS_S := 4.5
 var _mapa: Control
 var _letreros: Array[Node3D] = [] # placas de las esquinas cercanas (se reacomodan al cambiar de cruce)
 var _cruce_letreros := Vector2i(-99, -99)
@@ -76,6 +81,10 @@ var trucos := OS.is_debug_build()
 var _subtitulo: Label
 var _voz: AudioStreamPlayer
 var _t_subtitulo := 0.0
+var _ultima_voz := -99.0
+var ultima_voz := "" # para las pruebas
+const VOZ_ESPACIO := 3.0
+const VOCES_SIEMPRE := ["estrellado", "final", "choque", "atropello", "pito", "grito"]
 var _giro_visual := 0.0
 var _cinematica := false
 var _ilustracion: TextureRect
@@ -86,7 +95,9 @@ const ILUSTRACION_ZOOM := 1.08  # acercamiento lento mientras se ve
 
 func _ready() -> void:
 	if progreso != null:
-		partida = PARTIDA.new(SEMILLA, progreso.datos_moto())
+		partida = PARTIDA.new(SEMILLA, progreso.datos_moto(), progreso.toca_final())
+		if progreso.estrenando() != "":
+			get_tree().create_timer(1.2).timeout.connect(func(): if is_inside_tree(): _al_evento("moto_nueva"))
 	_construir_mundo()
 	_construir_hud()
 	_audio = AUDIO.new()
@@ -94,6 +105,8 @@ func _ready() -> void:
 	add_child(_audio)
 	_audio.preparar(partida.moto.moto)
 	partida.evento.connect(_al_evento)
+	partida.calificado.connect(_al_calificar)
+	partida.final_logrado.connect(_al_final)
 	partida.terminada_por.connect(_al_estrellarse)
 	_actualizar_vista(0.0)
 
@@ -952,6 +965,16 @@ func _construir_hud() -> void:
 
 	_l_pedido = _texto(Vector2(8, 8), 8, "Pedido")
 	_l_pedido.add_theme_stylebox_override("normal", _fondo())
+	# Racha de fe (casi-choques seguidos), debajo del pedido.
+	_l_racha = _texto(Vector2(8, 60), 8, "Racha")
+	_l_racha.add_theme_color_override("font_color", Color("f0c040"))
+	_l_racha.add_theme_stylebox_override("normal", _fondo())
+	_l_racha.visible = false
+	# Calificación del cliente al entregar, al centro sobre los subtítulos.
+	_l_estrellas = _texto(Vector2(0, 286), 8, "Estrellas")
+	_l_estrellas.add_theme_color_override("font_color", Color("ffd84a"))
+	_l_estrellas.add_theme_stylebox_override("normal", _fondo())
+	_l_estrellas.visible = false
 	# Aviso de derrape pequeño y en la esquina, encima de la velocidad (no tapa la calle).
 	_l_derrape = _texto(Vector2(8, 314), 8, "Derrape")
 	_l_derrape.text = "¡SE VA DE LADO!"
@@ -1047,10 +1070,18 @@ func _actualizar_vista(delta: float) -> void:
 	_l_cuenta.text = PROGRESO.pesos(progreso.dinero if progreso != null else partida.ganado)
 	_l_ubicacion.text = "%s\n%s" % [partida.ciudad.ubicacion(m.pos), partida.ciudad.nombre_zona(partida.ciudad.zona_en(m.pos)).to_upper()]
 	_l_hora.text = ("DIA " if partida.reloj.luz() > 0.25 else "NOCHE ") + partida.reloj.texto_hora()
+	var tipo: Dictionary = partida.TIPOS_PEDIDO[p.tipo]
 	if recoger:
-		_l_pedido.text = "RECOGE: %s\nSigue la columna naranja" % p.plato.to_upper()
+		_l_pedido.text = "RECOGE: %s\n%s\nSigue la columna naranja" % [p.plato.to_upper(), tipo.aviso]
 	else:
-		_l_pedido.text = "ENTREGA: %s\n%s" % [p.plato.to_upper(), p.direccion]
+		_l_pedido.text = "ENTREGA: %s A %s\n%s\n%s" % [p.plato.to_upper(), str(p.nombre_cliente).to_upper(), p.direccion, tipo.aviso]
+		if float(tipo.fragil) > 0.0:
+			_l_pedido.text += "\nESTADO: %d%%" % roundi(partida.estado_pedido * 100.0)
+	_l_racha.visible = partida.racha > 0 and not partida.terminada
+	_l_racha.text = "FE x%d  +%d%% PROPINA" % [partida.racha, roundi(partida.RACHA_BONO * 100.0 * partida.racha)]
+	_l_racha.position.y = _l_pedido.position.y + _l_pedido.get_minimum_size().y + 4.0
+	_t_estrellas = maxf(_t_estrellas - delta, 0.0)
+	_l_estrellas.visible = _t_estrellas > 0.0 and not partida.terminada
 	_l_derrape.visible = m.derrapando and not partida.terminada
 	var cuenta: float = m.cuenta_motor()
 	if m.motor_fundido:
@@ -1117,6 +1148,26 @@ func _actualizar_cielo(delta: float) -> void:
 	_actualizar_cerros(luz, llueve, cielo)
 
 
+## El cliente califica: estrellas y su comentario, un rato en pantalla.
+func _al_calificar(estrellas: int, comentario: String) -> void:
+	_l_estrellas.text = "%s%s  «%s»" % ["★".repeat(estrellas), "☆".repeat(5 - estrellas), comentario]
+	_l_estrellas.size = Vector2.ZERO
+	_l_estrellas.position.x = roundf((640.0 - _l_estrellas.get_minimum_size().x) / 2.0)
+	_t_estrellas = ESTRELLAS_S
+
+
+## El pedido final entregado: se acaba el juego (se puede seguir jugando después).
+func _al_final(mensaje: String) -> void:
+	if progreso != null:
+		progreso.marcar_final()
+	for hijo in $HUD.get_children():
+		hijo.visible = hijo == _subtitulo and _subtitulo.visible
+	if retraso_resultado > 0.0:
+		await get_tree().create_timer(retraso_resultado).timeout
+	if is_inside_tree():
+		terminado.emit("final", mensaje)
+
+
 func _al_evento(nombre: String) -> void:
 	_audio.al_evento(nombre)
 	var texto: String = voces.frase(nombre)
@@ -1125,10 +1176,17 @@ func _al_evento(nombre: String) -> void:
 	_subtitulo.text = texto
 	_subtitulo.visible = true
 	_t_subtitulo = SUBTITULO_S
+	# Nunca dos voces seguidas en menos de ~3 s (DISENO §8), salvo las que importan: se lee el subtítulo.
+	var ahora := Time.get_ticks_msec() / 1000.0
+	if ahora - _ultima_voz < VOZ_ESPACIO and not VOCES_SIEMPRE.has(nombre):
+		return
 	var ruta: String = VOCES.ruta_audio(nombre, voces._ultima.get(nombre, 0))
 	if ResourceLoader.exists(ruta):
 		_voz.stream = load(ruta)
 		_voz.play()
+		_ultima_voz = ahora
+		ultima_voz = nombre
+		hablo.emit(_voz.stream.get_length())
 
 
 # --- la caída ----------------------------------------------------------------------

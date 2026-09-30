@@ -4,6 +4,8 @@ extends RefCounted
 signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado, fundido, reparado, charco, lluvia, escampo, atropello, grito, choque, pito
 signal terminada_por(mensaje: String)
 signal pagado(pesos: int)           # al entregar: tarifa más propina por el tiempo que sobró
+signal calificado(estrellas: int, comentario: String) # el cliente califica al recibir (DISENO §5.4)
+signal final_logrado(mensaje: String) # el pedido final (la mamá, en la loma) entregado
 
 const CIUDAD := preload("res://scripts/ciudad.gd")
 const MOTO := preload("res://scripts/moto_logic.gd")
@@ -26,8 +28,34 @@ const TARIFA := 5000         # pesos por pedido entregado
 const FRENO_CHARCO := 0.15   # cada charco quita el 15 % de la velocidad
 const PROPINA_POR_S := 25    # pesos por cada segundo que sobró (Tomás, 30/09: bajó de 50)
 
-const PLATOS := ["Bandeja paisa", "Ajiaco", "Hamburguesa doble", "Salchipapa", "Empanadas x10",
-	"Arepa de choclo", "Pizza familiar", "Changua", "Tamal con chocolate", "Perro caliente"]
+## Tipos de pedido (DISENO §5.4, D27): cambian cómo se maneja. fragil: cuánto se riega por segundo de
+## frenazo en seco; freno: cuánto frena la moto con el pedido encima (el licor pesa).
+const TIPOS_PEDIDO := {
+	"hamburguesa": {"peso": 4.0, "fragil": 0.0, "freno": 1.0, "aviso": "NORMAL: dale sin miedo",
+		"platos": ["Hamburguesa doble", "Salchipapa", "Perro caliente", "Empanadas x10", "Pizza familiar", "Arepa de choclo", "Bandeja paisa"]},
+	"sopa": {"peso": 2.0, "fragil": 1.0, "freno": 1.0, "aviso": "SOPA: no frenes en seco",
+		"platos": ["Ajiaco", "Sancocho", "Changua", "Mondongo"]},
+	"torta": {"peso": 1.0, "fragil": 1.6, "freno": 1.0, "aviso": "TORTA: suavecito, que se desbarata",
+		"platos": ["Torta de cumpleaños", "Torta tres leches"]},
+	"licor": {"peso": 1.0, "fragil": 0.0, "freno": 0.65, "aviso": "LICOR: pesa, frena antes",
+		"platos": ["Aguardiente x2", "Canasta de cerveza", "Ron de 750"]},
+}
+const CLIENTES := ["Doña Gloria", "Andrés", "La del 302", "Don Hernando", "Valentina", "Profe Rubiela",
+	"Juancho", "Doña Martha", "El de la portería", "Camila", "Don Aurelio", "Mafe"]
+const DECEL_FRENAZO := 5.5   # m/s²: por encima de esto es frenar en seco
+const RACHA_MAX := 10
+const RACHA_BONO := 0.1      # +10 % de propina por cada casi-choque de la racha
+const TARDE_S := 10.0        # entregar con menos de esto es llegar «tarde» (voz de excusa)
+const CASI_TRAFICO := 1.0    # m entre la moto y un carro para que cuente como casi-choque
+const PROB_ZONA_NUEVA := 0.3 # pedidos que van a una zona de las que abre la moto, aunque quede lejos
+## Qué dice el cliente según las estrellas (índice = estrellas - 1).
+const COMENTARIOS := [
+	["Llegó frío y regado. Una estrella porque no dejan cero.", "¿Esto era mi pedido o un accidente?"],
+	["Tarde y medio regado. El domiciliario, eso sí, muy simpático.", "Mejor lo hubiera ido a buscar yo."],
+	["Normal. Ni frío ni caliente, como mi ex.", "Llegó. Eso ya es algo."],
+	["Rápido y completo. Le faltó el saludo.", "Casi perfecto: el casco daba miedo."],
+	["¡Llegó volando y calientico! Ese muchacho tiene fe.", "Cinco estrellas y una oración por su seguridad."],
+]
 
 var ciudad
 var moto
@@ -40,7 +68,14 @@ var trafico      # carros, taxis, buses y camiones (chocarlos frena en seco, no 
 var _pegado := false # la moto está tocando un carro (el choque suena una sola vez)
 var _t_pito := -1.0   # s para que el conductor pite e insulte, después del choque
 const PITO_TRAS := 1.6
+var trafico_casi_enfriar := 0.0
 var multado := false     # atropelló a alguien en este pedido: se queda sin propina
+var estado_pedido := 1.0 # 1 = como salió del restaurante; los frenazos riegan la sopa y la torta
+var racha := 0           # casi-choques seguidos desde el último golpe o entrega (DISENO §5.3)
+var ultima_racha := 0    # la racha que se cobró en la última entrega
+var es_final := false    # el pedido de ahora es el final (la mamá, en la loma)
+var _frenando := false
+var _vel_antes := 0.0
 var _charco := -1            # el charco que se está pisando (frena una sola vez al entrar)
 var pedido := {}
 var fase := RECOGER
@@ -52,7 +87,7 @@ var terminada := false
 var _rng := RandomNumberGenerator.new()
 
 
-func _init(semilla := 1, datos_moto: Dictionary = {}) -> void:
+func _init(semilla := 1, datos_moto: Dictionary = {}, final := false) -> void:
 	_rng.seed = semilla
 	ciudad = CIUDAD.new(semilla)
 	reloj = CICLO.new()
@@ -68,19 +103,22 @@ func _init(semilla := 1, datos_moto: Dictionary = {}) -> void:
 	var datos := datos_moto if not datos_moto.is_empty() else MOTOS.get_moto(MOTOS.MOTO_INICIAL)
 	moto.setup(datos, ciudad, ciudad.cruce(20, 40), 0.0)
 	moto.estrellado.connect(_al_estrellarse)
-	moto.casi.connect(func(_tipo): evento.emit("casi"))
-	moto.golpe.connect(func(): evento.emit("golpe"))
+	moto.casi.connect(_al_casi)
+	moto.golpe.connect(_al_golpe)
 	moto.fundido.connect(func(): evento.emit("fundido"))
 	moto.reparado.connect(func(): evento.emit("reparado"))
+	es_final = final
 	_nuevo_pedido()
 
 
 func advance(delta: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	if terminada:
 		return
+	_vel_antes = moto.vel
 	moto.advance(delta, acelerar, frenar, giro)
 	if terminada:
 		return
+	_revisar_frenazo(delta)
 	reloj.advance(delta)
 	clima.advance(delta, moto.pos)
 	_revisar_charco()
@@ -90,6 +128,7 @@ func advance(delta: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	transeuntes.advance(delta, moto.pos, moto.direccion())
 	trafico.advance(delta, moto.pos, moto.direccion())
 	_revisar_choque()
+	_revisar_casi_trafico(delta)
 	if _t_pito >= 0.0:
 		_t_pito -= delta
 		if _t_pito < 0.0:
@@ -115,20 +154,35 @@ func _revisar_llegada() -> void:
 		return
 	if fase == RECOGER:
 		fase = ENTREGAR
+		_aplicar_tipo()
 		evento.emit("recogido")
 	else:
 		entregados += 1
-		var pago := pago_por(0.0 if multado else tiempo_restante, clima.lloviendo())
+		ultima_racha = racha
+		racha = 0
+		var pago := pago_por(0.0 if multado else tiempo_restante, clima.lloviendo(), estado_pedido, ultima_racha)
 		ganado += pago
 		evento.emit("entregado")
 		pagado.emit(pago)
+		var calif := estrellas_por(estado_pedido, tiempo_restante / maxf(float(pedido.get("tiempo_total", 1.0)), 1.0), multado, _rng.randi())
+		calificado.emit(calif[0], calif[1])
+		if tiempo_restante < TARDE_S:
+			evento.emit("tarde")
+		if es_final:
+			es_final = false
+			terminada = true
+			evento.emit("final")
+			final_logrado.emit(MENSAJE_FINAL)
+			return
 		_nuevo_pedido()
 
 
 ## Lo que paga un pedido según los segundos que sobraron, redondeado a cientos.
 ## Con lluvia paga el bono del clima (+30 %).
-static func pago_por(segundos_sobrantes: float, lluvia := false) -> int:
-	var base := TARIFA + int(round(maxf(segundos_sobrantes, 0.0) * PROPINA_POR_S / 100.0)) * 100
+## La propina baja con el estado del pedido (regado) y sube con la racha de casi-choques.
+static func pago_por(segundos_sobrantes: float, lluvia := false, estado := 1.0, p_racha := 0) -> int:
+	var propina := maxf(segundos_sobrantes, 0.0) * PROPINA_POR_S * clampf(estado, 0.0, 1.0) * (1.0 + RACHA_BONO * mini(p_racha, RACHA_MAX))
+	var base := TARIFA + int(round(propina / 100.0)) * 100
 	return int(round(base * (1.0 + CLIMA.BONO) / 100.0)) * 100 if lluvia else base
 
 
@@ -138,6 +192,8 @@ func _revisar_atropello() -> void:
 		return
 	moto.vel = 0.0
 	multado = true
+	racha = 0
+	_regar(0.3)
 	evento.emit("atropello")
 
 
@@ -148,6 +204,8 @@ func _revisar_choque() -> void:
 		_pegado = false
 		return
 	if moto.vel > VEL_CHOQUE_CARRO and not _pegado:
+		racha = 0
+		_regar(0.4)
 		evento.emit("choque")
 		_t_pito = PITO_TRAS
 	_pegado = true
@@ -169,6 +227,71 @@ func _revisar_charco() -> void:
 	_charco = k
 
 
+const MENSAJE_FINAL := "Subiste a la loma con la Ninja, contra los cerros.\nLa clienta era tu mamá: «Mijo, llegó frío».\nY aun así te puso cinco estrellas.\n\nFIN"
+
+
+## De 1 a 5 estrellas y un comentario: cuenta el estado del pedido, el tiempo que sobró (fracción
+## del total) y si atropelló a alguien.
+static func estrellas_por(estado: float, fraccion_sobrante: float, p_multado: bool, azar := 0) -> Array:
+	var puntos := 1.0 + 2.0 * clampf(estado, 0.0, 1.0) + 2.0 * clampf(fraccion_sobrante / 0.5, 0.0, 1.0)
+	if p_multado:
+		puntos -= 2.0
+	var n := clampi(roundi(puntos), 1, 5)
+	var opciones: Array = COMENTARIOS[n - 1]
+	return [n, opciones[absi(azar) % opciones.size()]]
+
+
+## El licor pesa desde que se recoge hasta que se entrega.
+func _aplicar_tipo() -> void:
+	var tipo: Dictionary = TIPOS_PEDIDO.get(pedido.get("tipo", "hamburguesa"), TIPOS_PEDIDO.hamburguesa)
+	moto.factor_freno = float(tipo.freno) if fase == ENTREGAR else 1.0
+
+
+## Frenar en seco con sopa o torta la riega (baja el estado y con él la propina).
+func _revisar_frenazo(delta: float) -> void:
+	var decel: float = (_vel_antes - moto.vel) / maxf(delta, 0.0001)
+	var en_seco: bool = decel >= DECEL_FRENAZO and _vel_antes > 3.0 and not moto.motor_fundido
+	if en_seco and not _frenando and _vel_antes > 8.0:
+		evento.emit("frenazo")
+	if en_seco and fase == ENTREGAR:
+		var fragil: float = TIPOS_PEDIDO[pedido.tipo].fragil
+		if fragil > 0.0:
+			if not _frenando:
+				evento.emit("regado")
+			estado_pedido = maxf(estado_pedido - fragil * 0.25 * minf(delta, 1.0) * clampf(decel / 7.0, 0.5, 2.0), 0.0)
+	_frenando = en_seco
+
+
+func _regar(cuanto: float) -> void:
+	if fase == ENTREGAR:
+		estado_pedido = maxf(estado_pedido - cuanto * TIPOS_PEDIDO[pedido.tipo].fragil, 0.0)
+
+
+## Casi-choque (andén, carro, peatón, perro): suma a la racha de fe; cada tres, el domiciliario presume.
+func _al_casi(_tipo := "") -> void:
+	racha = mini(racha + 1, RACHA_MAX)
+	evento.emit("casi")
+	if racha % 3 == 0:
+		evento.emit("racha")
+
+
+## Tocar el andén despacio: corta la racha y riega un poco lo delicado.
+func _al_golpe() -> void:
+	racha = 0
+	_regar(0.2)
+	evento.emit("golpe")
+
+
+## Pasar rozando un carro a buena velocidad sin tocarlo cuenta como casi-choque.
+func _revisar_casi_trafico(delta: float) -> void:
+	trafico_casi_enfriar = maxf(trafico_casi_enfriar - delta, 0.0)
+	if trafico_casi_enfriar > 0.0 or moto.vel < moto.CASI_VEL or _pegado:
+		return
+	if trafico.chocado(moto.pos, CASI_TRAFICO + float(moto.moto.radio)) != -1:
+		trafico_casi_enfriar = moto.CASI_ENFRIAR
+		_al_casi("carro")
+
+
 func _cuadra_cerca(desde: Vector2, min_d: int, max_d: int) -> Vector2i:
 	var i0 := clampi(int(desde.x / ciudad.tamano().x * ciudad.N_ANCHO), 0, ciudad.N_ANCHO - 1)
 	var j0 := clampi(int(desde.y / ciudad.tamano().y * ciudad.N_LARGO), 0, ciudad.N_LARGO - 1)
@@ -178,22 +301,74 @@ func _cuadra_cerca(desde: Vector2, min_d: int, max_d: int) -> Vector2i:
 
 
 func _nuevo_pedido() -> void:
+	var zonas: Array = moto.moto.get("zonas", ["barrio", "centro", "industrial", "rica"])
 	var r := _cuadra_cerca(moto.pos, 1, 6)
+	for intento in 40:
+		if zonas.has(ciudad.zona(r.x, r.y)):
+			break
+		r = _cuadra_cerca(moto.pos, 1, 6 + intento / 4)
 	var c := _cuadra_cerca(ciudad.punto_frente_a(r.x, r.y), 3, 10)
+	# Algunos pedidos van a las zonas más finas que abre la moto, aunque queden lejos (pagan más tiempo).
+	var lejanas := zonas.filter(func(z): return z != "barrio")
+	if es_final:
+		c = _cuadra_en_zona("rica", 0, 4)
+	elif lejanas.size() > 0 and _rng.randf() < PROB_ZONA_NUEVA:
+		c = _cuadra_en_zona(lejanas[_rng.randi_range(0, lejanas.size() - 1)], 0, ciudad.N_ANCHO)
+	else:
+		for intento in 40:
+			if zonas.has(ciudad.zona(c.x, c.y)) and c != r:
+				break
+			c = _cuadra_cerca(ciudad.punto_frente_a(r.x, r.y), 3, 10 + intento / 4)
 	if c == r:
 		c.y = clampi(c.y + 4, 1, ciudad.N_LARGO - 1)
 	var rest: Vector2 = ciudad.punto_frente_a(r.x, r.y)
 	var cli: Vector2 = ciudad.punto_frente_a(c.x, c.y)
+	var tipo := _sortear_tipo()
+	var platos: Array = TIPOS_PEDIDO[tipo].platos
 	pedido = {
-		"plato": PLATOS[_rng.randi_range(0, PLATOS.size() - 1)],
+		"tipo": tipo,
+		"plato": platos[_rng.randi_range(0, platos.size() - 1)],
+		"nombre_cliente": CLIENTES[_rng.randi_range(0, CLIENTES.size() - 1)],
 		"restaurante": rest,
 		"cliente": cli,
 		"direccion": ciudad.direccion(cli),
 	}
+	if es_final:
+		pedido.tipo = "sopa"
+		pedido.plato = "Ajiaco para la loma"
+		pedido.nombre_cliente = "Mamá"
 	fase = RECOGER
 	multado = false
+	estado_pedido = 1.0
+	_aplicar_tipo()
 	var recorrido := _manhattan(moto.pos, rest) + _manhattan(rest, cli)
 	tiempo_restante = recorrido / VEL_PROMEDIO + TIEMPO_EXTRA
+	pedido.tiempo_total = tiempo_restante
+	evento.emit("pedido")
+
+
+func _sortear_tipo() -> String:
+	var total := 0.0
+	for k in TIPOS_PEDIDO:
+		total += TIPOS_PEDIDO[k].peso
+	var tira := _rng.randf() * total
+	for k in TIPOS_PEDIDO:
+		tira -= TIPOS_PEDIDO[k].peso
+		if tira <= 0.0:
+			return k
+	return "hamburguesa"
+
+
+## Una cuadra (no parque) de la zona z con la carrera entre i_min e i_max, con calle al sur (j ≥ 1).
+func _cuadra_en_zona(z: String, i_min: int, i_max: int) -> Vector2i:
+	var opciones: Array[Vector2i] = []
+	for j in range(1, ciudad.N_LARGO):
+		for i in range(i_min, mini(i_max, ciudad.N_ANCHO)):
+			if ciudad.zona(i, j) == z and not ciudad.es_parque(i, j):
+				opciones.append(Vector2i(i, j))
+	if opciones.is_empty():
+		return _cuadra_cerca(moto.pos, 3, 10)
+	return opciones[_rng.randi_range(0, opciones.size() - 1)]
 
 
 func _manhattan(a: Vector2, b: Vector2) -> float:

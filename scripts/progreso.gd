@@ -17,6 +17,11 @@ var moto := MOTOS.MOTO_INICIAL:
 		moto = v
 		if not tenidas.has(v):
 			tenidas[v] = {}
+## Pedidos entregados en total, si ya se vio el final (DISENO §15.2) y la moto recién comprada
+## que falta estrenar (la voz de «moto nueva» sale al empezar la jornada siguiente).
+var entregas := 0
+var final_hecho := false
+var estrenar := ""
 ## Mejoras de la moto en uso (el mismo diccionario que guarda tenidas).
 var mejoras: Dictionary:
 	get:
@@ -37,6 +42,9 @@ func cargar() -> void:
 	if cfg.load(ruta) != OK:
 		return
 	dinero = maxi(int(cfg.get_value("progreso", "dinero", 0)), 0)
+	entregas = maxi(int(cfg.get_value("progreso", "entregas", 0)), 0)
+	final_hecho = bool(cfg.get_value("progreso", "final_hecho", false))
+	estrenar = str(cfg.get_value("progreso", "estrenar", ""))
 	var m := str(cfg.get_value("progreso", "moto", MOTOS.MOTO_INICIAL))
 	if not MOTOS.MOTOS.has(m):
 		m = MOTOS.MOTO_INICIAL
@@ -70,7 +78,30 @@ func guardar() -> void:
 	cfg.set_value("progreso", "dinero", dinero)
 	cfg.set_value("progreso", "moto", moto)
 	cfg.set_value("progreso", "tenidas", tenidas)
+	cfg.set_value("progreso", "entregas", entregas)
+	cfg.set_value("progreso", "final_hecho", final_hecho)
+	cfg.set_value("progreso", "estrenar", estrenar)
 	cfg.save(ruta)
+
+
+## Con la Ninja y sin haber visto el final, la próxima jornada arranca con el pedido final.
+func toca_final() -> bool:
+	return moto == MOTOS.ORDEN[MOTOS.ORDEN.size() - 1] and not final_hecho
+
+
+## La moto por estrenar (una sola vez), o "".
+func estrenando() -> String:
+	var e := estrenar
+	if e != "":
+		estrenar = ""
+		guardar()
+	return e
+
+
+func marcar_final() -> void:
+	final_hecho = true
+	guardar()
+	cambio.emit()
 
 
 ## Cómo anda la moto que se tiene ahora, con sus mejoras.
@@ -93,10 +124,12 @@ func usar(id: String) -> bool:
 	return true
 
 
+## Lo que paga un pedido entregado.
 func ganar(pesos: int) -> void:
 	if pesos <= 0:
 		return
 	dinero += pesos
+	entregas += 1
 	guardar()
 	cambio.emit()
 
@@ -106,7 +139,9 @@ const PLATA_PRUEBA := 50000
 
 
 func plata_de_prueba() -> void:
-	ganar(PLATA_PRUEBA)
+	dinero += PLATA_PRUEBA
+	guardar()
+	cambio.emit()
 
 
 func tiene_mejora(nombre: String) -> bool:
@@ -152,6 +187,7 @@ func comprar_moto() -> bool:
 	dinero -= int(MOTOS.get_moto(s).precio)
 	tenidas[s] = {}
 	moto = s
+	estrenar = s
 	guardar()
 	cambio.emit()
 	return true
