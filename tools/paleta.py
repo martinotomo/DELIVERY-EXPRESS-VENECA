@@ -53,6 +53,13 @@ PALETA = {
     "azul_bwis_oscuro": (84, 100, 126),
     "verde_ninja": (74, 168, 42),
     "verde_ninja_oscuro": (30, 92, 22),
+    "verde_ninja_claro": (150, 220, 90),
+    "azul_bwis_claro": (200, 214, 232),
+    "chaqueta_clara": (214, 98, 48),
+    "guante_oscuro": (66, 46, 30),
+    # tableros (pantallas LCD de las motos)
+    "lcd": (150, 184, 158),
+    "lcd_oscuro": (26, 40, 38),
     # peatones
     "piel_clara": (214, 166, 128),
     "piel": (168, 114, 78),

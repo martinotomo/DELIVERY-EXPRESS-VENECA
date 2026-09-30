@@ -642,6 +642,8 @@ func _actualizar_vista(delta: float) -> void:
 
 	_manubrio.giro = _giro_visual
 	_manubrio.vel_kmh = m.vel_kmh()
+	_manubrio.rpm = _audio.motor.revoluciones()
+	_manubrio.cambio = int(_audio.motor.cambio) if int(m.moto.get("cambios", 0)) > 0 else 0
 	_l_vel.text = "%3d" % m.vel_kmh()
 	var s := int(ceil(maxf(partida.tiempo_restante, 0.0)))
 	_l_reloj.text = "%d:%02d" % [s / 60, s % 60]
