@@ -9,6 +9,7 @@ const EFECTOS := {
 	"estrellado": "choque", "golpe": "golpe", "casi": "casi", "fundido": "fundido",
 	"entregado": "entregado", "recogido": "recogido", "reparado": "reparado", "charco": "charco",
 	"atropello": "atropello", "choque": "choque_carro", "pito": "pito",
+	"frenazo": "frenazo", "bache": "bache", "perro": "ladrido", "pito_moto": "pito_moto",
 }
 const SILENCIO := -60.0
 

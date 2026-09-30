@@ -41,6 +41,15 @@ SPEC = {
     "choque_carro": {"dur": (0.5, 1.0), "rms": (0.06, 0.35), "graves": 0.10, "cola": True},
     # pito del carro: dos pitazos de bocina de dos tonos (el segundo largo, de rabia)
     "pito": {"dur": (0.9, 1.5), "rms": (0.08, 0.35), "graves": 0.03, "cola": True},
+    # F4 (D27). agudos = fracción mínima de energía por encima de 1 kHz.
+    # frenazo en seco: chillido de llanta que tiembla (ruido agudo, no un tono)
+    "frenazo": {"dur": (0.4, 1.0), "rms": (0.06, 0.35), "graves": 0.03, "cola": True, "agudos": 0.5},
+    # pito de la moto (tecla H): corneta chillona y ridícula, corta
+    "pito_moto": {"dur": (0.2, 0.5), "rms": (0.08, 0.35), "graves": 0.03, "cola": True, "agudos": 0.3},
+    # hueco: «tras» seco de la suspensión que toca fondo y la caja del domicilio que brinca
+    "bache": {"dur": (0.3, 0.7), "rms": (0.06, 0.35), "graves": 0.10, "cola": True},
+    # perro: dos ladridos asustados (formantes de ladrido, no un tono puro)
+    "ladrido": {"dur": (0.4, 0.9), "rms": (0.06, 0.35), "graves": 0.05, "cola": True, "agudos": 0.2},
 }
 
 # Motores (Tomás, 30/09: «suena a nave espacial»). Ahora cada explosión es un golpe de presión
@@ -377,6 +386,56 @@ def pito():
     return efecto(y, 0.7)
 
 
+def frenazo():
+    """Frenazo en seco: chillido de llanta (ruido agudo en dos bandas) que tiembla y se apaga."""
+    rng = np.random.default_rng(60)
+    t = t_de(0.7)
+    chillido = banda(rng.standard_normal(len(t)), 1900, 3600) + 0.6 * banda(rng.standard_normal(len(t)), 3800, 6500)
+    temblor = 0.65 + 0.35 * np.sin(2 * np.pi * (38 - 14 * t) * t)
+    y = chillido * temblor * envolvente(t, 0.015, 0.35) * np.clip((0.7 - t) / 0.2, 0, 1)
+    y += 0.25 * banda(rng.standard_normal(len(t)), 300, 1200) * envolvente(t, 0.01, 0.2)
+    return efecto(y, 0.75)
+
+
+def pito_moto():
+    """Pito de moto barata: «mii» nasal y chillón (onda cuadrada suave en ~1 kHz con vibrato)."""
+    t = t_de(0.35)
+    f = 1050 + 20 * np.sin(2 * np.pi * 9 * t)
+    fase = 2 * np.pi * np.cumsum(f) / SR
+    tono = np.tanh(4.0 * np.sin(fase)) + 0.4 * np.tanh(4.0 * np.sin(1.5 * fase))
+    tono = banda(tono, 500, 6000) * envolvente(t, 0.008, 0.5) * np.clip((0.35 - t) / 0.05, 0, 1)
+    return efecto(tono, 0.7)
+
+
+def bache():
+    """Hueco: «tras» de la suspensión que toca fondo, lámina que vibra y la caja que brinca."""
+    rng = np.random.default_rng(61)
+    t = t_de(0.5)
+    tras = np.sin(2 * np.pi * (140 - 70 * t) * t) * envolvente(t, 0.002, 0.05)
+    tras += 0.7 * banda(rng.standard_normal(len(t)), 250, 2000) * envolvente(t, 0.001, 0.04)
+    lamina = sum(np.sin(2 * np.pi * fr * t) * a for fr, a in ((460, 0.5), (780, 0.3))) * envolvente(t, 0.002, 0.08)
+    y = 1.2 * tras + 0.5 * lamina
+    tc = t_de(0.06)
+    caja = banda(rng.standard_normal(len(tc)), 400, 2500) * envolvente(tc, 0.001, 0.015)
+    poner(y, 0.6 * caja, 0.18)
+    return efecto(y, 0.8)
+
+
+def ladrido():
+    """Dos ladridos asustados: pulso de glotis con dos formantes que caen («¡guau, guau!»)."""
+    rng = np.random.default_rng(62)
+    y = np.zeros(len(t_de(0.65)))
+    for inicio, f0 in ((0.0, 520.0), (0.28, 480.0)):
+        tl = t_de(0.18)
+        f = f0 * (1.25 - 0.45 * tl / 0.18)
+        fase = 2 * np.pi * np.cumsum(f) / SR
+        pulso = np.sign(np.sin(fase)) * 0.5 + 0.5 * rng.standard_normal(len(tl))
+        voz = banda(pulso, 800, 1400, 2) + 0.8 * banda(pulso, 1800, 3200, 2)
+        voz *= envolvente(tl, 0.006, 0.06)
+        poner(y, voz, inicio)
+    return efecto(y, 0.75)
+
+
 def main():
     for id_moto, m in MOTORES.items():
         for rpm in m["rpm"]:
@@ -385,7 +444,8 @@ def main():
     guardar("ambiente_noche", trafico(True))
     guardar("viento", viento())
     guardar("lluvia", lluvia())
-    for fn in (choque, golpe, casi, fundido, entregado, recogido, reparado, charco, atropello, choque_carro, pito):
+    for fn in (choque, golpe, casi, fundido, entregado, recogido, reparado, charco, atropello, choque_carro, pito,
+               frenazo, pito_moto, bache, ladrido):
         guardar(fn.__name__, fn())
 
 

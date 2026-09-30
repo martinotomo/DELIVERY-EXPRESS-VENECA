@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d3ukkaoq1cckf"
-path="res://.godot/imported/avisos_luz.png-43066022f97340b6dbe3ff6ad060e779.ctex"
+uid="uid://bdfxgj4sy3o6u"
+path="res://.godot/imported/marcas_hueco.png-7493afba8691bc02be8db9c77189683a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/texturas/avisos_luz.png"
-dest_files=["res://.godot/imported/avisos_luz.png-43066022f97340b6dbe3ff6ad060e779.ctex"]
+source_file="res://assets/texturas/marcas_hueco.png"
+dest_files=["res://.godot/imported/marcas_hueco.png-7493afba8691bc02be8db9c77189683a.ctex"]
 
 [params]
 
@@ -23,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -71,5 +71,96 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | ui/cinematica_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
 | sonidos/choque_carro.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/pito.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
+| musica/conduccion.wav | `tools/gen_musica.py` | proyecto | propia | — | 30/09/2026 |
+| musica/menu.wav | `tools/gen_musica.py` | proyecto | propia | — | 30/09/2026 |
+| musica/muerte.wav | `tools/gen_musica.py` | proyecto | propia | — | 30/09/2026 |
+| sonidos/bache.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
+| sonidos/frenazo.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
+| sonidos/ladrido.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
+| sonidos/pito_moto.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/aceite.png | `tools/gen_avisos.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/avisos.png | `tools/gen_avisos.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/avisos_luz.png | `tools/gen_avisos.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/hueco.png | `tools/gen_avisos.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/marcas_hueco.png | `tools/gen_marcas_hueco.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/perros.png | `tools/gen_avisos.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/vallas.png | `tools/gen_avisos.py` | proyecto | propia | — | 30/09/2026 |
+| ui/cinematica_bus_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_bus_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_bus_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_contravia_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_contravia_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_contravia_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_hueco_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_hueco_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_hueco_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_lluvia_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_lluvia_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_lluvia_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_perro_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_perro_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_perro_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| voces/atropello_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/atropello_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/atropello_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/atropello_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/atropello_5.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/bache_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/bache_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/cancelado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/cancelado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/casi_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/casi_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/casi_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/casi_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/casi_5.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/choque_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/choque_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/choque_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/choque_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/entregado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/entregado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/entregado_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/escampo_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/escampo_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/estrellado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/estrellado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/final_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/final_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/fundido_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/fundido_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/golpe_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/golpe_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/grito_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/grito_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/grito_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/grito_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/lluvia_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/lluvia_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/moto_nueva_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/moto_nueva_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/pedido_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/pedido_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/pedido_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/perro_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/perro_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/pito_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/pito_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/pito_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/pito_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/racha_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/racha_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/racha_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/recogido_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/recogido_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/recogido_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/regado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/regado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/regado_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/reparado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/reparado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/reparado_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/tarde_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
+| voces/tarde_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (espeak-ng, voz es-419) | proyecto | propia | — | 30/09/2026 |
 | fuentes/PressStart2P-Regular.ttf | Google Fonts | CodeMan38 (The Press Start 2P Project Authors) | SIL OFL 1.1 | https://fonts.google.com/specimen/Press+Start+2P | 30/09/2026 |
 | fuentes/OFL.txt | Licencia de la fuente anterior | SIL | SIL OFL 1.1 | https://openfontlicense.org | 30/09/2026 |

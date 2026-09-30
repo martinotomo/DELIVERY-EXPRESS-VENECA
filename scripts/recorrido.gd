@@ -137,6 +137,8 @@ func _process(delta: float) -> void:
 		_giro_visual = lerpf(_giro_visual, giro, minf(delta * 8.0, 1.0))
 		_acelerando = Input.is_action_pressed("acelerar")
 		partida.advance(delta, _acelerando, Input.is_action_pressed("frenar"), giro)
+		if Input.is_action_just_pressed("pitar"):
+			_audio.al_evento("pito_moto") # «mii»: no sirve de nada, como en la vida real
 	_actualizar_vista(delta)
 	_audio.actualizar(delta, partida, _acelerando)
 
@@ -149,6 +151,8 @@ const FACHADAS := ["casa", "ladrillo", "concreto", "vidrio", "bodega"]
 const TINTES_CASA := [Color("9fc4a8"), Color("9db4d8"), Color("e6cf8a"), Color("e3a9a0"), Color("f2efe6"), Color("c9a6d6")]
 
 var _mats_luz: Array[StandardMaterial3D] = []
+const CALLE_DETALLES := preload("res://scripts/calle_detalles.gd")
+var _detalles # huecos, aceite, perros, avisos y vallas (F4)
 var _mat_bombillos: StandardMaterial3D
 var _cielo: ProceduralSkyMaterial
 var _t_cielo := 99.0
@@ -318,6 +322,9 @@ func _construir_mundo() -> void:
 	_construir_letreros()
 	_construir_vehiculos()
 	_construir_cerros()
+	_detalles = CALLE_DETALLES.new()
+	_mundo.add_child(_detalles)
+	_detalles.preparar(partida, _mats_luz)
 
 	# Faros de pedido: columnas altas que se ven por encima de los edificios.
 	_faro_rest = _caja(_mundo, Vector3(1.2, 60, 1.2), Vector3.ZERO, Color("ff8a2a"), "FaroRestaurante")
@@ -1107,6 +1114,8 @@ func _actualizar_vista(delta: float) -> void:
 	_actualizar_semaforos()
 	_actualizar_letreros()
 	_actualizar_vehiculos()
+	_detalles.actualizar(delta, Vector2(_camara.global_position.x, _camara.global_position.z), _camara.global_transform.basis.x,
+		partida.reloj.luz(), _farola.visible)
 	if partida.multado:
 		_l_pedido.text += "\nSIN PROPINA: atropellaste a alguien"
 
@@ -1198,6 +1207,10 @@ func _al_estrellarse(mensaje: String) -> void:
 	for hijo in $HUD.get_children():
 		hijo.visible = hijo == _subtitulo and _subtitulo.visible
 	# Primero la cámara sale a ver la moto en 3D; luego, el dibujo de la caída con un zoom lento.
+	# Cada causa tiene su dibujo (hueco, perro, lluvia, bus, contravía); la curva usa el de siempre.
+	var dibujo := "res://assets/ui/cinematica_%s_%s.png" % [partida.causa, m.moto.id]
+	if partida.causa != "curva" and ResourceLoader.exists(dibujo):
+		_ilustracion.texture = load(dibujo)
 	_ilustracion.visible = true
 	_ilustracion.move_to_front()
 	_ilustracion.modulate.a = 0.0

@@ -13,3 +13,9 @@ func run(t) -> void:
 	t.check(a != b, "no repite la misma frase dos veces seguidas")
 	t.check_eq(v.frase("no-existe"), "", "evento sin frases devuelve vacío")
 	t.check_eq(VOCES.ruta_audio("casi", 0), "res://assets/voces/casi_1.wav", "cada frase tiene su ruta de audio prevista")
+	# F5: cada situación tiene al menos una voz grabada (hoy, provisionales de espeak-ng; D27).
+	var sin_voz: Array[String] = []
+	for e in VOCES.FRASES:
+		if not ResourceLoader.exists(VOCES.ruta_audio(e, 0)):
+			sin_voz.append(e)
+	t.check(sin_voz.is_empty(), "cada situación tiene su voz en assets/voces (faltan: %s)" % ", ".join(sin_voz))

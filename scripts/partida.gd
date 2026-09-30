@@ -16,7 +16,16 @@ const PEATONES := preload("res://scripts/peatones.gd")
 const TRANSITO := preload("res://scripts/transito.gd")
 const TRANSEUNTES := preload("res://scripts/transeuntes.gd")
 const TRAFICO := preload("res://scripts/trafico.gd")
+const PELIGROS := preload("res://scripts/peligros.gd")
+const PERROS := preload("res://scripts/perros.gd")
 const VEL_CHOQUE_CARRO := 1.5 # m/s: más despacio, solo se queda pegado
+## Caídas nuevas (F4, D27), como fracción de la velocidad máxima de la moto.
+const HUECO_MORTAL := 0.8    # caer en un hueco más rápido que esto mata
+const PERRO_MORTAL := 0.6    # pegarle a un perro más rápido que esto mata
+const CHOQUE_MORTAL := 0.8   # contra un bus o de frente (contravía) más rápido que esto mata
+const FRENO_HUECO := 0.6     # despacio, el hueco quita el 60 % de la velocidad
+const AGARRE_ACEITE := 0.35  # sobre el aceite el manubrio gira apenas esto
+const CASI_PERRO := 1.2      # m de sobra para que esquivar un perro cuente como casi-choque
 
 const RECOGER := "recoger"
 const ENTREGAR := "entregar"
@@ -64,7 +73,11 @@ var clima
 var peatones
 var transito     # semáforos (de ambiente: pasarse el rojo no tiene castigo)
 var transeuntes  # gente caminando por los andenes (de ambiente)
-var trafico      # carros, taxis, buses y camiones (chocarlos frena en seco, no mata)
+var trafico      # carros, taxis, buses y camiones (chocarlos frena en seco; a toda contra un bus o de frente, mata)
+var peligros     # huecos y aceite fijos en la calzada
+var perros       # perros callejeros que se atraviesan
+var causa := ""  # de qué se murió: curva, lluvia, hueco, perro, bus o contravia (elige la cinemática)
+var _hueco := -1 # el hueco que se está pisando (brinca una sola vez)
 var _pegado := false # la moto está tocando un carro (el choque suena una sola vez)
 var _t_pito := -1.0   # s para que el conductor pite e insulte, después del choque
 const PITO_TRAS := 1.6
@@ -99,6 +112,8 @@ func _init(semilla := 1, datos_moto: Dictionary = {}, final := false) -> void:
 	transito = TRANSITO.new(ciudad)
 	transeuntes = TRANSEUNTES.new(semilla, ciudad)
 	trafico = TRAFICO.new(semilla, ciudad, transito)
+	peligros = PELIGROS.new(semilla, ciudad)
+	perros = PERROS.new(semilla, ciudad)
 	moto = MOTO.new()
 	var datos := datos_moto if not datos_moto.is_empty() else MOTOS.get_moto(MOTOS.MOTO_INICIAL)
 	moto.setup(datos, ciudad, ciudad.cruce(20, 40), 0.0)
@@ -128,7 +143,16 @@ func advance(delta: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	transeuntes.advance(delta, moto.pos, moto.direccion())
 	trafico.advance(delta, moto.pos, moto.direccion())
 	_revisar_choque()
+	if terminada:
+		return
 	_revisar_casi_trafico(delta)
+	_revisar_peligros()
+	if terminada:
+		return
+	perros.advance(delta, moto.pos, moto.direccion())
+	_revisar_perros()
+	if terminada:
+		return
 	if _t_pito >= 0.0:
 		_t_pito -= delta
 		if _t_pito < 0.0:
@@ -203,6 +227,17 @@ func _revisar_choque() -> void:
 	if trafico.chocado(moto.pos, 0.5) == -1:
 		_pegado = false
 		return
+	var v: Dictionary = {}
+	for x in trafico.lista:
+		if x.id == trafico.chocado(moto.pos, 0.5):
+			v = x
+	if not _pegado and moto.vel > CHOQUE_MORTAL * float(moto.moto.vel_max):
+		if v.tipo in ["bus", "camion"]:
+			_morir("bus")
+			return
+		if v.dir.dot(moto.direccion()) < -0.7:
+			_morir("contravia")
+			return
 	if moto.vel > VEL_CHOQUE_CARRO and not _pegado:
 		racha = 0
 		_regar(0.4)
@@ -375,7 +410,61 @@ func _manhattan(a: Vector2, b: Vector2) -> float:
 	return absf(a.x - b.x) + absf(a.y - b.y)
 
 
+## Huecos (brincan o matan) y aceite (el manubrio no agarra mientras se está encima).
+func _revisar_peligros() -> void:
+	var h: Dictionary = peligros.en(moto.pos)
+	var tipo: String = h.get("tipo", "")
+	moto.agarre_suelo = AGARRE_ACEITE if tipo == "aceite" else 1.0
+	var id: int = h.get("id", -1) if tipo == "hueco" else -1
+	if id != -1 and id != _hueco:
+		if moto.vel > HUECO_MORTAL * float(moto.moto.vel_max):
+			_morir("hueco")
+			return
+		if moto.vel > 2.0:
+			moto.vel *= 1.0 - FRENO_HUECO
+			_regar(0.3)
+			evento.emit("bache")
+	_hueco = id
+
+
+## Pegarle a un perro: a toda mata; despacio, frena y el perro sale corriendo. Esquivarlo por poco
+## suma a la racha.
+func _revisar_perros() -> void:
+	var r := float(moto.moto.radio)
+	var d: Dictionary = perros.tocado(moto.pos, r)
+	if not d.is_empty():
+		if moto.vel > PERRO_MORTAL * float(moto.moto.vel_max):
+			_morir("perro")
+			return
+		perros.espantar(d, moto.direccion())
+		if moto.vel > 1.0:
+			moto.vel *= 0.4
+			racha = 0
+			_regar(0.3)
+			evento.emit("perro")
+		return
+	if moto.vel < moto.CASI_VEL:
+		return
+	for x in perros.lista:
+		if x.estado == perros.CRUZA and not x.casi and moto.pos.distance_to(x.pos) < r + perros.RADIO + CASI_PERRO:
+			x.casi = true
+			_al_casi("perro")
+
+
+## Caídas que no son contra el andén: la moto queda en el piso y sale su cinemática.
+func _morir(p_causa: String) -> void:
+	moto.vel = 0.0
+	moto.estado = moto.ESTRELLADA
+	causa = p_causa
+	_al_estrellarse(MOTOS.remate(p_causa, str(moto.moto.nombre)))
+
+
 func _al_estrellarse(mensaje: String) -> void:
+	if causa == "":
+		# Contra el andén: la curva de siempre, o la mojada si está lloviendo.
+		causa = "lluvia" if clima.lloviendo() else "curva"
+		if causa == "lluvia":
+			mensaje = MOTOS.remate("lluvia", str(moto.moto.nombre))
 	terminada = true
 	evento.emit("estrellado")
 	terminada_por.emit(mensaje)
