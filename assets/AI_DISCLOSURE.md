@@ -28,6 +28,9 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | texturas/fachada_casa.png | `tools/gen_texturas.py` |
 | texturas/fachada_casa_luz.png | `tools/gen_texturas.py` |
 | ui/manubrio.png | `tools/gen_texturas.py` |
+| ui/manubrio_nkd.png | `tools/gen_texturas.py` |
+| ui/manubrio_ninja.png | `tools/gen_texturas.py` |
+| ui/motos_taller.png | `tools/gen_texturas.py` |
 | sonidos/motor_bws_1700.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/motor_bws_2350.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/motor_bws_3240.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |

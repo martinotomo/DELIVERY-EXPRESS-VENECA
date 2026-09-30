@@ -52,8 +52,17 @@ func run(t) -> void:
 	t.check(cargado.tiene_mejora("exosto") and cargado.tiene_mejora("motor"), "las mejoras quedan guardadas")
 	t.check_eq(cargado.dinero, p.dinero, "el saldo queda guardado")
 
-	# Moto siguiente.
+	# Estado de cada moto en el taller (vitrina a lo Most Wanted, Tomás 30/09).
 	p.dinero = int(MOTOS.get_moto("nkd").precio) - 1
+	t.check_eq(p.estado_moto("bws"), PROGRESO.EN_USO, "la Bwis está en uso")
+	t.check_eq(p.estado_moto("nkd"), PROGRESO.SIN_PLATA, "a la NKD le falta plata")
+	t.check_eq(p.falta_para("nkd"), 1, "y se sabe cuánto falta")
+	t.check_eq(p.estado_moto("ninja"), PROGRESO.BLOQUEADA, "la Ninja está bloqueada hasta tener la NKD")
+	p.dinero += 1
+	t.check_eq(p.estado_moto("nkd"), PROGRESO.COMPRABLE, "con la plata justa la NKD se puede comprar")
+	p.dinero -= 1
+
+	# Moto siguiente.
 	t.check(not p.puede_comprar_moto(), "sin la plata justa no se compra la NKD")
 	p.dinero += 1
 	t.check(p.comprar_moto(), "con la plata justa sí")
@@ -61,6 +70,8 @@ func run(t) -> void:
 	t.check_eq(p.dinero, 0, "la NKD se cobra")
 	t.check(not p.tiene_mejora("exosto"), "la moto nueva llega de fábrica")
 	t.check_eq(p.datos_moto().nombre, "NKD 125", "y se llama NKD 125")
+	t.check_eq(p.estado_moto("bws"), PROGRESO.ENTREGADA, "la Bwis se entregó al comprar la NKD")
+	t.check_eq(p.estado_moto("nkd"), PROGRESO.EN_USO, "la NKD queda en uso")
 	var partida2 = PARTIDA.new(1, p.datos_moto())
 	t.check_eq(partida2.moto.moto.nombre, "NKD 125", "la partida sale con la moto comprada")
 	p.moto = "ninja"

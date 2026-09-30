@@ -7,6 +7,8 @@ func _pantallas(main: Node) -> Array:
 
 
 const RUTA := "user://prueba_escenas.cfg"
+const PROGRESO_T := preload("res://scripts/progreso.gd")
+const RECORRIDO := preload("res://scenes/recorrido.tscn")
 
 
 func run(t) -> void:
@@ -47,10 +49,67 @@ func run(t) -> void:
 	t.check(main.progreso.tiene_mejora("exosto"), "comprar el exosto lo instala")
 	t.check(b_exosto.disabled and b_exosto.text.contains("instalado"), "el botón dice que ya está instalado")
 	t.check(taller.get_node("Plata").text == "$5.000", "el taller cobra y muestra el saldo (%s)" % taller.get_node("Plata").text)
-	t.check(taller.find_child("ComprarMoto", true, false).text.contains("NKD"), "el taller ofrece la siguiente moto")
-	for hijo in taller.get_children():
-		if hijo is Label:
-			t.check(hijo.position.x >= 0.0 and hijo.position.x + hijo.size.x <= 640.0, "el texto «%s» cabe en el taller" % hijo.text.left(24))
+	# Vitrina a lo Most Wanted: las tres motos en fila, se pasa de una a otra con ←/→.
+	t.check_eq(taller.escogida, 0, "el taller abre en la moto que se tiene")
+	var sprites := []
+	for id in ["bws", "nkd", "ninja"]:
+		sprites.append(taller.find_child("Moto_" + id, true, false))
+	t.check(sprites.all(func(x): return x is TextureRect), "cada moto tiene su dibujo")
+	taller._vista = float(taller.escogida)
+	taller._acomodar()
+	t.check(sprites[0].size.x * sprites[0].scale.x > sprites[1].size.x * sprites[1].scale.x * 1.5, "la escogida se ve grande y las demás pequeñas")
+	t.check(sprites[0].position.x < sprites[1].position.x and sprites[1].position.x < sprites[2].position.x, "las motos van una al lado de la otra")
+	t.check(sprites[1].modulate.v < sprites[0].modulate.v, "las que no están escogidas se ven apagadas")
+	var estado: Label = taller.get_node("Estado")
+	t.check(estado.text.contains("EN USO"), "la moto en uso lo dice (%s)" % estado.text)
+	t.check(taller.find_child("ComprarMoto", true, false).disabled, "la moto que ya se tiene no se compra")
+	taller.mover(1)
+	t.check_eq(taller.escogida, 1, "→ pasa a la NKD")
+	t.check(taller.get_node("Nombre").text.contains("NKD"), "y muestra su nombre")
+	t.check(estado.text.contains("BLOQUEADA") and estado.text.contains("$40.000"), "sin plata sale bloqueada con su precio (%s)" % estado.text)
+	t.check(taller.get_node("Candado").visible, "con su candado")
+	t.check(b_exosto.disabled, "las mejoras son solo para la moto en uso")
+	t.check(taller.get_node("Falta").text.contains("$35.000"), "dice cuánto falta (%s)" % taller.get_node("Falta").text)
+	main.progreso.dinero = 60000
+	taller.actualizar()
+	var b_moto: Button = taller.find_child("ComprarMoto", true, false)
+	t.check(not b_moto.disabled and b_moto.text.contains("NKD") and b_moto.text.contains("$40.000"), "con plata se puede comprar (%s)" % b_moto.text)
+	t.check(not taller.get_node("Candado").visible, "y ya no tiene candado")
+	taller.mover(1)
+	t.check(taller.get_node("Estado").text.contains("BLOQUEADA") and taller.get_node("Falta").text.contains("NKD"), "la Ninja pide primero la NKD (%s)" % taller.get_node("Falta").text)
+	taller.mover(1)
+	t.check_eq(taller.escogida, 2, "no se pasa de la última")
+	taller.mover(-1)
+	b_moto.pressed.emit()
+	t.check_eq(main.progreso.moto, "nkd", "comprar desde la vitrina cambia de moto")
+	t.check(taller.get_node("Estado").text.contains("EN USO") and not b_exosto.disabled, "la nueva queda en uso y con sus mejoras a la venta")
+	taller.mover(-1)
+	t.check(taller.get_node("Estado").text.contains("ENTREGADA"), "la Bwis ya se entregó")
+	for hijo in taller.find_children("*", "Control", true, false):
+		if hijo is Label or hijo is Button:
+			if hijo.is_visible_in_tree():
+				var r := Rect2(hijo.global_position, hijo.size)
+				t.check(r.position.x >= 0.0 and r.end.x <= 640.0 and r.end.y <= 360.0, "«%s» cabe en el taller" % hijo.text.left(24))
+	# La hoja de motos: una por moto, con su propio color.
+	var hoja: Image = load("res://assets/ui/motos_taller.png").get_image()
+	var colores := []
+	for k in 3:
+		var suma := Color(0, 0, 0)
+		var n := 0
+		for y in hoja.get_height():
+			for x in range(k * 120, (k + 1) * 120):
+				var px := hoja.get_pixel(x, y)
+				if px.a > 0.5 and px.s > 0.25:
+					suma += px
+					n += 1
+		colores.append(suma / maxf(n, 1.0))
+	t.check(colores[0].b > colores[0].g and colores[2].g > colores[2].r * 1.3, "la Bwis es azulada y la Ninja verde")
+	t.check(hoja.get_width() == 360 and hoja.get_height() == 72, "tres motos de 120×72")
+	# Deja el progreso como venía (Bwis con exosto) para el resto de la prueba.
+	main.progreso.moto = "bws"
+	main.progreso.mejoras = {"exosto": true}
+	main.progreso.dinero = 5000
+	main.progreso.guardar()
 	taller.find_child("Volver", true, false).pressed.emit()
 	await t.process_frame
 	t.check_eq(main.pantalla_actual().name, "Menu", "Volver regresa al menú")
@@ -81,6 +140,16 @@ func run(t) -> void:
 		var dentro := r.intersection(pantalla)
 		t.check(dentro.get_area() > 0.8 * r.get_area(), "con giro %s el manubrio queda casi todo en pantalla (%s)" % [g, r])
 		t.check(r.position.y > 120.0 and r.position.y < 250.0, "el manubrio ocupa la mitad baja, no se sale por abajo (y=%d)" % r.position.y)
+	t.check_eq(manubrio.sprite_actual(), load("res://assets/ui/manubrio.png"), "la Bwis tiene su manubrio de scooter")
+	for id in ["nkd", "ninja"]:
+		var otro_r = RECORRIDO.instantiate()
+		var prog = PROGRESO_T.new("user://prueba_manubrio.cfg")
+		prog.moto = id
+		otro_r.progreso = prog
+		main.add_child(otro_r)
+		t.check_eq(otro_r.get_node("HUD/Manubrio").sprite_actual(), load("res://assets/ui/manubrio_%s.png" % id), "la %s tiene su propio puesto de mando" % id)
+		otro_r.queue_free()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://prueba_manubrio.cfg"))
 	var img: Image = load("res://assets/ui/manubrio.png").get_image()
 	var opacos := 0
 	for y in img.get_height():
