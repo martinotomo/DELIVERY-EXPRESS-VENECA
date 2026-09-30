@@ -205,12 +205,14 @@ func run(t) -> void:
 			for x in range(130, 190):
 				if im.get_pixel(x, y).a > 0.5:
 					n_frente += 1
-		t.check(n_frente < 60 * 18 * 0.6, "%s: la calle de enfrente se sigue viendo (%d px tapados)" % [id, n_frente])
+		t.check(n_frente < 60 * 18 * 0.25, "%s: la calle de enfrente se sigue viendo (%d px tapados de %d)" % [id, n_frente, 60 * 18])
 	var m_prueba = MANUBRIO_T.new()
 	m_prueba.moto_id = "ninja"
 	t.check_eq(m_prueba.tablero().marca, "rpm", "la Ninja marca revoluciones con la aguja y la velocidad en la pantalla")
+	m_prueba.moto_id = "bws"
+	t.check(m_prueba.tablero().has("aguja") and m_prueba.tablero().marca == "vel", "la Bwis tiene velocímetro de aguja (Tomás, 30/09)")
 	m_prueba.moto_id = "otra"
-	t.check(m_prueba.tablero().has("lcd"), "una moto desconocida usa el tablero de la Bwis")
+	t.check_eq(m_prueba.tablero(), MANUBRIO_T.TABLEROS.bws, "una moto desconocida usa el tablero de la Bwis")
 	m_prueba.free()
 	# A las resoluciones de pantalla comunes la interfaz de 640×360 escala entera y cabe completa.
 	t.check_eq(ProjectSettings.get_setting("display/window/stretch/mode"), "viewport", "estirado por viewport")

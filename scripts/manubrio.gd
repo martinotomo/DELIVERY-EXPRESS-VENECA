@@ -14,7 +14,7 @@ const ARRIBA := 142.0        # y en pantalla donde empieza el sprite (termina en
 ## aguja = centro y largo de la aguja; marca "vel" (velocímetro) o "rpm" (tacómetro);
 ## lcd = pantalla donde se escribe la velocidad (y el cambio, si la moto tiene).
 const TABLEROS := {
-	"bws": {"lcd": Rect2(138, 42, 44, 12), "tinta": Color("1c2820"), "barra_rpm": true},
+	"bws": {"aguja": Vector2(160, 48), "largo": 10.0, "marca": "vel", "achate": 0.8},
 	"nkd": {"aguja": Vector2(160, 42), "largo": 11.0, "marca": "vel"},
 	"ninja": {"aguja": Vector2(145, 38), "largo": 7.5, "marca": "rpm", "lcd": Rect2(159, 30, 32, 16),
 		"tinta": Color("b8e0ff"), "cambio": true},
@@ -54,15 +54,14 @@ func _draw() -> void:
 		var f := clampf(vel_kmh / tope_kmh, 0.0, 1.0) if tab.marca == "vel" else clampf(rpm, 0.0, 1.0)
 		var ang := lerpf(PI * 0.8, PI * 2.2, f)
 		var c: Vector2 = origen + tab.aguja * ESCALA
-		draw_line(c, c + Vector2(cos(ang), sin(ang) * 0.9) * tab.largo * ESCALA, C_AGUJA, 2.0)
+		draw_line(c, c + Vector2(cos(ang), sin(ang) * tab.get("achate", 0.9)) * tab.largo * ESCALA, C_AGUJA, 2.0)
 		draw_rect(Rect2(c - Vector2(2, 2), Vector2(4, 4)), Color("1c1c22"))
 	if tab.has("lcd"):
 		_pantalla(origen, tab)
 	draw_set_transform(Vector2.ZERO)
 
 
-## Números de siete segmentos en la pantalla LCD: la velocidad a la derecha, el cambio a la izquierda
-## y, en la Bwis, una barrita de revoluciones arriba.
+## Números de siete segmentos en la pantalla LCD: la velocidad a la derecha y el cambio a la izquierda.
 func _pantalla(origen: Vector2, tab: Dictionary) -> void:
 	var r: Rect2 = tab.lcd
 	var tinta: Color = tab.tinta
@@ -78,10 +77,6 @@ func _pantalla(origen: Vector2, tab: Dictionary) -> void:
 		x += ancho + 2.0
 	if tab.get("cambio", false) and cambio > 0:
 		_cifra(Vector2(p.x + 4.0, y), ancho, alto, cambio, Color("f0c040"))
-	if tab.get("barra_rpm", false):
-		var n := int(round(clampf(rpm, 0.0, 1.0) * 8.0))
-		for k in n:
-			draw_rect(Rect2(p + Vector2(4.0 + k * 5.0, 3.0), Vector2(4.0, 3.0)), tinta)
 
 
 func _cifra(pos: Vector2, ancho: float, alto: float, n: int, color: Color) -> void:
