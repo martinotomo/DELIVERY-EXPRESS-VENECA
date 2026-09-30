@@ -116,6 +116,19 @@ func _correr() -> void:
 	await create_timer(0.8).timeout
 	await _foto("7_caida_noche")
 
+	# Lluvia de tarde: gotas, piso mojado, charcos y el bono.
+	_main.reiniciar()
+	await process_frame
+	await process_frame
+	r = _ride()
+	r.partida.clima.empezar_lluvia(120.0)
+	for k in 90:
+		r.partida.clima.advance(1.0, c.cruce(20, 40) + Vector2(-40, 0))
+	await _colocar(c.cruce(20, 40) + Vector2(-40, 0), 0.0, 14.0, 250.0)
+	r._lluvia.set_process(true)
+	await create_timer(0.3).timeout
+	await _foto("8_lluvia")
+
 	_hoja()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
 	quit(0)

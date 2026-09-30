@@ -25,6 +25,21 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | texturas/fachada_casa.png | `tools/gen_texturas.py` |
 | texturas/fachada_casa_luz.png | `tools/gen_texturas.py` |
 | ui/manubrio.png | `tools/gen_texturas.py` |
+| sonidos/motor_bws.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/motor_nkd.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/motor_ninja.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/ambiente_dia.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/ambiente_noche.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/viento.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/lluvia.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/choque.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/golpe.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/casi.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/fundido.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/entregado.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/recogido.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/reparado.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/charco.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 
 ## De terceros, sin IA
 

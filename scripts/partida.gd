@@ -1,7 +1,7 @@
 extends RefCounted
 ## Una jornada de domiciliario: recoger, entregar, otro pedido... hasta que la fe supere al agarre.
 
-signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado, fundido, reparado
+signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado, fundido, reparado, charco, lluvia, escampo
 signal terminada_por(mensaje: String)
 signal pagado(pesos: int)           # al entregar: tarifa más propina por el tiempo que sobró
 
@@ -9,6 +9,7 @@ const CIUDAD := preload("res://scripts/ciudad.gd")
 const MOTO := preload("res://scripts/moto_logic.gd")
 const MOTOS := preload("res://scripts/motos.gd")
 const CICLO := preload("res://scripts/ciclo_dia.gd")
+const CLIMA := preload("res://scripts/clima.gd")
 
 const RECOGER := "recoger"
 const ENTREGAR := "entregar"
@@ -17,6 +18,7 @@ const VEL_PARADA := 3.0      # m/s: hay que parar para recoger o entregar
 const VEL_PROMEDIO := 8.0    # m/s con que se calcula el tiempo del pedido
 const TIEMPO_EXTRA := 25.0
 const TARIFA := 5000         # pesos por pedido entregado
+const FRENO_CHARCO := 0.15   # cada charco quita el 15 % de la velocidad
 const PROPINA_POR_S := 50    # pesos por cada segundo que sobró
 
 const PLATOS := ["Bandeja paisa", "Ajiaco", "Hamburguesa doble", "Salchipapa", "Empanadas x10",
@@ -25,6 +27,8 @@ const PLATOS := ["Bandeja paisa", "Ajiaco", "Hamburguesa doble", "Salchipapa", "
 var ciudad
 var moto
 var reloj
+var clima
+var _charco := -1            # el charco que se está pisando (frena una sola vez al entrar)
 var pedido := {}
 var fase := RECOGER
 var tiempo_restante := 0.0
@@ -39,6 +43,9 @@ func _init(semilla := 1, datos_moto: Dictionary = {}) -> void:
 	_rng.seed = semilla
 	ciudad = CIUDAD.new(semilla)
 	reloj = CICLO.new()
+	clima = CLIMA.new(semilla, ciudad)
+	clima.empezo_lluvia.connect(func(): evento.emit("lluvia"))
+	clima.paro_lluvia.connect(func(): evento.emit("escampo"))
 	moto = MOTO.new()
 	var datos := datos_moto if not datos_moto.is_empty() else MOTOS.get_moto(MOTOS.MOTO_INICIAL)
 	moto.setup(datos, ciudad, ciudad.cruce(20, 40), 0.0)
@@ -57,6 +64,8 @@ func advance(delta: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	if terminada:
 		return
 	reloj.advance(delta)
+	clima.advance(delta, moto.pos)
+	_revisar_charco()
 	tiempo_restante -= delta
 	_revisar_llegada()
 	if tiempo_restante <= 0.0:
@@ -81,7 +90,7 @@ func _revisar_llegada() -> void:
 		evento.emit("recogido")
 	else:
 		entregados += 1
-		var pago := pago_por(tiempo_restante)
+		var pago := pago_por(tiempo_restante, clima.lloviendo())
 		ganado += pago
 		evento.emit("entregado")
 		pagado.emit(pago)
@@ -89,8 +98,19 @@ func _revisar_llegada() -> void:
 
 
 ## Lo que paga un pedido según los segundos que sobraron, redondeado a cientos.
-static func pago_por(segundos_sobrantes: float) -> int:
-	return TARIFA + int(round(maxf(segundos_sobrantes, 0.0) * PROPINA_POR_S / 100.0)) * 100
+## Con lluvia paga el bono del clima (+30 %).
+static func pago_por(segundos_sobrantes: float, lluvia := false) -> int:
+	var base := TARIFA + int(round(maxf(segundos_sobrantes, 0.0) * PROPINA_POR_S / 100.0)) * 100
+	return int(round(base * (1.0 + CLIMA.BONO) / 100.0)) * 100 if lluvia else base
+
+
+## Pisar un charco frena un poco, una vez por charco.
+func _revisar_charco() -> void:
+	var k: int = clima.charco_en(moto.pos)
+	if k != -1 and k != _charco and moto.vel > 2.0:
+		moto.vel *= 1.0 - FRENO_CHARCO
+		evento.emit("charco")
+	_charco = k
 
 
 func _cuadra_cerca(desde: Vector2, min_d: int, max_d: int) -> Vector2i:

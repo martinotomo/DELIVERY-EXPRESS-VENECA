@@ -28,6 +28,8 @@ const MOTOS := {
 		"vel_max": 25.0,    # 90 km/h, y porque va bajando
 		"acel": 3.2,        # empuje a baja velocidad; se apaga al acercarse al tope
 		"freno": 7.0,
+		# Sonido: automática (CVT), gira alto y parejo; el bucle se grabó a 4800 rpm.
+		"cambios": 0, "rpm_ralenti": 1700.0, "rpm_max": 8500.0, "rpm_bucle": 4800.0,
 		"mejoras": {
 			"exosto": {"precio": 8000, "vel_max": 1.5, "acel": 0.2},
 			"motor": {"precio": 12000, "vel_max": 1.5, "acel": 0.5},
@@ -39,6 +41,7 @@ const MOTOS := {
 		"vel_max": 30.5,    # 110 km/h
 		"acel": 4.2,
 		"freno": 8.0,
+		"cambios": 4, "rpm_ralenti": 1500.0, "rpm_max": 9500.0, "rpm_bucle": 5400.0,
 		"mejoras": {
 			"exosto": {"precio": 15000, "vel_max": 1.5, "acel": 0.3},
 			"motor": {"precio": 22000, "vel_max": 2.0, "acel": 0.6},
@@ -50,6 +53,7 @@ const MOTOS := {
 		"vel_max": 40.0,    # 144 km/h
 		"acel": 6.0,
 		"freno": 9.0,
+		"cambios": 6, "rpm_ralenti": 1800.0, "rpm_max": 13000.0, "rpm_bucle": 7200.0,
 		"mejoras": {
 			"exosto": {"precio": 25000, "vel_max": 2.0, "acel": 0.4},
 			"motor": {"precio": 35000, "vel_max": 3.0, "acel": 0.8},
