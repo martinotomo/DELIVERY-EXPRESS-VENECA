@@ -23,8 +23,13 @@ anota por qué; si no, cada sesión nueva leerá la regla vieja y la aplicará.
 | D4 | 29/09/2026 | Motor: Godot **4.7.2** estable, GDScript, renderizador Compatibility. |
 | D5 | 29/09/2026 | Es un proyecto de ocio: **preferir siempre herramientas y assets de código abierto o libres** (Godot, Python, Audacity, OBS, Krita, LibreSprite, fuentes OFL, assets CC0). Si algo no lo es, se dice y se propone la alternativa libre. |
 | D6 | 29/09/2026 | También se puede trabajar **directamente en el PC de Tomás** (Remote Control de Claude Code en la carpeta del juego) cuando haga falta Godot con ventana, exportar el `.exe` o usar sus programas. |
+| D7 | 29/09/2026 | Vista **en primera persona, estilo Doom** (2.5D): se ve el manubrio de la moto y la ciudad de frente, dibujada a baja resolución (320×180) y escalada entera. Sigue siendo «2D como en las imágenes» en el sentido de Doom: mundo de bloques con sprites planos, no 3D realista. Sustituye la vista lateral del primer prototipo. |
+| D8 | 29/09/2026 | Mundo: **una ciudad grande tipo Bogotá**, unas 40 cuadras de ancho por 80 de largo, con cuadras de tamaños distintos (cortas y largas) para que no se vea cuadriculada. Se recogen y entregan domicilios, guiados por un **minimapa**. |
+| D9 | 29/09/2026 | El chiste central: girar muy rápido hace que la moto se vaya de lado, se monte al andén y se caiga; sale una cinemática y el remate «Has muerto al entrar demasiado rápido en la curva, tu fe era más grande que el agarre de tu <moto>», con el nombre de la moto. |
+| D10 | 29/09/2026 | **Día y noche**: un día completo cada 10 minutos, animado de forma continua. |
+| D11 | 29/09/2026 | **Voces de estereotipo venezolano** al recoger, entregar, casi estrellarse, etc. Las graba Tomás; el juego muestra subtítulos y reproduce `assets/voces/<evento>_<n>.wav` si existe. |
 
-**Pendiente de definir con Tomás** (no inventarlo): el chiste central en tres frases, la duración
+**Pendiente de definir con Tomás** (no inventarlo): la duración
 objetivo, la lista de motos intermedias, la definición de «terminado» y los no-objetivos.
 
 ---
