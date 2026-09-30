@@ -20,7 +20,7 @@ const VEL_PROMEDIO := 8.0    # m/s con que se calcula el tiempo del pedido
 const TIEMPO_EXTRA := 25.0
 const TARIFA := 5000         # pesos por pedido entregado
 const FRENO_CHARCO := 0.15   # cada charco quita el 15 % de la velocidad
-const PROPINA_POR_S := 50    # pesos por cada segundo que sobró
+const PROPINA_POR_S := 25    # pesos por cada segundo que sobró (Tomás, 30/09: bajó de 50)
 
 const PLATOS := ["Bandeja paisa", "Ajiaco", "Hamburguesa doble", "Salchipapa", "Empanadas x10",
 	"Arepa de choclo", "Pizza familiar", "Changua", "Tamal con chocolate", "Perro caliente"]

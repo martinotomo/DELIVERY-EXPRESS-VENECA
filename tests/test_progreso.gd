@@ -30,6 +30,7 @@ func run(t) -> void:
 	t.check(p.dinero >= PARTIDA.TARIFA, "un pedido paga al menos la tarifa")
 	t.check(PARTIDA.pago_por(60.0) > PARTIDA.pago_por(10.0), "llegar antes da más propina")
 	t.check_eq(PARTIDA.pago_por(-5.0), PARTIDA.TARIFA, "sin tiempo sobrante, solo la tarifa")
+	t.check_eq(PARTIDA.pago_por(100.0), PARTIDA.TARIFA + 2500, "la propina es de $25 por segundo que sobra (Tomás, 30/09)")
 	var antes: int = p.dinero
 	partida.moto.pos = partida.ciudad.punto_frente_a(4, 6)
 	partida.moto.rumbo = PI / 2.0
