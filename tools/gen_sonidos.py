@@ -22,9 +22,6 @@ SR = 44100
 # por debajo de 80 Hz (máximo); bucle = empalma sin clic; cola = el final queda en silencio.
 SPEC = {
     # bucles
-    "motor_bws":      {"dur": (0.9, 1.2), "rms": (0.12, 0.35), "graves": 0.05, "bucle": True},
-    "motor_nkd":      {"dur": (0.9, 1.2), "rms": (0.12, 0.35), "graves": 0.05, "bucle": True},
-    "motor_ninja":    {"dur": (0.9, 1.2), "rms": (0.12, 0.35), "graves": 0.05, "bucle": True},
     "ambiente_dia":   {"dur": (10.0, 14.0), "rms": (0.06, 0.25), "graves": 0.08, "bucle": True},
     "ambiente_noche": {"dur": (10.0, 14.0), "rms": (0.03, 0.20), "graves": 0.08, "bucle": True},
     "viento":         {"dur": (3.0, 5.0), "rms": (0.08, 0.30), "graves": 0.05, "bucle": True},
@@ -40,13 +37,33 @@ SPEC = {
     "charco":    {"dur": (0.4, 0.8), "rms": (0.05, 0.35), "graves": 0.05, "cola": True},
 }
 
-# Motores: rpm a la que se graba el bucle (el juego cambia el tono desde ahí), cilindros,
-# resonancias del exosto (Hz) y cuánto ruido mecánico lleva.
+# Motores (Tomás, 30/09: «suena a nave espacial»). Ahora cada explosión es un golpe de presión
+# irregular que pasa por un exosto de resonancias muy amortiguadas y ruido (no tonos puros), y hay
+# un bucle por cada rpm de RPM_MUESTRAS: el juego mezcla los dos más cercanos y casi no cambia el
+# tono, así el timbre del exosto no se deforma (el «chipmunk» que sonaba a ciencia ficción).
+# cil: fases de explosión dentro del ciclo de 720°; res: (Hz, ms de caída) del exosto; ruido: banda
+# y caída del «soplido»; paso_bajo: silenciador; jitter y var: irregularidad entre explosiones.
 MOTORES = {
-    "bws":   {"rpm": 4800, "cil": 1, "formantes": (170, 390, 880, 1900), "ruido": 0.30, "semilla": 11},
-    "nkd":   {"rpm": 5400, "cil": 1, "formantes": (140, 330, 720, 1500), "ruido": 0.20, "semilla": 12},
-    "ninja": {"rpm": 7200, "cil": 2, "formantes": (230, 540, 1250, 2600), "ruido": 0.12, "semilla": 13},
+    # BWS 125: monocilíndrica 4T de scooter, silenciador cerrado, zumbido de la correa (CVT).
+    "bws": {"cil": (0.0,), "res": ((170, 3.0), (430, 2.2), (950, 1.5)), "ruido": (250, 2600, 5.0),
+            "paso_bajo": 2800, "jitter": 0.03, "var": 0.2, "mec": 0.10, "correa": 0.10, "semilla": 11, "brillo": 3.2, "centroide": (450, 800),
+            "rpm": (1700, 2350, 3240, 4470, 6160, 8500)},
+    # NKD 125: monocilíndrica de calle, golpe grave y largo («pum-pum»), más irregular.
+    "nkd": {"cil": (0.0,), "res": ((105, 7.0), (250, 4.5), (600, 2.5)), "ruido": (120, 1800, 9.0),
+            "paso_bajo": 2200, "jitter": 0.035, "var": 0.25, "mec": 0.07, "correa": 0.0, "semilla": 12, "brillo": 0.25, "centroide": (200, 450),
+            "rpm": (1500, 2170, 3140, 4540, 6570, 9500)},
+    # Ninja 300: bicilíndrica en paralelo a 180° (explota a 180° y 540°), más aguda y pareja.
+    "ninja": {"cil": (0.0, 0.25), "res": ((240, 1.8), (620, 1.4), (1500, 1.0)), "ruido": (300, 5000, 3.5),
+              "paso_bajo": 5200, "jitter": 0.02, "var": 0.16, "mec": 0.09, "correa": 0.0, "semilla": 13, "brillo": 5.0, "centroide": (700, 1300),
+              "rpm": (1800, 2670, 3970, 5890, 8750, 13000)},
 }
+for _id, _m in MOTORES.items():
+    for _rpm in _m["rpm"]:
+        # tonal: los armónicos de las explosiones son normales en un motor de verdad; lo que sonaba
+        # «a nave» eran resonancias que timbraban (38–46 dB en la versión anterior). Primero puse
+        # 26 dB, pero a altas rpm los armónicos de explosión quedan en 26–28 dB: se deja en 30.
+        SPEC[f"motor_{_id}_{_rpm}"] = {"dur": (0.9, 1.2), "rms": (0.08, 0.30), "graves": 0.05,
+                                        "bucle": True, "tonal": 30.0, "centroide": _m["centroide"]}
 
 
 # --- utilidades -------------------------------------------------------------------------
@@ -112,31 +129,47 @@ def guardar(nombre, x):
 
 # --- bucles -----------------------------------------------------------------------------
 
-def motor(id_moto):
+def motor(id_moto, rpm):
     m = MOTORES[id_moto]
-    rng = np.random.default_rng(m["semilla"])
-    ciclo = m["rpm"] / 120.0                  # ciclos de 4 tiempos por segundo
-    n_ciclos = int(round(1.0 * ciclo))        # ~1 s, número entero de ciclos: empalma
-    largo = int(round(n_ciclos * SR / ciclo))
-    x = np.zeros(largo)
-    # Explosiones: una por ciclo (monocilíndrica) o dos desfasadas 180°/540° (bicilíndrica).
-    fases = [0.0] if m["cil"] == 1 else [0.0, 0.25]
+    rng = np.random.default_rng(m["semilla"] * 100003 + rpm)
+    ciclo = rpm / 120.0                       # ciclos de 4 tiempos por segundo
+    n_ciclos = max(int(round(1.0 * ciclo)), 4)
+    L = int(round(n_ciclos * SR / ciclo))
+    # 1) Explosiones: pulsos de presión cortos, cada uno distinto (fuerza y momento).
+    x = np.zeros(L)
+    ancho = int(0.0012 * SR)
     for k in range(n_ciclos):
-        for fz in fases:
-            pos = (k + fz + rng.normal(0, 0.012)) / ciclo
-            x[int(pos * SR) % largo] += 1.0 + rng.normal(0, 0.15)
-    # El exosto: cada explosión hace sonar sus resonancias (convolución circular).
-    tr = t_de(0.06)
-    resp = sum(np.sin(2 * np.pi * f * tr) * np.exp(-tr * (35 + f * 0.04)) / (1 + i * 0.6)
-               for i, f in enumerate(m["formantes"]))
-    L = len(x)
-    cuerpo = np.fft.irfft(np.fft.rfft(x) * np.fft.rfft(resp, L), L)
-    # Ruido mecánico (válvulas, cadena), marcado por el ritmo del motor.
-    fase = (np.arange(L) / SR * ciclo * len(fases)) % 1.0
-    ruido = banda_circular(rng.standard_normal(L), 1800, 6000) * (0.4 + 0.6 * np.exp(-fase * 6))
-    y = cuerpo / np.std(cuerpo) + m["ruido"] * ruido / np.std(ruido)
-    y = banda_circular(y, 90, 9000)
-    return normalizar(y, 0.7)
+        for fz in m["cil"]:
+            # irregularidad: parte proporcional al ciclo y parte fija (≈0,3 ms), que a altas rpm
+            # evita un tono perfecto
+            pos = (k + fz + rng.normal(0, m["jitter"])) / ciclo + rng.normal(0, 0.0003)
+            fuerza = max(1.0 + rng.normal(0, m["var"]), 0.2)
+            if rpm < 2500 and rng.random() < 0.04:
+                fuerza *= 0.35  # en ralentí a veces una explosión sale floja
+            pulso = np.sin(np.linspace(0, np.pi, ancho)) * fuerza
+            pulso += rng.normal(0, 0.35, ancho) * fuerza   # la explosión no es limpia
+            poner(x, pulso, pos)
+    # 2) Exosto: resonancias muy amortiguadas + soplido de ruido que se apaga rápido.
+    tr = t_de(0.05)
+    ir = sum(np.sin(2 * np.pi * f * tr) * np.exp(-tr / (ms / 1000.0)) / (1 + i * 0.5)
+             for i, (f, ms) in enumerate(m["res"]))
+    lo, hi, ms = m["ruido"]
+    soplido = banda(rng.standard_normal(len(tr)), lo, hi) * np.exp(-tr / (ms / 1000.0))
+    ir = ir / np.max(np.abs(ir)) + 0.8 * soplido / np.max(np.abs(soplido))
+    y = np.fft.irfft(np.fft.rfft(x) * np.fft.rfft(ir, L), L)
+    # 3) Mecánica: taqués (dos golpecitos por ciclo) y, en la BWS, la correa del CVT.
+    fase = (np.arange(L) / SR * ciclo) % 1.0
+    tique = banda_circular(rng.standard_normal(L), 3000, 8000) * (np.exp(-((fase * 2) % 1.0) * 40))
+    y = y / np.std(y) + m["mec"] * tique / (np.std(tique) + 1e-9)
+    if m["correa"]:
+        correa = banda_circular(rng.standard_normal(L), 500, 1400)
+        y += m["correa"] * min(rpm / 5000.0, 1.0) * correa / np.std(correa)  # en ralentí casi no suena
+    # Timbre de cada moto: la BWS zumba (medios), la NKD retumba (graves), la Ninja rasga (agudos).
+    y = y + m["brillo"] * banda_circular(y, 700, None)
+    y = banda_circular(y, 110, m["paso_bajo"])
+    y = y / np.sqrt(np.mean(y ** 2)) * 0.2          # todas al mismo volumen: lo decide el juego
+    y = np.tanh(y * 2.5) / 2.5                       # el silenciador redondea los picos
+    return y if np.max(np.abs(y)) < 0.9 else normalizar(y, 0.9)
 
 
 def trafico(noche):
@@ -291,8 +324,9 @@ def charco():
 
 
 def main():
-    for id_moto in MOTORES:
-        guardar(f"motor_{id_moto}", motor(id_moto))
+    for id_moto, m in MOTORES.items():
+        for rpm in m["rpm"]:
+            guardar(f"motor_{id_moto}_{rpm}", motor(id_moto, rpm))
     guardar("ambiente_dia", trafico(False))
     guardar("ambiente_noche", trafico(True))
     guardar("viento", viento())

@@ -5,7 +5,7 @@ const SONIDO_MOTOR := preload("res://scripts/sonido_motor.gd")
 const MOTOS := preload("res://scripts/motos.gd")
 const AUDIO := preload("res://scripts/audio.gd")
 
-const BUCLES := ["motor_bws", "motor_nkd", "motor_ninja", "ambiente_dia", "ambiente_noche", "viento", "lluvia"]
+const BUCLES := ["ambiente_dia", "ambiente_noche", "viento", "lluvia"]
 const EFECTOS := ["choque", "golpe", "casi", "fundido", "entregado", "recogido", "reparado", "charco"]
 
 
@@ -19,7 +19,12 @@ func run(t) -> void:
 
 	for id in MOTOS.ORDEN:
 		var datos: Dictionary = MOTOS.get_moto(id)
-		t.check(ResourceLoader.exists("res://assets/sonidos/motor_%s.wav" % id), "la %s tiene su motor" % id)
+		# Un bucle por cada rpm grabada (Tomás: «suena a nave espacial» → sin deformar el tono).
+		for rpm in datos.rpm_muestras:
+			var bucle: AudioStreamWAV = load("res://assets/sonidos/motor_%s_%d.wav" % [id, rpm])
+			t.check(bucle != null and bucle.loop_mode == AudioStreamWAV.LOOP_FORWARD, "la %s tiene su motor a %d rpm, en bucle" % [id, rpm])
+		t.check_eq(float(datos.rpm_muestras[0]), float(datos.rpm_ralenti), "%s: la primera grabación es el ralentí" % id)
+		t.check_eq(float(datos.rpm_muestras[-1]), float(datos.rpm_max), "%s: la última es el tope" % id)
 		var sm = SONIDO_MOTOR.new(datos)
 		var ralenti: float = sm.rpm_objetivo(0.0, false)
 		var tope: float = sm.rpm_objetivo(float(datos.vel_max), true)
@@ -27,11 +32,25 @@ func run(t) -> void:
 		t.check(tope > ralenti * 3.0, "%s a tope suena mucho más revolucionada (%d vs %d rpm)" % [id, tope, ralenti])
 		t.check(sm.rpm_objetivo(float(datos.vel_max) * 0.1, true) < sm.rpm_objetivo(float(datos.vel_max), true), "%s: despacio más tranquila que rápido" % id)
 		t.check(sm.rpm_objetivo(10.0, true) > sm.rpm_objetivo(10.0, false), "%s acelerando suena más que soltando" % id)
-		# El tono del bucle queda en un rango que suena bien.
-		sm.rpm = float(datos.rpm_ralenti)
-		var t_bajo: float = sm.tono()
-		sm.rpm = float(datos.rpm_max)
-		t.check(t_bajo >= 0.2 and sm.tono() <= 2.0, "%s: tono entre %.2f y %.2f" % [id, t_bajo, sm.tono()])
+		# En todo el rango suenan dos grabaciones vecinas; la que más suena casi no corre el tono
+		# (máx. 25 %) y la otra, que entra o sale de la mezcla, a lo sumo 50 %.
+		var peor := 1.0
+		var peor_oida := 1.0
+		var suma_ok := true
+		for k in 60:
+			sm.rpm = lerpf(float(datos.rpm_ralenti), float(datos.rpm_max), k / 59.0)
+			var mz: Array = sm.mezcla()
+			if absf(mz[0][1] + mz[1][1] - 1.0) > 0.001:
+				suma_ok = false
+			for par in mz:
+				var corrido: float = maxf(par[2], 1.0 / par[2])
+				if par[1] >= 0.5:
+					peor = maxf(peor, corrido)
+				if par[1] > 0.01:
+					peor_oida = maxf(peor_oida, corrido)
+		t.check(suma_ok, "%s: las dos grabaciones se reparten el volumen" % id)
+		t.check(peor <= 1.25, "%s: la grabación principal corre el tono como mucho %d %%" % [id, roundi((peor - 1.0) * 100.0)])
+		t.check(peor_oida <= 1.5, "%s: ninguna grabación que se oiga corre el tono más de %d %%" % [id, roundi((peor_oida - 1.0) * 100.0)])
 		t.check(sm.volumen_db(true) > sm.volumen_db(false) - 0.01, "%s: acelerando suena más fuerte" % id)
 
 	# BWS automática: las rpm solo suben con la velocidad.

@@ -12,7 +12,7 @@ const EFECTOS := {
 const SILENCIO := -60.0
 
 var motor # sonido_motor.gd
-var _motor: AudioStreamPlayer
+var _motores: Array[AudioStreamPlayer] = [] # uno por cada rpm grabada
 var _viento: AudioStreamPlayer
 var _dia: AudioStreamPlayer
 var _noche: AudioStreamPlayer
@@ -24,7 +24,8 @@ var ultimo_efecto := ""   # para las pruebas
 
 func preparar(datos_moto: Dictionary) -> void:
 	motor = SONIDO_MOTOR.new(datos_moto)
-	_motor = _bucle("Motor", "motor_" + str(datos_moto.id))
+	for rpm in datos_moto.rpm_muestras:
+		_motores.append(_bucle("Motor%d" % rpm, "motor_%s_%d" % [datos_moto.id, rpm]))
 	_viento = _bucle("Viento", "viento")
 	_dia = _bucle("CiudadDia", "ambiente_dia")
 	_noche = _bucle("CiudadNoche", "ambiente_noche")
@@ -51,8 +52,13 @@ func actualizar(delta: float, partida, acelerar: bool) -> void:
 	var m = partida.moto
 	var viva: bool = not partida.terminada
 	motor.advance(delta, m.vel, acelerar and viva and not m.motor_fundido)
-	_motor.pitch_scale = clampf(motor.tono(), 0.2, 3.0)
-	_motor.volume_db = motor.volumen_db(acelerar) if viva and not m.motor_fundido else SILENCIO
+	var vol: float = motor.volumen_db(acelerar) if viva and not m.motor_fundido else SILENCIO
+	for p in _motores:
+		p.volume_db = SILENCIO
+	for par in motor.mezcla():
+		var p := _motores[par[0]]
+		p.pitch_scale = clampf(par[2], 0.5, 2.0)
+		p.volume_db = maxf(vol + _db(sqrt(par[1])), SILENCIO) if par[1] > 0.001 else SILENCIO # potencia constante
 	var rapidez := clampf(m.vel / 35.0, 0.0, 1.0)
 	_viento.volume_db = _db(rapidez * 0.7)
 	_viento.pitch_scale = 0.8 + 0.5 * rapidez
@@ -61,7 +67,7 @@ func actualizar(delta: float, partida, acelerar: bool) -> void:
 	var dia := smoothstep(0.0, 0.35, luz)
 	_dia.volume_db = _db(0.5 * dia * (1.0 - 0.5 * llueve))
 	_noche.volume_db = _db(0.45 * (1.0 - dia) * (1.0 - 0.5 * llueve))
-	_lluvia.volume_db = _db(0.8 * llueve)
+	_lluvia.volume_db = _db(1.0 * llueve)
 
 
 func _db(lineal: float) -> float:

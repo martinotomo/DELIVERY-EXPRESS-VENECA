@@ -3,7 +3,8 @@
     python tools/medir_sonidos.py        # sale 0 solo si todos cumplen
 
 Mide: duración, pico (sin saturar), RMS, energía por debajo de 80 Hz (los portátiles no la
-suenan), que los efectos terminen en silencio y que los bucles empalmen sin clic.
+suenan), que los efectos terminen en silencio, que los bucles empalmen sin clic y, en los
+motores, que no haya un tono puro que sobresalga (lo que sonaba «a nave espacial»).
 """
 import sys
 import wave
@@ -47,7 +48,20 @@ def medir(nombre, spec):
         limite = np.percentile(saltos, 99.9) * 1.5
         if costura > limite:
             fallas.append(f"clic en la costura del bucle ({costura:.3f} > {limite:.3f})")
-    linea = f"{nombre:15s} {dur:5.2f} s  pico {pico:.2f}  RMS {rms:.3f}  graves {graves:.1%}"
+    if spec.get("tonal"):
+        from scipy.ndimage import median_filter
+        P = np.abs(np.fft.rfft(x * np.hanning(len(x)))) ** 2
+        b = (f > 100) & (f < 4000)
+        P = P[b]
+        tonal = 10 * np.log10(np.max(P / (median_filter(P, size=401) + 1e-12)))
+        if tonal > spec["tonal"]:
+            fallas.append(f"demasiado tonal, suena a sintetizador ({tonal:.1f} dB > {spec['tonal']} dB)")
+    if spec.get("centroide"):
+        # «centro de gravedad» del espectro: qué tan grave o brillante suena (distingue las motos)
+        c = (X * f).sum() / X.sum()
+        if not spec["centroide"][0] <= c <= spec["centroide"][1]:
+            fallas.append(f"timbre {c:.0f} Hz fuera de {spec['centroide']}")
+    linea = f"{nombre:20s} {dur:5.2f} s  pico {pico:.2f}  RMS {rms:.3f}  graves {graves:.1%}"
     return linea, fallas
 
 
