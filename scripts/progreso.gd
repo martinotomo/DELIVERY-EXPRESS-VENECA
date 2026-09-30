@@ -53,6 +53,14 @@ func ganar(pesos: int) -> void:
 	cambio.emit()
 
 
+## Plata de prueba (F10 en el taller o en la calle, solo en versiones de desarrollo).
+const PLATA_PRUEBA := 50000
+
+
+func plata_de_prueba() -> void:
+	ganar(PLATA_PRUEBA)
+
+
 func tiene_mejora(nombre: String) -> bool:
 	return mejoras.get(nombre, false)
 

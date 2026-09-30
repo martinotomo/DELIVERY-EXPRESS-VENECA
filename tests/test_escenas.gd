@@ -85,6 +85,19 @@ func run(t) -> void:
 	t.check(taller.get_node("Estado").text.contains("EN USO") and not b_exosto.disabled, "la nueva queda en uso y con sus mejoras a la venta")
 	taller.mover(-1)
 	t.check(taller.get_node("Estado").text.contains("ENTREGADA"), "la Bwis ya se entregó")
+	# F10 da plata de prueba en el taller, solo en desarrollo.
+	var f10 := InputEventKey.new()
+	f10.keycode = KEY_F10
+	f10.pressed = true
+	t.check(taller.trucos == OS.is_debug_build(), "F10 solo existe en desarrollo (taller)")
+	var antes_f10: int = main.progreso.dinero
+	taller.trucos = true
+	taller._input(f10)
+	t.check_eq(main.progreso.dinero, antes_f10 + PROGRESO_T.PLATA_PRUEBA, "F10 en el taller suma plata")
+	t.check_eq(taller.get_node("Plata").text, PROGRESO_T.pesos(antes_f10 + PROGRESO_T.PLATA_PRUEBA), "y el saldo se ve al momento")
+	taller.trucos = false
+	taller._input(f10)
+	t.check_eq(main.progreso.dinero, antes_f10 + PROGRESO_T.PLATA_PRUEBA, "en el .exe F10 no hace nada (taller)")
 	for hijo in taller.find_children("*", "Control", true, false):
 		if hijo is Label or hijo is Button:
 			if hijo.is_visible_in_tree():
@@ -334,6 +347,21 @@ func run(t) -> void:
 	r2.trucos = false
 	r2._input(f9)
 	t.check(cl.lloviendo(), "en el .exe exportado F9 no hace nada")
+	# F10 da plata de prueba también en la calle (si hay progreso).
+	var prog_f10 = PROGRESO_T.new("user://prueba_f10.cfg")
+	prog_f10.dinero = 0
+	r2.progreso = prog_f10
+	var f10c := InputEventKey.new()
+	f10c.keycode = KEY_F10
+	f10c.pressed = true
+	r2.trucos = true
+	r2._input(f10c)
+	t.check_eq(prog_f10.dinero, PROGRESO_T.PLATA_PRUEBA, "F10 en la calle suma plata")
+	r2.trucos = false
+	r2._input(f10c)
+	t.check_eq(prog_f10.dinero, PROGRESO_T.PLATA_PRUEBA, "en el .exe F10 no hace nada (calle)")
+	r2.progreso = null
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://prueba_f10.cfg"))
 	cl.parar_lluvia()
 	# Cebras pintadas en todas las esquinas, y peatones dibujados donde van.
 	var c = r2.partida.ciudad

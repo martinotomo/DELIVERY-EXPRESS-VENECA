@@ -33,6 +33,8 @@ var _l_plata: Label
 var _l_datos: Array[Label] = []
 var _candado: Control
 var _tope := {}              # vel_max y acel de la mejor moto con todo
+## F10 = +$50.000 para probar: solo en versiones de desarrollo, nunca en el .exe exportado.
+var trucos := OS.is_debug_build()
 
 
 func _ready() -> void:
@@ -106,7 +108,12 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("izquierda"):
+	var tecla := event as InputEventKey
+	if trucos and tecla != null and tecla.pressed and not tecla.echo and tecla.keycode == KEY_F10 and progreso != null:
+		progreso.plata_de_prueba()
+		actualizar()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("izquierda"):
 		mover(-1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("derecha"):

@@ -56,7 +56,7 @@ var _peatones: Array[Sprite3D] = [] # uno por cada peatón que puede haber a la 
 var _version_charcos := -1
 var _mat_asfalto: StandardMaterial3D
 var _acelerando := false
-## Teclas de prueba (F9 = lluvia): solo en versiones de desarrollo, nunca en el .exe exportado.
+## Teclas de prueba (F9 = lluvia, F10 = +$50.000): solo en versiones de desarrollo, nunca en el .exe exportado.
 var trucos := OS.is_debug_build()
 var _subtitulo: Label
 var _voz: AudioStreamPlayer
@@ -83,6 +83,9 @@ func _input(event: InputEvent) -> void:
 	var tecla := event as InputEventKey
 	if trucos and tecla != null and tecla.pressed and not tecla.echo and tecla.keycode == KEY_F9:
 		partida.clima.alternar_lluvia()
+		get_viewport().set_input_as_handled()
+	elif trucos and tecla != null and tecla.pressed and not tecla.echo and tecla.keycode == KEY_F10 and progreso != null:
+		progreso.plata_de_prueba()
 		get_viewport().set_input_as_handled()
 
 
