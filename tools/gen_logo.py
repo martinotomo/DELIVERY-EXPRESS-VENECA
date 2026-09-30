@@ -33,8 +33,23 @@ def c(nombre):
     return np.array(P[nombre], np.float32)
 
 
+# Letras redibujadas para el logo: la V de la fuente tiene el fondo lleno y, inclinada y con
+# volumen, se leía como Y («DELIYERY»). Esta deja abierta la muesca hasta abajo.
+PROPIAS = {
+    "V": ["XX...XX.",
+          "XX...XX.",
+          "XX...XX.",
+          ".XX.XX..",
+          ".XX.XX..",
+          "..XXX...",
+          "...X...."],
+}
+
+
 def bitmap(texto):
     """El texto en la fuente pixelada a su tamaño nativo (8 px): matriz de 0/1."""
+    if texto in PROPIAS:
+        return np.array([[c == "X" for c in fila] for fila in PROPIAS[texto]])
     f = ImageFont.truetype(str(FUENTE), 8)
     ancho = f.getbbox(texto)[2]
     im = Image.new("L", (ancho, 8), 0)

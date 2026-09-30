@@ -31,3 +31,15 @@ exactamente lo mismo.
 
 Colores que se agregaron a la paleta para los cerros: `cerro_bruma`, `cerro_lejano`, `cerro_medio`
 y `monte_oscuro`.
+
+## Hoja completa
+
+`docs/direccion_visual/hoja.png` junta todas las piezas para revisarlas de una vez (paleta, fuente,
+logo, puestos de mando, motos, caídas dibujadas, tráfico, fachadas por zona, cerros, gente, señales y
+capturas del juego como maqueta del HUD). Se arma con `python tools/gen_hoja_visual.py`; las capturas
+salen de `tools/capturas.gd` y se copian a `docs/direccion_visual/capturas/`.
+
+Otras piezas de la F2/F3 hechas por código: `tools/gen_vehiculos.py` (carros, taxis, buses y
+camiones en 8 direcciones), `tools/gen_cinematica.py` (la caída dibujada de cada moto) y
+`tools/gen_manubrios.py` (puestos de mando). La V del logo está redibujada a mano (`PROPIAS` en
+`gen_logo.py`): la de la fuente, inclinada y gorda, se leía como Y.

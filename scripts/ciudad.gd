@@ -190,24 +190,40 @@ func _via_cercana(inicios: PackedFloat64Array, tams: Array[float], v: float) -> 
 	return mejor
 
 
-## Desde un punto de calle, cómo entrar a la red de cruces: [punto sobre el eje de su vía, cruce (i, j)].
-func _enganche(p: Vector2) -> Array:
+## Desde un punto de calle, los dos cruces a los extremos de su tramo: {"via": "calle"/"carrera",
+## "k": índice de la vía, "cruces": [Vector2i, Vector2i]}.
+func _tramo(p: Vector2) -> Dictionary:
 	var i := _via_cercana(inicio_x, anchos, p.x)
 	var j := _via_cercana(inicio_y, largos, p.y)
-	var en_calle: bool = absf(_centro_via(inicio_y, largos, j) - p.y) <= CALLE / 2.0
-	if en_calle:
-		return [Vector2(p.x, _centro_via(inicio_y, largos, j)), Vector2i(i, j)]
-	return [Vector2(_centro_via(inicio_x, anchos, i), p.y), Vector2i(i, j)]
+	if absf(_centro_via(inicio_y, largos, j) - p.y) <= CALLE / 2.0:
+		var bi := clampi(_indice(inicio_x, p.x), 0, N_ANCHO - 1)
+		if absf(_centro_via(inicio_x, anchos, i) - p.x) <= CALLE / 2.0:
+			return {"via": "calle", "k": j, "cruces": [Vector2i(i, j), Vector2i(i, j)]}
+		return {"via": "calle", "k": j, "cruces": [Vector2i(bi, j), Vector2i(bi + 1, j)]}
+	var bj := clampi(_indice(inicio_y, p.y), 0, N_LARGO - 1)
+	return {"via": "carrera", "k": i, "cruces": [Vector2i(i, bj), Vector2i(i, bj + 1)]}
 
 
-## Ruta por calles de a hasta b (los dos en la calle), para el minimapa.
-## En una cuadrícula completa basta ir por una calle y luego por una carrera.
+## Ruta más corta por calles de a hasta b (los dos en la calle), para el minimapa: sale por uno de
+## los dos extremos de su tramo, va en L por la cuadrícula y entra por uno de los extremos del de b.
+## Se recalcula cada vez desde donde esté la moto.
 func ruta(a: Vector2, b: Vector2) -> PackedVector2Array:
-	var ea := _enganche(a)
-	var eb := _enganche(b)
-	var na: Vector2i = ea[1]
-	var nb: Vector2i = eb[1]
-	var puntos: Array[Vector2] = [a, ea[0], cruce(na.x, na.y), cruce(nb.x, na.y), cruce(nb.x, nb.y), eb[0], b]
+	var ta := _tramo(a)
+	var tb := _tramo(b)
+	var puntos: Array[Vector2] = []
+	if ta.via == tb.via and ta.k == tb.k and ta.cruces == tb.cruces:
+		puntos = [a, b] # mismo tramo: derecho
+	else:
+		var mejor := INF
+		for ca in ta.cruces:
+			for cb in tb.cruces:
+				var pa := cruce(ca.x, ca.y)
+				var pb := cruce(cb.x, cb.y)
+				var codo := cruce(cb.x, ca.y)
+				var largo := a.distance_to(pa) + pa.distance_to(codo) + codo.distance_to(pb) + pb.distance_to(b)
+				if largo < mejor:
+					mejor = largo
+					puntos = [a, pa, codo, pb, b]
 	var r := PackedVector2Array()
 	for q in puntos:
 		if r.is_empty() or r[r.size() - 1].distance_to(q) > 0.01:
