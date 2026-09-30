@@ -19,6 +19,8 @@ func run(t) -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(RUTA))
 	var DIRECTOR = load("res://scripts/main.gd")
 	DIRECTOR.ruta_progreso = RUTA
+	DIRECTOR.ruta_opciones = "user://prueba_escenas_opciones.cfg" # no leer las opciones de verdad (idioma)
+	DIRECTOR.mostrar_advertencia = false # la advertencia la prueba test_pantallas
 	var main: Node = escena.instantiate()
 	t.root.add_child(main)
 	await t.process_frame
@@ -583,6 +585,8 @@ func run(t) -> void:
 	t.check_eq(_pantallas(main).size(), 1, "con una sola pantalla")
 	t.check(main.pantalla_actual().get_node("Estado").text.contains(main.progreso.pesos(main.progreso.dinero)), "el menú muestra la plata ganada")
 	DIRECTOR.ruta_progreso = "user://progreso.cfg"
+	DIRECTOR.ruta_opciones = "user://opciones.cfg"
+	DIRECTOR.mostrar_advertencia = true
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(RUTA))
 
 	main.queue_free()

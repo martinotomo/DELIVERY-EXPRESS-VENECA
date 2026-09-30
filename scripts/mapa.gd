@@ -102,34 +102,34 @@ func _draw() -> void:
 	var f := get_theme_default_font()
 	var x := 16.0
 	var y := 30.0
-	draw_string(f, Vector2(x, y), "MAPA", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, C_TEXTO)
+	draw_string(f, Vector2(x, y), tr("MAPA"), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, C_TEXTO)
 	y += 26.0
 	for z in ["barrio", "centro", "industrial", "rica"]:
 		draw_rect(Rect2(x, y - 8, 10, 10), C_ZONA[z])
 		draw_string(f, Vector2(x + 16, y), c.nombre_zona(z).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
 		y += 16.0
 	draw_rect(Rect2(x, y - 8, 10, 10), C_PARQUE)
-	draw_string(f, Vector2(x + 16, y), "PARQUE", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
+	draw_string(f, Vector2(x + 16, y), tr("PARQUE"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
 	y += 16.0
 	draw_line(Vector2(x, y - 3), Vector2(x + 10, y - 3), C_AVENIDA, 1.0)
-	draw_string(f, Vector2(x + 16, y), "AVENIDA", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
+	draw_string(f, Vector2(x + 16, y), tr("AVENIDA"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
 	y += 16.0
 	draw_rect(Rect2(x, y - 8, 10, 10), C_CERROS)
-	draw_string(f, Vector2(x + 16, y), "CERROS", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
+	draw_string(f, Vector2(x + 16, y), tr("CERROS"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
 	y += 24.0
 	draw_circle(Vector2(x + 5, y - 4), 3.0, C_RESTAURANTE)
-	draw_string(f, Vector2(x + 16, y), "RECOGER", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
+	draw_string(f, Vector2(x + 16, y), tr("RECOGER"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
 	y += 16.0
 	draw_circle(Vector2(x + 5, y - 4), 3.0, C_CLIENTE)
-	draw_string(f, Vector2(x + 16, y), "ENTREGAR", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
+	draw_string(f, Vector2(x + 16, y), tr("ENTREGAR"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
 	y += 16.0
 	draw_line(Vector2(x, y - 3), Vector2(x + 10, y - 3), C_RUTA, 2.0)
-	draw_string(f, Vector2(x + 16, y), "RUTA", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
+	draw_string(f, Vector2(x + 16, y), tr("RUTA"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)
 	# Dónde está, y cómo cerrar.
 	var abajo := size.y - 34.0
 	draw_string(f, Vector2(x, abajo), c.ubicacion(m.pos), HORIZONTAL_ALIGNMENT_LEFT, 200, 8, C_TEXTO)
 	draw_string(f, Vector2(x, abajo + 14), c.nombre_zona(c.zona_en(m.pos)).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, 200, 8, Color("9a9aa2"))
-	draw_string(f, Vector2(size.x - 16 - 160, abajo + 14), "TAB: VOLVER", HORIZONTAL_ALIGNMENT_RIGHT, 160, 8, Color("9a9aa2"))
+	draw_string(f, Vector2(size.x - 16 - 160, abajo + 14), tr("TAB: VOLVER"), HORIZONTAL_ALIGNMENT_RIGHT, 160, 8, Color("9a9aa2"))
 	# La rosa de los vientos, arriba a la derecha.
 	var rosa := Vector2(size.x - 30, 34)
 	draw_string(f, rosa + Vector2(-4, -8), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, C_TEXTO)

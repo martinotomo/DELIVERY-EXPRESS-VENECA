@@ -15,6 +15,7 @@ const PROGRESO := preload("res://scripts/progreso.gd")
 const AUDIO := preload("res://scripts/audio.gd")
 const LLUVIA := preload("res://scripts/lluvia_pantalla.gd")
 const MAPA := preload("res://scripts/mapa.gd")
+const PAUSA := preload("res://scripts/pausa.gd")
 
 const ALTURA_OJOS := 1.5
 const MIRADA_ABAJO := 0.1   # rad que se inclina la vista hacia la calle (se ve más camino por encima del tablero)
@@ -30,6 +31,8 @@ const C_ROJO := Color("e0301e")
 const SEMILLA := 20260929
 var partida = PARTIDA.new(SEMILLA)
 var progreso # lo pone el director; sin él se juega con la BWS de fábrica
+var opciones # también del director: la pausa las muestra
+var pausa: Control # menú de pausa (Esc)
 var voces = VOCES.new(1)
 var retraso_resultado := 3.0
 var ilustracion_final: Texture2D # la caída dibujada, para que el remate se lea encima
@@ -91,7 +94,7 @@ func _ready() -> void:
 	if progreso != null:
 		partida = PARTIDA.new(SEMILLA, progreso.datos_moto(), progreso.toca_final())
 		if progreso.estrenando() != "":
-			get_tree().create_timer(1.2).timeout.connect(func(): if is_inside_tree(): _al_evento("moto_nueva"))
+			get_tree().create_timer(1.2, false).timeout.connect(func(): if is_inside_tree(): _al_evento("moto_nueva"))
 	_construir_mundo()
 	_construir_hud()
 	_audio = AUDIO.new()
@@ -103,6 +106,32 @@ func _ready() -> void:
 	partida.final_logrado.connect(_al_final)
 	partida.terminada_por.connect(_al_estrellarse)
 	_actualizar_vista(0.0)
+	# El menú de pausa va en su propia capa, encima del HUD.
+	var capa := CanvasLayer.new()
+	capa.name = "CapaPausa"
+	capa.layer = 10
+	capa.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(capa)
+	pausa = PAUSA.new()
+	pausa.opciones = opciones
+	pausa.al_menu.connect(func(): al_menu.emit())
+	capa.add_child(pausa)
+
+
+## Esc: en plena partida abre la pausa; ya caído (cinemática), va al menú como antes.
+## Enter o R: otra jornada. Van aquí y no en _process para que la tecla que cierra la pausa (o que
+## pulsa un botón de ella) no la reciba también la partida.
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("menu"):
+		get_viewport().set_input_as_handled()
+		if partida.terminada:
+			al_menu.emit()
+		else:
+			_mapa.visible = false
+			pausa.abrir()
+	elif event.is_action_pressed("continuar"):
+		get_viewport().set_input_as_handled()
+		reintentar.emit()
 
 
 func _input(event: InputEvent) -> void:
@@ -120,12 +149,6 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if Input.is_action_just_pressed("continuar"):
-		reintentar.emit()
-		return
-	if Input.is_action_just_pressed("menu"):
-		al_menu.emit()
-		return
 	if not partida.terminada and not _mapa.visible: # con el mapa abierto, la partida espera
 		var giro := Input.get_action_strength("derecha") - Input.get_action_strength("izquierda")
 		_giro_visual = lerpf(_giro_visual, giro, minf(delta * 8.0, 1.0))
@@ -945,13 +968,13 @@ func _construir_hud() -> void:
 	_etiqueta(Vector2(84, 344), "KM/H")
 	_l_reloj = _texto(Vector2(248, 339), 16, "Reloj")
 	_l_reloj.add_theme_color_override("font_color", C_ROJO)
-	_etiqueta(Vector2(338, 344), "TIEMPO")
+	_etiqueta(Vector2(338, 344), tr("TIEMPO"))
 	# Alineada a la derecha, pegada a «PLATA»: crece hacia la izquierda con cifras largas.
 	_l_cuenta = _texto(Vector2(PLATA_ETIQUETA_X - 8 - 200, 339), 16, "Plata")
 	_l_cuenta.size = Vector2(200, 22)
 	_l_cuenta.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_l_cuenta.add_theme_color_override("font_color", C_ROJO)
-	_etiqueta(Vector2(PLATA_ETIQUETA_X, 344), "PLATA")
+	_etiqueta(Vector2(PLATA_ETIQUETA_X, 344), tr("PLATA"))
 
 	var mini: Control = MINIMAPA.new()
 	mini.name = "Minimapa"
@@ -978,7 +1001,7 @@ func _construir_hud() -> void:
 	_l_estrellas.visible = false
 	# Aviso de derrape pequeño y en la esquina, encima de la velocidad (no tapa la calle).
 	_l_derrape = _texto(Vector2(8, 314), 8, "Derrape")
-	_l_derrape.text = "¡SE VA DE LADO!"
+	_l_derrape.text = tr("¡SE VA DE LADO!")
 	_l_derrape.add_theme_color_override("font_color", C_ROJO)
 	_l_derrape.add_theme_stylebox_override("normal", _fondo())
 	_l_derrape.visible = false
@@ -989,7 +1012,7 @@ func _construir_hud() -> void:
 	_l_motor.visible = false
 	# Bono de lluvia, abajo a la derecha (no tapa la calle).
 	_l_bono = _texto(Vector2(0, 290), 8, "Bono")
-	_l_bono.text = "LLUVIA: +%d%% POR PEDIDO" % roundi(partida.clima.BONO * 100.0)
+	_l_bono.text = tr("LLUVIA: +%d%% POR PEDIDO") % roundi(partida.clima.BONO * 100.0)
 	_l_bono.add_theme_color_override("font_color", Color("8ec8ff"))
 	_l_bono.add_theme_stylebox_override("normal", _fondo())
 	_l_bono.position.x = 632.0 - _l_bono.get_minimum_size().x
@@ -1066,25 +1089,26 @@ func _actualizar_vista(delta: float) -> void:
 	_l_reloj.modulate.a = 0.35 if s <= 15 and int(Time.get_ticks_msec() / 250) % 2 == 0 else 1.0
 	_l_cuenta.text = PROGRESO.pesos(progreso.dinero if progreso != null else partida.ganado)
 	_l_ubicacion.text = "%s\n%s" % [partida.ciudad.ubicacion(m.pos), partida.ciudad.nombre_zona(partida.ciudad.zona_en(m.pos)).to_upper()]
-	_l_hora.text = ("DIA " if partida.reloj.luz() > 0.25 else "NOCHE ") + partida.reloj.texto_hora()
+	_l_hora.text = (tr("DIA") if partida.reloj.luz() > 0.25 else tr("NOCHE")) + " " + partida.reloj.texto_hora()
 	var tipo: Dictionary = partida.TIPOS_PEDIDO[p.tipo]
+	# Idioma (localization/textos.csv): el plato, el aviso y algunos clientes se traducen al mostrarlos.
 	if recoger:
-		_l_pedido.text = "RECOGE: %s\n%s\nSigue la columna naranja" % [p.plato.to_upper(), tipo.aviso]
+		_l_pedido.text = tr("RECOGE: %s\n%s\nSigue la columna naranja") % [tr(p.plato).to_upper(), tr(tipo.aviso)]
 	else:
-		_l_pedido.text = "ENTREGA: %s A %s\n%s\n%s" % [p.plato.to_upper(), str(p.nombre_cliente).to_upper(), p.direccion, tipo.aviso]
+		_l_pedido.text = tr("ENTREGA: %s A %s\n%s\n%s") % [tr(p.plato).to_upper(), tr(str(p.nombre_cliente)).to_upper(), p.direccion, tr(tipo.aviso)]
 		if float(tipo.fragil) > 0.0:
-			_l_pedido.text += "\nESTADO: %d%%" % roundi(partida.estado_pedido * 100.0)
+			_l_pedido.text += "\n" + tr("ESTADO: %d%%") % roundi(partida.estado_pedido * 100.0)
 	_l_racha.visible = partida.racha > 0 and not partida.terminada
-	_l_racha.text = "FE x%d  +%d%% PROPINA" % [partida.racha, roundi(partida.RACHA_BONO * 100.0 * partida.racha)]
+	_l_racha.text = tr("FE x%d  +%d%% PROPINA") % [partida.racha, roundi(partida.RACHA_BONO * 100.0 * partida.racha)]
 	_l_racha.position.y = _l_pedido.position.y + _l_pedido.get_minimum_size().y + 4.0
 	_t_estrellas = maxf(_t_estrellas - delta, 0.0)
 	_l_estrellas.visible = _t_estrellas > 0.0 and not partida.terminada
 	_l_derrape.visible = m.derrapando and not partida.terminada
 	var cuenta: float = m.cuenta_motor()
 	if m.motor_fundido:
-		_l_motor.text = "MOTOR FUNDIDO: espera %d" % ceili(maxf(m.espera_reparacion(), 0.0))
+		_l_motor.text = tr("MOTOR FUNDIDO: espera %d") % ceili(maxf(m.espera_reparacion(), 0.0))
 	elif cuenta >= 0.0:
-		_l_motor.text = "¡VAS A FUNDIR EL MOTOR! %d" % ceili(cuenta)
+		_l_motor.text = tr("¡VAS A FUNDIR EL MOTOR! %d") % ceili(cuenta)
 	_l_motor.visible = (m.motor_fundido or cuenta >= 0.0) and not partida.terminada
 	var clima = partida.clima
 	_l_bono.visible = clima.lloviendo() and not partida.terminada
@@ -1107,7 +1131,7 @@ func _actualizar_vista(delta: float) -> void:
 	_detalles.actualizar(delta, Vector2(_camara.global_position.x, _camara.global_position.z), _camara.global_transform.basis.x,
 		partida.reloj.luz(), _farola.visible)
 	if partida.multado:
-		_l_pedido.text += "\nSIN PROPINA: atropellaste a alguien"
+		_l_pedido.text += "\n" + tr("SIN PROPINA: atropellaste a alguien")
 
 	_t_subtitulo = maxf(_t_subtitulo - delta, 0.0)
 	_subtitulo.visible = _t_subtitulo > 0.0
@@ -1162,7 +1186,7 @@ func _al_final(mensaje: String) -> void:
 	for hijo in $HUD.get_children():
 		hijo.visible = hijo == _subtitulo and _subtitulo.visible
 	if retraso_resultado > 0.0:
-		await get_tree().create_timer(retraso_resultado).timeout
+		await get_tree().create_timer(retraso_resultado, false).timeout
 	if is_inside_tree():
 		terminado.emit("final", mensaje)
 
@@ -1222,14 +1246,14 @@ func _al_estrellarse(mensaje: String) -> void:
 			_camara.look_at(mira)
 		var tw := create_tween()
 		tw.tween_method(mover, 0.0, 1.0, duracion_encuadre).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	var cierre := "Ni un pedido entregado. La app ya te está buscando reemplazo."
+	var cierre := tr("Ni un pedido entregado. La app ya te está buscando reemplazo.")
 	if partida.entregados > 0:
-		cierre = "Entregaste %d pedidos: +%s, y esa plata no se pierde." % [partida.entregados, PROGRESO.pesos(partida.ganado)]
+		cierre = tr("Entregaste %d pedidos: +%s, y esa plata no se pierde.") % [partida.entregados, PROGRESO.pesos(partida.ganado)]
 	var final_msg := "%s\n\n%s" % [mensaje, cierre]
 	ilustracion_final = _ilustracion.texture
 	if retraso_resultado <= 0.0:
 		terminado.emit("estrellado", final_msg)
 		return
-	await get_tree().create_timer(retraso_resultado).timeout
+	await get_tree().create_timer(retraso_resultado, false).timeout
 	if is_inside_tree():
 		terminado.emit("estrellado", final_msg)

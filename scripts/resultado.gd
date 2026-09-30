@@ -39,7 +39,7 @@ func _ready() -> void:
 
 	var pista := Label.new()
 	pista.name = "Pista"
-	pista.text = "ENTER: otra jornada      ESC: menú"
+	pista.text = tr("ENTER: otra jornada      ESC: menú")
 	pista.position = Vector2(0, 322)
 	pista.size = Vector2(640, 20)
 	pista.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -62,7 +62,7 @@ func mostrar(estado: String, mensaje: String, ilustracion: Texture2D = null) -> 
 		move_child(fondo, 1) # encima del negro, debajo de la caja y los textos
 	var titulo := Label.new()
 	titulo.name = "Titulo"
-	titulo.text = {"estrellado": "R.I.P.", "entregado": "ENTREGADO", "sin_tiempo": "CANCELADO", "final": "FIN"}.get(estado, "")
+	titulo.text = tr({"estrellado": "R.I.P.", "entregado": "ENTREGADO", "sin_tiempo": "CANCELADO", "final": "FIN"}.get(estado, ""))
 	titulo.position = Vector2(0, 70)
 	titulo.size = Vector2(640, 40)
 	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

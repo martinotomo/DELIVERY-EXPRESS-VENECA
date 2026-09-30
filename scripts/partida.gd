@@ -189,14 +189,14 @@ func _revisar_llegada() -> void:
 		evento.emit("entregado")
 		pagado.emit(pago)
 		var calif := estrellas_por(estado_pedido, tiempo_restante / maxf(float(pedido.get("tiempo_total", 1.0)), 1.0), multado, _rng.randi())
-		calificado.emit(calif[0], calif[1])
+		calificado.emit(calif[0], TranslationServer.translate(calif[1]))
 		if tiempo_restante < TARDE_S:
 			evento.emit("tarde")
 		if es_final:
 			es_final = false
 			terminada = true
 			evento.emit("final")
-			final_logrado.emit(MENSAJE_FINAL)
+			final_logrado.emit(TranslationServer.translate(MENSAJE_FINAL))
 			return
 		_nuevo_pedido()
 
@@ -463,8 +463,8 @@ func _al_estrellarse(mensaje: String) -> void:
 	if causa == "":
 		# Contra el andén: la curva de siempre, o la mojada si está lloviendo.
 		causa = "lluvia" if clima.lloviendo() else "curva"
-		if causa == "lluvia":
-			mensaje = MOTOS.remate("lluvia", str(moto.moto.nombre))
+		# Se arma aquí para que salga en el idioma de ahora (el de moto_logic se armó al salir).
+		mensaje = MOTOS.remate(causa, str(moto.moto.nombre))
 	terminada = true
 	evento.emit("estrellado")
 	terminada_por.emit(mensaje)

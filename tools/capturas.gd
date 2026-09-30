@@ -49,10 +49,18 @@ func _correr() -> void:
 	var ruta := "user://capturas_progreso.cfg"
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
 	load("res://scripts/main.gd").ruta_progreso = ruta # no tocar la partida guardada de verdad
+	load("res://scripts/main.gd").ruta_opciones = "user://capturas_opciones.cfg"
+	load("res://scripts/main.gd").mostrar_advertencia = false
 	_main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(_main)
 	await process_frame
 	await process_frame
+	if "--f6" in OS.get_cmdline_user_args(): # solo las pantallas de la F6 (menús, pausa, idiomas)
+		await _f6()
+		_hoja()
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
+		quit(0)
+		return
 	_main.progreso.dinero = 23500
 	_main.menu()
 	await process_frame
@@ -318,10 +326,78 @@ func _correr() -> void:
 	await process_frame
 	await process_frame
 	await _foto("25_final")
+	await _f6()
 
 	_hoja()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
 	quit(0)
+
+
+## F6: advertencia, menú, opciones, créditos, pausa y el juego en inglés.
+func _f6() -> void:
+	_main.progreso.dinero = 23500
+	for idioma in ["es", "en"]:
+		_main.opciones.poner_idioma(idioma)
+		_main.advertencia()
+		await process_frame
+		_ride().set_process(false)
+		_ride().avanzar(2.2)
+		await process_frame
+		await _foto("30_advertencia_" + idioma)
+		_main.menu()
+		await process_frame
+		await process_frame
+		await _foto("31_menu_" + idioma)
+		_main.pantalla_opciones()
+		await process_frame
+		await process_frame
+		await _foto("32_opciones_" + idioma)
+		_ride()._esperar_tecla("pitar")
+		await process_frame
+		await _foto("32b_opciones_tecla_" + idioma)
+		_ride().esperando_tecla = ""
+		_main.creditos()
+		await process_frame
+		_ride().set_process(false)
+		_ride().avanzar(3.5)
+		await process_frame
+		await _foto("33_creditos_" + idioma)
+		_ride().avanzar(5.0)
+		await process_frame
+		await _foto("33b_creditos_" + idioma)
+		_main.reiniciar()
+		await process_frame
+		await process_frame
+		var c = _ride().partida.ciudad
+		await _colocar(c.cruce(20, 40) + Vector2(-30, 0), 0.0, 12.0, 60.0)
+		_ride().set_process(true)
+		await process_frame
+		_ride().pausa.abrir()
+		await process_frame
+		await process_frame
+		await _foto("34_pausa_" + idioma)
+		_ride().pausa._abrir_opciones()
+		await process_frame
+		await process_frame
+		await _foto("35_pausa_opciones_" + idioma)
+		_ride().pausa.cerrar()
+		await process_frame
+		if idioma == "en":
+			await _colocar(c.cruce(18, 38) + Vector2(0, -40), PI / 2.0, 23.0, 150.0, 1.0)
+			_ride().partida.moto.derrapando = true
+			_ride()._actualizar_vista(0.0)
+			await process_frame
+			await _foto("36_calle_en")
+			_main.taller()
+			await process_frame
+			await create_timer(0.3).timeout
+			await _foto("37_taller_en")
+			_main._mostrar_resultado("estrellado", _main.progreso.datos_moto().remate if "remate" in _main.progreso.datos_moto() else "")
+			await process_frame
+			await process_frame
+			await _foto("38_resultado_en")
+	_main.opciones.poner_idioma("es")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://capturas_opciones.cfg"))
 
 
 ## Un cruce con las cuatro cuadras de alrededor en la zona z (el más cercano al centro de la zona).

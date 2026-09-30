@@ -1,8 +1,10 @@
 extends Control
-## Menú de inicio: Jugar, Taller y Salir. Muestra la moto y la plata que se tienen.
+## Menú de inicio: Jugar, Taller, Opciones, Créditos y Salir. Muestra la moto y la plata que se tienen.
 
 signal jugar
 signal taller
+signal abrir_opciones
+signal abrir_creditos
 signal salir
 
 const UI := preload("res://scripts/ui.gd")
@@ -49,13 +51,20 @@ func _ready() -> void:
 		lema_y = 4 + LOGO_RECORTE.size.y * LOGO_ESCALA
 	UI.texto(self, "Domicilios a toda. La fe no frena.", Vector2(0, lema_y), 8, UI.C_GRIS, 640.0)
 
-	var col := UI.columna(self, Vector2(170, 140), 300.0)
-	var b_jugar := UI.boton(col, "JUGAR", "Jugar")
-	b_jugar.pressed.connect(func(): jugar.emit())
-	UI.boton(col, "TALLER", "Taller").pressed.connect(func(): taller.emit())
-	UI.boton(col, "SALIR", "Salir").pressed.connect(func(): salir.emit())
+	var col := UI.columna(self, Vector2(170, 136), 300.0)
+	col.add_theme_constant_override("separation", 4)
+	var botones := [
+		["JUGAR", "Jugar", jugar], ["TALLER", "Taller", taller], ["OPCIONES", "Opciones", abrir_opciones],
+		["CRÉDITOS", "Creditos", abrir_creditos], ["SALIR", "Salir", salir],
+	]
+	for b in botones:
+		var boton := UI.boton(col, b[0], b[1])
+		boton.custom_minimum_size.y = 22
+		var senal: Signal = b[2]
+		boton.pressed.connect(func(): senal.emit())
+	var b_jugar: Button = col.get_node("Jugar")
 
-	var estado := UI.texto(self, "", Vector2(0, 262), 8, UI.C_TEXTO, 640.0, "Estado")
+	var estado := UI.texto(self, "", Vector2(0, 274), 8, UI.C_TEXTO, 640.0, "Estado")
 	if progreso != null:
-		estado.text = "Moto: %s    Plata: %s" % [progreso.datos_moto().nombre, PROGRESO.pesos(progreso.dinero)]
+		estado.text = tr("Moto: %s    Plata: %s") % [progreso.datos_moto().nombre, PROGRESO.pesos(progreso.dinero)]
 	b_jugar.grab_focus.call_deferred()

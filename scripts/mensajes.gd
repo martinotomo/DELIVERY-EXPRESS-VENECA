@@ -3,12 +3,12 @@ extends RefCounted
 
 
 static func muerte_curva(nombre_moto: String) -> String:
-	return "Has muerto al entrar demasiado rápido en la curva, tu fe era más grande que el agarre de tu %s." % nombre_moto
+	return TranslationServer.translate("Has muerto al entrar demasiado rápido en la curva, tu fe era más grande que el agarre de tu %s.") % nombre_moto
 
 
 static func sin_tiempo() -> String:
-	return "Se acabó el tiempo.\nEl cliente canceló el pedido y la app te cobró el domicilio a ti."
+	return TranslationServer.translate("Se acabó el tiempo.\nEl cliente canceló el pedido y la app te cobró el domicilio a ti.")
 
 
 static func entregado(segundos_sobrantes: float) -> String:
-	return "Pedido entregado con %d s de sobra.\nEl cliente te puso una estrella: «llegó frío»." % int(segundos_sobrantes)
+	return TranslationServer.translate("Pedido entregado con %d s de sobra.\nEl cliente te puso una estrella: «llegó frío».") % int(segundos_sobrantes)
