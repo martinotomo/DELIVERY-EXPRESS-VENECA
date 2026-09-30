@@ -12,6 +12,8 @@ const VOCES := preload("res://scripts/voces.gd")
 const MANUBRIO := preload("res://scripts/manubrio.gd")
 const MINIMAPA := preload("res://scripts/minimapa.gd")
 const PROGRESO := preload("res://scripts/progreso.gd")
+const AUDIO := preload("res://scripts/audio.gd")
+const LLUVIA := preload("res://scripts/lluvia_pantalla.gd")
 
 const ALTURA_OJOS := 1.35
 const ANDEN_ALTO := 0.2
@@ -46,6 +48,13 @@ var _l_pedido: Label
 var _l_cuenta: Label
 var _l_derrape: Label
 var _l_motor: Label
+var _l_bono: Label
+var _audio: Node
+var _lluvia: Control
+var _charcos: MultiMeshInstance3D
+var _version_charcos := -1
+var _mat_asfalto: StandardMaterial3D
+var _acelerando := false
 var _subtitulo: Label
 var _voz: AudioStreamPlayer
 var _t_subtitulo := 0.0
@@ -58,6 +67,10 @@ func _ready() -> void:
 		partida = PARTIDA.new(SEMILLA, progreso.datos_moto())
 	_construir_mundo()
 	_construir_hud()
+	_audio = AUDIO.new()
+	_audio.name = "Audio"
+	add_child(_audio)
+	_audio.preparar(partida.moto.moto)
 	partida.evento.connect(_al_evento)
 	partida.terminada_por.connect(_al_estrellarse)
 	_actualizar_vista(0.0)
@@ -73,8 +86,10 @@ func _process(delta: float) -> void:
 	if not partida.terminada:
 		var giro := Input.get_action_strength("derecha") - Input.get_action_strength("izquierda")
 		_giro_visual = lerpf(_giro_visual, giro, minf(delta * 8.0, 1.0))
-		partida.advance(delta, Input.is_action_pressed("acelerar"), Input.is_action_pressed("frenar"), giro)
+		_acelerando = Input.is_action_pressed("acelerar")
+		partida.advance(delta, _acelerando, Input.is_action_pressed("frenar"), giro)
 	_actualizar_vista(delta)
+	_audio.actualizar(delta, partida, _acelerando)
 
 
 # --- mundo 3D con texturas pixeladas --------------------------------------------------
@@ -174,7 +189,23 @@ func _construir_mundo() -> void:
 	ciudad.name = "Ciudad"
 	_mundo.add_child(ciudad)
 	var asfalto := _caja(ciudad, Vector3(tam.x, 0.1, tam.y), Vector3(tam.x / 2.0, -0.05, tam.y / 2.0), Color.WHITE, "Asfalto")
-	asfalto.mesh.material = _material_tex("asfalto", Vector3(5, 5, 5))
+	_mat_asfalto = _material_tex("asfalto", Vector3(5, 5, 5))
+	asfalto.mesh.material = _mat_asfalto
+	# Charcos: discos planos que brillan; se redibujan cuando el clima los cambia.
+	var disco := CylinderMesh.new()
+	disco.top_radius = 1.0
+	disco.bottom_radius = 1.0
+	disco.height = 0.02
+	disco.radial_segments = 12
+	var agua := _material(Color("5d6f88"))
+	agua.emission_enabled = true # brilla un poco, como si reflejara el cielo
+	agua.emission = Color("8aa0bf")
+	agua.emission_energy_multiplier = 0.7
+	agua.roughness = 0.05
+	agua.metallic = 0.4
+	agua.metallic_specular = 1.0
+	_charcos = _cajas("Charcos", 0, agua, disco)
+	ciudad.add_child(_charcos)
 
 	var n: int = c.N_ANCHO * c.N_LARGO
 	var andenes := _cajas("Andenes", n, _material_tex("anden", Vector3(3, 3, 3), true))
@@ -403,6 +434,11 @@ func _construir_hud() -> void:
 	hud.name = "HUD"
 	add_child(hud)
 
+	_lluvia = LLUVIA.new()
+	_lluvia.name = "Lluvia"
+	_lluvia.size = Vector2(640, 360)
+	hud.add_child(_lluvia)
+
 	_manubrio = MANUBRIO.new()
 	_manubrio.name = "Manubrio"
 	_manubrio.size = Vector2(640, 360)
@@ -454,6 +490,13 @@ func _construir_hud() -> void:
 	_l_motor.add_theme_color_override("font_color", Color("f0c040"))
 	_l_motor.add_theme_stylebox_override("normal", _fondo())
 	_l_motor.visible = false
+	# Bono de lluvia, abajo a la derecha (no tapa la calle).
+	_l_bono = _texto(Vector2(0, 290), 8, "Bono")
+	_l_bono.text = "LLUVIA: +%d%% POR PEDIDO" % roundi(partida.clima.BONO * 100.0)
+	_l_bono.add_theme_color_override("font_color", Color("8ec8ff"))
+	_l_bono.add_theme_stylebox_override("normal", _fondo())
+	_l_bono.position.x = 632.0 - _l_bono.get_minimum_size().x
+	_l_bono.visible = false
 
 	# Subtítulos con su propia franja de fondo, para que se lean sobre la calle en movimiento.
 	# Abajo, justo encima de la barra: puede tapar el velocímetro, nunca la calle (Tomás, 30/09).
@@ -521,6 +564,18 @@ func _actualizar_vista(delta: float) -> void:
 	elif cuenta >= 0.0:
 		_l_motor.text = "¡VAS A FUNDIR EL MOTOR! %d" % ceili(cuenta)
 	_l_motor.visible = (m.motor_fundido or cuenta >= 0.0) and not partida.terminada
+	var clima = partida.clima
+	_l_bono.visible = clima.lloviendo() and not partida.terminada
+	_lluvia.intensidad = clima.intensidad
+	_lluvia.giro = _giro_visual
+	if clima.version != _version_charcos:
+		_version_charcos = clima.version
+		var mm := _charcos.multimesh
+		mm.instance_count = clima.charcos.size()
+		for k in clima.charcos.size():
+			var ch: Dictionary = clima.charcos[k]
+			mm.set_instance_transform(k, Transform3D(Basis.from_scale(Vector3(ch.radio, 1.0, ch.radio * 0.8)), Vector3(ch.pos.x, 0.012, ch.pos.y)))
+			mm.set_instance_color(k, Color.WHITE)
 
 	_t_subtitulo = maxf(_t_subtitulo - delta, 0.0)
 	_subtitulo.visible = _t_subtitulo > 0.0
@@ -530,7 +585,12 @@ func _actualizar_vista(delta: float) -> void:
 func _actualizar_cielo(delta: float) -> void:
 	var ciclo = partida.reloj
 	var luz: float = ciclo.luz()
-	var cielo: Color = ciclo.color_cielo()
+	var llueve: float = partida.clima.intensidad
+	var cielo: Color = ciclo.color_cielo().lerp(Color("6b7280").darkened(0.6 * (1.0 - luz)), llueve * 0.7)
+	_entorno.fog_density = lerpf(0.007, 0.02, llueve)
+	# Piso mojado: brilla más cuanto más agua tiene.
+	_mat_asfalto.roughness = lerpf(1.0, 0.35, partida.clima.humedad)
+	_mat_asfalto.metallic_specular = lerpf(0.5, 0.9, partida.clima.humedad)
 	_t_cielo += delta
 	if _t_cielo >= 0.5 or delta == 0.0:
 		_t_cielo = 0.0
@@ -542,7 +602,7 @@ func _actualizar_cielo(delta: float) -> void:
 	var h: float = ciclo.hora()
 	_sol.rotation = Vector3(-deg_to_rad(sin(PI * (h - 5.0) / 14.0) * 70.0), deg_to_rad(90.0 - (h - 5.0) * 12.0), 0.0)
 	_sol.visible = luz > 0.0
-	_sol.light_energy = luz * 1.1
+	_sol.light_energy = luz * 1.1 * (1.0 - 0.5 * llueve)
 	_sol.light_color = Color("ffd9a0").lerp(Color("fff6e6"), luz)
 	_entorno.ambient_light_color = Color("46507a").lerp(Color("c8c4bc"), luz)
 	_entorno.ambient_light_energy = lerpf(0.45, 0.75, luz)
@@ -555,6 +615,7 @@ func _actualizar_cielo(delta: float) -> void:
 
 
 func _al_evento(nombre: String) -> void:
+	_audio.al_evento(nombre)
 	var texto: String = voces.frase(nombre)
 	if texto == "":
 		return

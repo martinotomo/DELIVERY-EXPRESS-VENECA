@@ -1,0 +1,305 @@
+"""Genera todos los sonidos del juego por síntesis (numpy + scipy). Nada descargado.
+
+    python tools/gen_sonidos.py          # escribe assets/sonidos/*.wav
+    python tools/medir_sonidos.py        # comprueba los umbrales de SPEC
+
+Reglas (CLAUDE.md §7): capas sumadas, paso-alto a ~90 Hz, fundido de coseno de 0,15 s al final
+de los efectos, semilla fija por archivo. Los bucles (motor, ambiente, viento, lluvia) se hacen
+con filtros circulares (por FFT), así el final empalma con el principio sin clic.
+Los umbrales de cada sonido están en SPEC, escritos antes de generar.
+"""
+from pathlib import Path
+import wave
+
+import numpy as np
+from scipy import signal
+
+RAIZ = Path(__file__).resolve().parent.parent
+SALIDA = RAIZ / "assets" / "sonidos"
+SR = 44100
+
+# Umbrales escritos antes de generar. dur en s; pico y rms sobre 1.0; graves = fracción de energía
+# por debajo de 80 Hz (máximo); bucle = empalma sin clic; cola = el final queda en silencio.
+SPEC = {
+    # bucles
+    "motor_bws":      {"dur": (0.9, 1.2), "rms": (0.12, 0.35), "graves": 0.05, "bucle": True},
+    "motor_nkd":      {"dur": (0.9, 1.2), "rms": (0.12, 0.35), "graves": 0.05, "bucle": True},
+    "motor_ninja":    {"dur": (0.9, 1.2), "rms": (0.12, 0.35), "graves": 0.05, "bucle": True},
+    "ambiente_dia":   {"dur": (10.0, 14.0), "rms": (0.06, 0.25), "graves": 0.08, "bucle": True},
+    "ambiente_noche": {"dur": (10.0, 14.0), "rms": (0.03, 0.20), "graves": 0.08, "bucle": True},
+    "viento":         {"dur": (3.0, 5.0), "rms": (0.08, 0.30), "graves": 0.05, "bucle": True},
+    "lluvia":         {"dur": (5.0, 7.0), "rms": (0.08, 0.30), "graves": 0.03, "bucle": True},
+    # efectos
+    "choque":    {"dur": (1.2, 2.0), "rms": (0.08, 0.35), "graves": 0.10, "cola": True},
+    "golpe":     {"dur": (0.25, 0.6), "rms": (0.05, 0.35), "graves": 0.10, "cola": True},
+    "casi":      {"dur": (0.5, 0.9), "rms": (0.08, 0.35), "graves": 0.05, "cola": True},
+    "fundido":   {"dur": (1.4, 2.2), "rms": (0.06, 0.35), "graves": 0.10, "cola": True},
+    "entregado": {"dur": (0.7, 1.2), "rms": (0.05, 0.30), "graves": 0.05, "cola": True},
+    "recogido":  {"dur": (0.25, 0.5), "rms": (0.05, 0.30), "graves": 0.05, "cola": True},
+    "reparado":  {"dur": (0.5, 0.9), "rms": (0.04, 0.30), "graves": 0.05, "cola": True},
+    "charco":    {"dur": (0.4, 0.8), "rms": (0.05, 0.35), "graves": 0.05, "cola": True},
+}
+
+# Motores: rpm a la que se graba el bucle (el juego cambia el tono desde ahí), cilindros,
+# resonancias del exosto (Hz) y cuánto ruido mecánico lleva.
+MOTORES = {
+    "bws":   {"rpm": 4800, "cil": 1, "formantes": (170, 390, 880, 1900), "ruido": 0.30, "semilla": 11},
+    "nkd":   {"rpm": 5400, "cil": 1, "formantes": (140, 330, 720, 1500), "ruido": 0.20, "semilla": 12},
+    "ninja": {"rpm": 7200, "cil": 2, "formantes": (230, 540, 1250, 2600), "ruido": 0.12, "semilla": 13},
+}
+
+
+# --- utilidades -------------------------------------------------------------------------
+
+def t_de(dur):
+    return np.arange(int(dur * SR)) / SR
+
+
+def banda_circular(x, lo=None, hi=None):
+    """Filtro pasa-banda por FFT: circular, no rompe la costura de un bucle."""
+    X = np.fft.rfft(x)
+    f = np.fft.rfftfreq(len(x), 1 / SR)
+    m = np.ones_like(f)
+    if lo:
+        m *= 1 / (1 + (lo / np.maximum(f, 1e-3)) ** 8)
+    if hi:
+        m *= 1 / (1 + (f / hi) ** 8)
+    return np.fft.irfft(X * m, len(x))
+
+
+def banda(x, lo=None, hi=None, orden=4):
+    if lo and hi:
+        sos = signal.butter(orden, [lo, hi], "bandpass", fs=SR, output="sos")
+    elif lo:
+        sos = signal.butter(orden, lo, "highpass", fs=SR, output="sos")
+    else:
+        sos = signal.butter(orden, hi, "lowpass", fs=SR, output="sos")
+    return signal.sosfilt(sos, x)
+
+
+def envolvente(t, ataque, caida):
+    return (1 - np.exp(-t / max(ataque, 1e-4))) * np.exp(-t / caida)
+
+
+def fundido_final(x, seg=0.15):
+    n = int(seg * SR)
+    x = x.copy()
+    x[-n:] *= 0.5 * (1 + np.cos(np.linspace(0, np.pi, n)))
+    return x
+
+
+def normalizar(x, pico):
+    return x / (np.max(np.abs(x)) + 1e-9) * pico
+
+
+def poner(destino, sonido, inicio):
+    """Suma `sonido` en `destino` desde `inicio` (s), dando la vuelta si se pasa (bucles)."""
+    i = int(inicio * SR) % len(destino)
+    idx = (np.arange(len(sonido)) + i) % len(destino)
+    np.add.at(destino, idx, sonido)
+
+
+def guardar(nombre, x):
+    SALIDA.mkdir(parents=True, exist_ok=True)
+    datos = np.clip(x, -1, 1)
+    with wave.open(str(SALIDA / f"{nombre}.wav"), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(SR)
+        w.writeframes((datos * 32767).astype("<i2").tobytes())
+    print(f"{nombre}.wav  {len(x) / SR:.2f} s")
+
+
+# --- bucles -----------------------------------------------------------------------------
+
+def motor(id_moto):
+    m = MOTORES[id_moto]
+    rng = np.random.default_rng(m["semilla"])
+    ciclo = m["rpm"] / 120.0                  # ciclos de 4 tiempos por segundo
+    n_ciclos = int(round(1.0 * ciclo))        # ~1 s, número entero de ciclos: empalma
+    largo = int(round(n_ciclos * SR / ciclo))
+    x = np.zeros(largo)
+    # Explosiones: una por ciclo (monocilíndrica) o dos desfasadas 180°/540° (bicilíndrica).
+    fases = [0.0] if m["cil"] == 1 else [0.0, 0.25]
+    for k in range(n_ciclos):
+        for fz in fases:
+            pos = (k + fz + rng.normal(0, 0.012)) / ciclo
+            x[int(pos * SR) % largo] += 1.0 + rng.normal(0, 0.15)
+    # El exosto: cada explosión hace sonar sus resonancias (convolución circular).
+    tr = t_de(0.06)
+    resp = sum(np.sin(2 * np.pi * f * tr) * np.exp(-tr * (35 + f * 0.04)) / (1 + i * 0.6)
+               for i, f in enumerate(m["formantes"]))
+    L = len(x)
+    cuerpo = np.fft.irfft(np.fft.rfft(x) * np.fft.rfft(resp, L), L)
+    # Ruido mecánico (válvulas, cadena), marcado por el ritmo del motor.
+    fase = (np.arange(L) / SR * ciclo * len(fases)) % 1.0
+    ruido = banda_circular(rng.standard_normal(L), 1800, 6000) * (0.4 + 0.6 * np.exp(-fase * 6))
+    y = cuerpo / np.std(cuerpo) + m["ruido"] * ruido / np.std(ruido)
+    y = banda_circular(y, 90, 9000)
+    return normalizar(y, 0.7)
+
+
+def trafico(noche):
+    rng = np.random.default_rng(21 if not noche else 22)
+    dur = 12.0
+    L = int(dur * SR)
+    t = np.arange(L) / SR
+    # Zumbido de la ciudad: ruido grave-medio, con carros que pasan (subidas lentas, circulares).
+    rumor = banda_circular(rng.standard_normal(L), 90, 500)
+    pasos = np.zeros(L)
+    for _ in range(4 if noche else 9):
+        c = rng.uniform(0, dur)
+        d = np.minimum(np.abs(t - c), dur - np.abs(t - c))
+        pasos += np.exp(-(d / rng.uniform(0.6, 1.5)) ** 2)
+    y = rumor / np.std(rumor) * (0.35 + 0.65 * pasos / pasos.max()) * (0.5 if noche else 1.0)
+    # Pitos a lo lejos (dos tonos, apagados por la distancia).
+    for _ in range(1 if noche else 3):
+        f0 = rng.uniform(380, 480)
+        tp = t_de(rng.uniform(0.2, 0.45))
+        pito = signal.square(2 * np.pi * f0 * tp) + 0.7 * signal.square(2 * np.pi * f0 * 1.26 * tp)
+        pito = banda(pito, hi=1500) * envolvente(tp, 0.01, 0.5) * 0.35
+        poner(y, pito, rng.uniform(0, dur))
+    if noche:
+        # Grillos del parque: chirridos cortos en grupos.
+        for _ in range(14):
+            tc = t_de(0.05)
+            chirrido = np.sin(2 * np.pi * rng.uniform(4200, 4800) * tc) * envolvente(tc, 0.003, 0.015)
+            inicio = rng.uniform(0, dur)
+            for k in range(3):
+                poner(y, chirrido * 0.25, inicio + k * 0.07)
+    y = banda_circular(y, 90, 8000)
+    return normalizar(y, 0.5)
+
+
+def viento():
+    rng = np.random.default_rng(31)
+    L = int(4.0 * SR)
+    t = np.arange(L) / SR
+    ruido = banda_circular(rng.standard_normal(L), 180, 2200)
+    rafagas = 0.6 + 0.4 * np.sin(2 * np.pi * t / 4.0) * np.sin(2 * np.pi * 3 * t / 4.0)
+    return normalizar(ruido * rafagas, 0.6)
+
+
+def lluvia():
+    rng = np.random.default_rng(41)
+    dur = 6.0
+    L = int(dur * SR)
+    fondo = banda_circular(rng.standard_normal(L), 900, 9000)
+    y = fondo / np.std(fondo) * 0.6
+    for _ in range(900):  # gotas sueltas encima
+        tg = t_de(0.012)
+        gota = np.sin(2 * np.pi * rng.uniform(1500, 5000) * tg) * envolvente(tg, 0.0005, 0.003)
+        poner(y, gota * rng.uniform(0.3, 1.2), rng.uniform(0, dur))
+    y = banda_circular(y, 400, 12000)
+    return normalizar(y, 0.6)
+
+
+# --- efectos ------------------------------------------------------------------------------
+
+def efecto(y, pico=0.85):
+    y = banda(y, lo=90)
+    return normalizar(fundido_final(y), pico)
+
+
+def choque():
+    rng = np.random.default_rng(51)
+    t = t_de(1.6)
+    golpe = np.sin(2 * np.pi * (120 - 40 * t) * t) * envolvente(t, 0.002, 0.12)
+    crujido = banda(rng.standard_normal(len(t)), 300, 3000) * envolvente(t, 0.001, 0.25)
+    raspon = banda(rng.standard_normal(len(t)), 2000, 7000) * envolvente(t, 0.05, 0.45)
+    raspon *= 0.6 + 0.4 * np.sign(np.sin(2 * np.pi * 23 * t))
+    y = 1.4 * golpe + 0.9 * crujido + 0.35 * raspon
+    for _ in range(6):  # pedazos de plástico que rebotan
+        tp = t_de(0.03)
+        poner(y, np.sin(2 * np.pi * rng.uniform(900, 2500) * tp) * envolvente(tp, 0.0005, 0.006) * 0.5,
+              rng.uniform(0.15, 1.0))
+    return efecto(y)
+
+
+def golpe():
+    rng = np.random.default_rng(52)
+    t = t_de(0.4)
+    y = np.sin(2 * np.pi * (140 - 60 * t) * t) * envolvente(t, 0.002, 0.07)
+    y += 0.4 * banda(rng.standard_normal(len(t)), 500, 3000) * envolvente(t, 0.001, 0.04)
+    return efecto(y, 0.7)
+
+
+def casi():
+    rng = np.random.default_rng(53)
+    t = t_de(0.7)
+    f = 1150 + 90 * np.sin(2 * np.pi * 17 * t) - 250 * t
+    chirrido = np.sin(2 * np.pi * np.cumsum(f) / SR)
+    llanta = banda(rng.standard_normal(len(t)), 1500, 5000)
+    env = envolvente(t, 0.03, 0.35)
+    return efecto((chirrido * 0.6 + llanta * 0.5) * env, 0.75)
+
+
+def fundido():
+    rng = np.random.default_rng(54)
+    t = t_de(1.8)
+    y = 1.3 * banda(rng.standard_normal(len(t)), 150, 2500) * envolvente(t, 0.001, 0.08)
+    for k in range(9):  # petardeos que se van apagando
+        tp = t_de(0.06)
+        petardo = banda(rng.standard_normal(len(tp)), 120, 1200) * envolvente(tp, 0.001, 0.02)
+        poner(y, petardo * (1.0 - k / 10), 0.18 + k * 0.09 + rng.uniform(0, 0.05))
+    vapor = banda(rng.standard_normal(len(t)), 3000, 9000) * envolvente(t - 0.2, 0.2, 0.6) * (t > 0.2)
+    return efecto(y + 0.4 * vapor)
+
+
+def campana(f, dur, caida):
+    t = t_de(dur)
+    return sum(np.sin(2 * np.pi * f * r * t) * a for r, a in ((1, 1.0), (2.76, 0.45), (5.4, 0.2))) \
+        * envolvente(t, 0.001, caida)
+
+
+def entregado():
+    rng = np.random.default_rng(55)
+    t = t_de(1.0)
+    y = np.zeros(len(t))
+    poner(y, banda(rng.standard_normal(int(0.05 * SR)), 2000, 8000) * 0.5, 0.0)  # «cha»
+    poner(y, campana(1568, 0.9, 0.25), 0.08)                                      # «ching»
+    poner(y, campana(2093, 0.8, 0.3) * 0.8, 0.14)
+    return efecto(y, 0.7)
+
+
+def recogido():
+    t = t_de(0.35)
+    y = np.zeros(len(t))
+    poner(y, campana(660, 0.15, 0.05), 0.0)
+    poner(y, campana(990, 0.2, 0.07), 0.1)
+    return efecto(y, 0.6)
+
+
+def reparado():
+    rng = np.random.default_rng(56)
+    t = t_de(0.7)
+    y = np.zeros(len(t))
+    for k in range(3):  # llave contra el motor: «clin, clin, clin»
+        poner(y, campana(rng.uniform(2400, 3200), 0.25, 0.04), 0.05 + k * 0.17)
+    return efecto(y, 0.6)
+
+
+def charco():
+    rng = np.random.default_rng(57)
+    t = t_de(0.6)
+    y = banda(rng.standard_normal(len(t)), 500, 4000) * envolvente(t, 0.004, 0.12)
+    for _ in range(10):  # gotitas que caen después
+        tg = t_de(0.02)
+        poner(y, np.sin(2 * np.pi * rng.uniform(1200, 3000) * tg) * envolvente(tg, 0.0005, 0.004) * 0.4,
+              rng.uniform(0.08, 0.45))
+    return efecto(y, 0.75)
+
+
+def main():
+    for id_moto in MOTORES:
+        guardar(f"motor_{id_moto}", motor(id_moto))
+    guardar("ambiente_dia", trafico(False))
+    guardar("ambiente_noche", trafico(True))
+    guardar("viento", viento())
+    guardar("lluvia", lluvia())
+    for fn in (choque, golpe, casi, fundido, entregado, recogido, reparado, charco):
+        guardar(fn.__name__, fn())
+
+
+if __name__ == "__main__":
+    main()

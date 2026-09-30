@@ -37,6 +37,14 @@ const FRASES := {
 		"Reparado con cinta, un chicle y fe, mi pana.",
 		"Le soplé al motor como a un cartucho viejo. ¡Arrancó!",
 	],
+	"lluvia": [
+		"¡Se largó el aguacero, chamo! Al menos la app paga más.",
+		"Llueve, mi pana. Bono por mojarse... y por los charcos.",
+	],
+	"escampo": [
+		"Escampó, vale. Se acabó el bono.",
+		"Ya paró de llover. Ahora a secarse con el viento.",
+	],
 	"estrellado": [
 		"Ay, no, chamo... se nos fue el pana.",
 		"Otro más pa' la estadística, vale.",

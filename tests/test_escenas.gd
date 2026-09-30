@@ -220,6 +220,21 @@ func run(t) -> void:
 	t.check(l_motor.text.contains("FUNDIDO") and l_motor.text.ends_with("3"), "fundido muestra la espera (%s)" % l_motor.text)
 	r2.partida.moto.motor_fundido = false
 	r2.partida.moto.calor = 0.0
+	# Lluvia en pantalla: gotas, bono abajo a la derecha y charcos dibujados.
+	var bono: Label = r2.get_node("HUD/Bono")
+	t.check(not bono.visible, "seco no hay aviso de bono")
+	r2.partida.clima.empezar_lluvia(90.0)
+	r2.partida.clima.advance(30.0, r2.partida.moto.pos)
+	r2._actualizar_vista(0.0)
+	t.check(bono.visible and bono.text.contains("30%"), "lloviendo sale el bono (%s)" % bono.text)
+	t.check(bono.position.y > 280 and bono.position.x > 320 and bono.position.x + bono.get_minimum_size().x <= 640, "el bono va abajo a la derecha, dentro de la pantalla")
+	t.check(not Rect2(bono.position, bono.get_minimum_size()).intersects(Rect2(r2.get_node("HUD/Subtitulo").position, r2.get_node("HUD/Subtitulo").size)), "el bono no se pisa con el subtítulo")
+	t.check(r2.get_node("HUD/Lluvia").intensidad > 0.9, "se ven las gotas")
+	var mm: MultiMesh = r2.get_node("Vista/Mundo/Ciudad/Charcos").multimesh
+	t.check(mm.instance_count > 0 and mm.instance_count == r2.partida.clima.charcos.size(), "los charcos se dibujan (%d)" % mm.instance_count)
+	t.check(r2.has_node("Audio/Motor") and r2.get_node("Audio/Motor").playing, "el motor suena")
+	r2._process(0.1)
+	t.check(r2.get_node("Audio/Lluvia").volume_db > -20.0, "la lluvia se oye mientras llueve")
 	main.menu()
 	await t.process_frame
 	t.check_eq(main.pantalla_actual().name, "Menu", "se puede volver al menú")
