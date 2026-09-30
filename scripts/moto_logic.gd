@@ -46,6 +46,14 @@ func vel_kmh() -> int:
 	return int(round(vel * 3.6))
 
 
+## Cuánto gira (rad/s) con el manubrio a tope a una velocidad dada. Parada no gira; de 2 m/s
+## hacia arriba va de giro_lento a giro_rapido según (vel/vel_max)^curva_giro.
+func giro_max_a(v: float) -> float:
+	var k := clampf(v / float(moto.vel_max), 0.0, 1.0)
+	var w := lerpf(float(moto.giro_lento), float(moto.giro_rapido), pow(k, float(moto.curva_giro)))
+	return w * minf(v / 2.0, 1.0)
+
+
 ## giro: -1 (izquierda) a 1 (derecha).
 func advance(delta: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	var queda := delta
@@ -64,13 +72,9 @@ func _paso(dt: float, acelerar: bool, frenar: bool, giro: float) -> void:
 		a = float(moto.acel) * (1.0 - pow(vel / vmax, 2))
 	vel = clampf(vel + a * dt, 0.0, vmax)
 
-	# Girar: la curva que pides contra la que el agarre te deja.
-	var omega := giro * float(moto.giro_max) * minf(vel / 2.0, 1.0)
-	derrapando = false
-	if vel > 0.1 and absf(omega) * vel > float(moto.agarre):
-		omega = signf(omega) * float(moto.agarre) / vel
-		derrapando = true
-	rumbo += omega * dt
+	# Girar: más maniobrable despacio; a toda, el manubrio a tope la hace irse de lado.
+	rumbo += giro * giro_max_a(vel) * dt
+	derrapando = absf(giro) > 0.85 and vel > float(moto.vel_derrape)
 
 	_enfriar_golpe = maxf(_enfriar_golpe - dt, 0.0)
 	var nueva := pos + direccion() * vel * dt

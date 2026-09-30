@@ -28,6 +28,7 @@ anota por qué; si no, cada sesión nueva leerá la regla vieja y la aplicará.
 | D9 | 29/09/2026 | El chiste central: girar muy rápido hace que la moto se vaya de lado, se monte al andén y se caiga; sale una cinemática y el remate «Has muerto al entrar demasiado rápido en la curva, tu fe era más grande que el agarre de tu <moto>», con el nombre de la moto. |
 | D10 | 29/09/2026 | **Día y noche**: un día completo cada 10 minutos, animado de forma continua. |
 | D11 | 29/09/2026 | **Voces de estereotipo venezolano** al recoger, entregar, casi estrellarse, etc. Las graba Tomás; el juego muestra subtítulos y reproduce `assets/voces/<evento>_<n>.wav` si existe. |
+| D12 | 30/09/2026 | **Giro progresivo**: a velocidad máxima la moto gira lo mismo que en el primer prototipo (0,24 rad/s); al ir más despacio gana maniobrabilidad de forma progresiva (hasta ~2 rad/s casi parada). Datos en `scripts/motos.gd`. |
 
 **Pendiente de definir con Tomás** (no inventarlo): la duración
 objetivo, la lista de motos intermedias, la definición de «terminado» y los no-objetivos.

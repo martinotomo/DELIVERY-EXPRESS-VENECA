@@ -31,21 +31,35 @@ func run(t) -> void:
 	t.check(tope <= m.moto.vel_max + 0.001, "no pasa de su velocidad máxima")
 	t.check(m.vel > 10.0, "en 8 s de recta coge velocidad (%.1f m/s)" % m.vel)
 
-	# Despacio gira cerrado; rápido no puede (la fe contra el agarre).
+	# Maniobrabilidad progresiva (Tomás, 30/09/2026): a tope igual que antes, despacio mucho más.
 	m = _nueva()
+	var vmax: float = m.moto.vel_max
+	t.check(absf(m.giro_max_a(vmax) - 6.0 / 25.0) < 0.001, "a velocidad máxima gira igual que la primera versión (%.3f rad/s)" % m.giro_max_a(vmax))
+	t.check_eq(m.giro_max_a(0.0), 0.0, "parada no gira")
+	var anterior := INF
+	var baja := true
+	for i in range(2, 26):
+		var w: float = m.giro_max_a(float(i))
+		if w >= anterior:
+			baja = false
+		anterior = w
+	t.check(baja, "de 2 m/s en adelante, cuanto más rápido menos gira (progresivo)")
+	t.check(m.giro_max_a(2.0) > 6.0 * m.giro_max_a(vmax), "casi parada gira mucho más que a tope (%.2f rad/s)" % m.giro_max_a(2.0))
+	t.check(m.giro_max_a(10.0) > 1.5 * 0.6, "a 36 km/h gira más que antes (antes 0,60 rad/s; ahora %.2f)" % m.giro_max_a(10.0))
 	m.vel = 5.0
 	var h0: float = m.rumbo
 	m.advance(1.0, false, false, 1.0)
 	var giro_lento := absf(m.rumbo - h0)
-	t.check(giro_lento > 0.9, "a 18 km/h gira fuerte (%.2f rad en 1 s)" % giro_lento)
+	t.check(giro_lento > 1.4, "a 18 km/h gira fuerte (%.2f rad en 1 s)" % giro_lento)
 	t.check(not m.derrapando, "a 18 km/h no derrapa")
 	m = _nueva()
 	m.vel = 20.0
-	h0 = m.rumbo
 	m.advance(PASO * 6, true, false, 1.0)
-	t.check(m.derrapando, "a 72 km/h girando a tope derrapa")
-	var omega: float = absf(m.rumbo - h0) / (PASO * 6)
-	t.check(omega * m.vel <= m.moto.agarre + 0.05, "la aceleración lateral no pasa del agarre")
+	t.check(m.derrapando, "a 72 km/h girando a tope se va de lado")
+	m = _nueva()
+	m.vel = 20.0
+	m.advance(PASO * 6, true, false, 0.5)
+	t.check(not m.derrapando, "a 72 km/h con medio manubrio no se va de lado")
 
 	# Contra el andén rápido: muerto, con el remate de la BWS.
 	m = _nueva()
