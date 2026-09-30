@@ -16,6 +16,8 @@ const PROGRESO := preload("res://scripts/progreso.gd")
 const ALTURA_OJOS := 1.35
 const ANDEN_ALTO := 0.2
 const SUBTITULO_S := 3.5
+const SUBTITULO_POS := Vector2(150, 310) # a la derecha del aviso de derrape, sobre la barra (y 334)
+const SUBTITULO_TAM := Vector2(470, 20)
 
 const C_TEXTO := Color("e8e8e8")
 const C_ROJO := Color("e0301e")
@@ -444,8 +446,9 @@ func _construir_hud() -> void:
 	_l_derrape.visible = false
 
 	# Subtítulos con su propia franja de fondo, para que se lean sobre la calle en movimiento.
-	_subtitulo = _texto(Vector2(40, 156), 8, "Subtitulo", 560.0)
-	_subtitulo.size = Vector2(560, 20)
+	# Abajo, justo encima de la barra: puede tapar el velocímetro, nunca la calle (Tomás, 30/09).
+	_subtitulo = _texto(SUBTITULO_POS, 8, "Subtitulo", SUBTITULO_TAM.x)
+	_subtitulo.size = SUBTITULO_TAM
 	_subtitulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_subtitulo.add_theme_stylebox_override("normal", _fondo())
 	_subtitulo.visible = false
@@ -556,7 +559,6 @@ func _al_estrellarse(mensaje: String) -> void:
 	# Solo queda el subtítulo, abajo, para que no tape la escena.
 	for hijo in $HUD.get_children():
 		hijo.visible = hijo == _subtitulo and _subtitulo.visible
-	_subtitulo.position.y = 320
 	# Moto de lado en el andén y el piloto unos metros adelante.
 	_moto_caida.visible = true
 	_moto_caida.position = Vector3(m.pos.x, ANDEN_ALTO, m.pos.y)

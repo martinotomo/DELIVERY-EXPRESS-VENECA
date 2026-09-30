@@ -113,7 +113,22 @@ func run(t) -> void:
 	# Un evento pone subtítulo.
 	ride.partida.evento.emit("casi")
 	await t.process_frame
-	t.check(ride.get_node("HUD/Subtitulo").visible, "«casi me mato» muestra subtítulo")
+	var sub: Label = ride.get_node("HUD/Subtitulo")
+	t.check(sub.visible, "«casi me mato» muestra subtítulo")
+	# Abajo, sobre la barra de números: no tapa la calle (Tomás, 30/09).
+	var r_sub := Rect2(sub.position, sub.size)
+	var barra: Control = ride.get_node("HUD/Barra")
+	t.check(r_sub.position.y >= 280.0, "el subtítulo va en la parte baja (y=%d)" % r_sub.position.y)
+	t.check(r_sub.end.y <= barra.position.y, "el subtítulo no tapa los números de la barra")
+	var derr: Label = ride.get_node("HUD/Derrape")
+	t.check(not r_sub.intersects(Rect2(derr.position, derr.get_minimum_size())), "el subtítulo no se pisa con el aviso de derrape")
+	t.check(r_sub.end.x <= 640.0, "el subtítulo cabe en pantalla")
+	var larga := 0.0
+	var fuente: Font = sub.get_theme_font("font")
+	for e in ride.voces.FRASES:
+		for f in ride.voces.FRASES[e]:
+			larga = maxf(larga, fuente.get_string_size(f, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
+	t.check(larga + 12.0 <= r_sub.size.x, "la frase más larga cabe en una línea (%d px)" % larga)
 
 	# Estrellarse: cinemática y luego el remate.
 	ride.retraso_resultado = 0.0
