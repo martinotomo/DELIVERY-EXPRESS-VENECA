@@ -114,6 +114,7 @@ func _zonas(t, c) -> void:
 	t.check(c.zona(-1, 3) == "barrio" and c.zona(99, 99) == "barrio", "fuera de la ciudad cuenta como barrio")
 	t.check(c.nombre_zona("rica") != "" and c.nombre_zona("industrial") != "", "cada zona tiene nombre para los letreros")
 	_nomenclatura(t, c)
+	_criterios_f3(t, c)
 
 
 ## Nombres de las vías como en Bogotá: calles (a lo largo de x) y carreras (a lo largo de y), con avenidas.
@@ -129,3 +130,46 @@ func _nomenclatura(t, c) -> void:
 	var q: Vector2 = c.cruce(20, 41) + Vector2(0, 30) # sobre la Carrera 21
 	t.check(c.ubicacion(q).begins_with("Kr 21"), "yendo por una carrera, primero la carrera: %s" % c.ubicacion(q))
 	t.check(c.zona_en(c.cuadra(3, 70).get_center()) == c.zona(3, 70), "zona_en(p) dice la zona de la cuadra donde está p")
+
+
+## Criterios de salida de la F3 (PLAN_FASES): toda dirección existe y la ruta es la más corta.
+func _criterios_f3(t, c) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 42
+	var existen := true
+	var cortas := true
+	for k in 200:
+		var i := rng.randi_range(0, c.N_ANCHO - 1)
+		var j := rng.randi_range(1, c.N_LARGO - 1)
+		var p: Vector2 = c.punto_frente_a(i, j)
+		# «Calle N # M-xx»: la calle N existe y pasa por ahí; la carrera M también.
+		var partes: PackedStringArray = c.direccion(p).replace("Calle ", "").replace("# ", "").replace("-", " ").split(" ")
+		var n := int(partes[0])
+		var m := int(partes[1])
+		if n < 1 or n > c.N_LARGO + 1 or m < 1 or m > c.N_ANCHO + 1 or absf(c.cruce(0, n - 1).y - p.y) > c.CALLE:
+			existen = false
+		# La ruta del minimapa mide lo mismo que ir en L por la cuadrícula (la más corta posible).
+		var a: Vector2 = c.punto_frente_a(rng.randi_range(0, c.N_ANCHO - 1), rng.randi_range(1, c.N_LARGO - 1))
+		var ruta: PackedVector2Array = c.ruta(a, p)
+		var largo := 0.0
+		for q in range(1, ruta.size()):
+			largo += ruta[q - 1].distance_to(ruta[q])
+		# A la fuerza bruta: salir por cualquier carrera de la calle de a y llegar por cualquiera de la de p.
+		var minimo := INF
+		var xs: Array[float] = []
+		for q in c.N_ANCHO + 1:
+			xs.append(c.cruce(q, 0).x)
+		for xa in xs:
+			for xb in xs:
+				minimo = minf(minimo, absf(a.x - xa) + absf(xa - xb) + absf(a.y - p.y) + absf(xb - p.x))
+		if absf(a.y - p.y) < 1.0:
+			minimo = minf(minimo, absf(a.x - p.x))
+		if largo > minimo + 12.0: # lo que cuesta ir del borde de la calle a su centro y volver
+			cortas = false
+	t.check(existen, "cada dirección «Calle N # M-xx» nombra una calle y una carrera que existen y pasan por ahí")
+	t.check(cortas, "la ruta del minimapa es la más corta por la cuadrícula (a lo sumo el desvío de entrar a la vía)")
+	# Recalcular al desviarse: la ruta sale siempre de donde está la moto.
+	var desde: Vector2 = c.cruce(10, 10)
+	var otra: Vector2 = c.cruce(12, 10)
+	var meta: Vector2 = c.punto_frente_a(15, 30)
+	t.check(c.ruta(desde, meta)[0] == desde and c.ruta(otra, meta)[0] == otra, "si la moto se desvía, la ruta arranca desde donde está")
