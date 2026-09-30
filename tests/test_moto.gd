@@ -65,6 +65,8 @@ func run(t) -> void:
 
 	# Contra el andén a paso de peatón: se frena, no se mata.
 	m = _nueva()
+	var golpes := [0]
+	m.golpe.connect(func(): golpes[0] += 1)
 	m.pos = ciudad.punto_frente_a(4, 6)
 	m.rumbo = PI / 2.0
 	m.vel = 1.5
@@ -73,6 +75,8 @@ func run(t) -> void:
 		m.vel = maxf(m.vel, 1.5)
 	t.check_eq(m.estado, MOTO.RODANDO, "al andén a 5 km/h no se mata")
 	t.check(not ciudad.en_anden(m.pos, 0.0), "y no se mete en la cuadra")
+	t.check(golpes[0] >= 1, "el golpe leve con el andén avisa (para la queja)")
+	t.check(golpes[0] <= 6, "y no repite la queja en cada fotograma (%d en 20 s)" % golpes[0])
 
 	# Casi me mato: pasar raspando el andén rápido avisa una sola vez seguida.
 	m = _nueva()

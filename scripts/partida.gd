@@ -1,7 +1,7 @@
 extends RefCounted
 ## Una jornada de domiciliario: recoger, entregar, otro pedido... hasta que la fe supere al agarre.
 
-signal evento(nombre: String)       # recogido, entregado, cancelado, casi, estrellado
+signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado
 signal terminada_por(mensaje: String)
 
 const CIUDAD := preload("res://scripts/ciudad.gd")
@@ -39,6 +39,7 @@ func _init(semilla := 1) -> void:
 	moto.setup(MOTOS.get_moto(MOTOS.MOTO_INICIAL), ciudad, ciudad.cruce(20, 40), 0.0)
 	moto.estrellado.connect(_al_estrellarse)
 	moto.casi.connect(func(_tipo): evento.emit("casi"))
+	moto.golpe.connect(func(): evento.emit("golpe"))
 	_nuevo_pedido()
 
 
