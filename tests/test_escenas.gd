@@ -184,6 +184,16 @@ func run(t) -> void:
 	t.check(main.progreso.dinero > antes, "entregar en el recorrido suma plata al progreso")
 	r2._actualizar_vista(0.0)
 	t.check_eq(r2.get_node("HUD/Plata").text, main.progreso.pesos(main.progreso.dinero), "la barra muestra la plata")
+	# La cifra va pegada a «PLATA» (Tomás, 30/09), también con cifras largas.
+	var l_plata: Label = r2.get_node("HUD/Plata")
+	var f_plata: Font = l_plata.get_theme_font("font")
+	for cifra in ["$0", "$90.000", "$999.999"]:
+		var ancho: float = f_plata.get_string_size(cifra, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
+		var fin_texto: float = l_plata.position.x + l_plata.size.x
+		var ini_texto: float = fin_texto - ancho
+		t.check(r2.PLATA_ETIQUETA_X - fin_texto <= 12.0, "%s queda junto a PLATA" % cifra)
+		t.check(ini_texto > 380.0, "%s no se monta en el TIEMPO" % cifra)
+	t.check_eq(l_plata.horizontal_alignment, HORIZONTAL_ALIGNMENT_RIGHT, "la plata va alineada a la derecha")
 	# El aviso de derrape: pequeño, en la esquina, y solo cuando toca.
 	var aviso: Label = r2.get_node("HUD/Derrape")
 	t.check(not aviso.visible, "sin derrapar no hay aviso")

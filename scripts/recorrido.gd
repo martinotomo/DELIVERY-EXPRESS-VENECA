@@ -18,6 +18,7 @@ const ANDEN_ALTO := 0.2
 const SUBTITULO_S := 3.5
 const SUBTITULO_POS := Vector2(150, 310) # a la derecha del aviso de derrape, sobre la barra (y 334)
 const SUBTITULO_TAM := Vector2(470, 20)
+const PLATA_ETIQUETA_X := 586.0
 
 const C_TEXTO := Color("e8e8e8")
 const C_ROJO := Color("e0301e")
@@ -424,9 +425,12 @@ func _construir_hud() -> void:
 	_l_reloj = _texto(Vector2(248, 339), 16, "Reloj")
 	_l_reloj.add_theme_color_override("font_color", C_ROJO)
 	_etiqueta(Vector2(338, 344), "TIEMPO")
-	_l_cuenta = _texto(Vector2(420, 339), 16, "Plata")
+	# Alineada a la derecha, pegada a «PLATA»: crece hacia la izquierda con cifras largas.
+	_l_cuenta = _texto(Vector2(PLATA_ETIQUETA_X - 8 - 200, 339), 16, "Plata")
+	_l_cuenta.size = Vector2(200, 22)
+	_l_cuenta.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_l_cuenta.add_theme_color_override("font_color", C_ROJO)
-	_etiqueta(Vector2(586, 344), "PLATA")
+	_etiqueta(Vector2(PLATA_ETIQUETA_X, 344), "PLATA")
 
 	var mini: Control = MINIMAPA.new()
 	mini.name = "Minimapa"
