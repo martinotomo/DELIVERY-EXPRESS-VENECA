@@ -17,6 +17,8 @@ const SUITES := {
 	"sonido": "res://tests/test_sonido.gd",
 	"voces": "res://tests/test_voces.gd",
 	"mensajes": "res://tests/test_mensajes.gd",
+	"transito": "res://tests/test_transito.gd",
+	"transeuntes": "res://tests/test_transeuntes.gd",
 	"escenas": "res://tests/test_escenas.gd",
 }
 const LIMITE_S := 150.0

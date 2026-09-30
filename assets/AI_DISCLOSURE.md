@@ -20,6 +20,9 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | texturas/cebra_h.png | `tools/gen_texturas.py` |
 | texturas/cebra_v.png | `tools/gen_texturas.py` |
 | texturas/peatones.png | `tools/gen_texturas.py` |
+| texturas/senal_pare.png | `tools/gen_texturas.py` |
+| texturas/senal_peatones.png | `tools/gen_texturas.py` |
+| texturas/senal_velocidad.png | `tools/gen_texturas.py` |
 | texturas/fachada_ladrillo.png | `tools/gen_texturas.py` |
 | texturas/fachada_ladrillo_luz.png | `tools/gen_texturas.py` |
 | texturas/fachada_concreto.png | `tools/gen_texturas.py` |

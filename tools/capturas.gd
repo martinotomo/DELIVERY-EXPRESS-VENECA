@@ -181,6 +181,18 @@ func _correr() -> void:
 	await _colocar(cb2.centro - Vector2(6.5, 0), 0.0, 0.0, 200.0)
 	await _foto("11_atropello")
 
+	# Ciudad con movimiento: gente en los andenes, semáforo de avenida y señales, de día y de noche.
+	var cruce_sem: Vector2 = c.cruce(21, 42)
+	r.partida.multado = false
+	r.partida.peatones.lista.clear()
+	r._t_subtitulo = 0.0
+	for foto in [["13_ciudad_dia", 150.0, 1.0], ["14_ciudad_noche", 480.0, 13.0]]:
+		r.partida.transito.t = foto[2]
+		r.partida.transeuntes.lista.clear()
+		r.partida.transeuntes.advance(0.1, cruce_sem + Vector2(-24, 3), Vector2.RIGHT)
+		await _colocar(cruce_sem + Vector2(-24, 3), 0.0, 6.0, foto[1])
+		await _foto(foto[0])
+
 	# Cada moto con su puesto de mando.
 	for id in ["nkd", "ninja"]:
 		_main.progreso.moto = id

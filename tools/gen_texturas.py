@@ -198,6 +198,9 @@ ROPAS = [
     {"piel": "piel", "pelo": "negro", "camisa": "azul_casa", "pantalon": "carbon"},
     {"piel": "piel_clara", "pelo": "ladrillo_oscuro", "camisa": "verde_casa", "pantalon": "azul_casa", "melena": True, "bolso": "rojo"},
     {"piel": "piel_oscura", "pelo": "carbon", "camisa": "amarillo_casa", "pantalon": "gris", "gorra": "rojo"},
+    {"piel": "piel_clara", "pelo": "carbon", "camisa": "rojo", "pantalon": "carbon", "gorra": "azul_casa"},
+    {"piel": "piel", "pelo": "negro", "camisa": "blanco", "pantalon": "azul_casa", "melena": True},
+    {"piel": "piel_oscura", "pelo": "negro", "camisa": "naranja", "pantalon": "gris", "bolso": "carbon"},
 ]
 
 
@@ -292,12 +295,67 @@ def peatones():
     guardar(rgb, TEX / "peatones.png", alfa=alfa, fuerza=4)
 
 
+# --- señales de tránsito: 32×32 px cada una (se ven a 0,8 m en un poste) ---------------------------
+
+# Letras y números de 3×5 px para las señales.
+LETRAS = {
+    "P": ["111", "101", "111", "100", "100"], "A": ["010", "101", "111", "101", "101"],
+    "R": ["110", "101", "110", "101", "101"], "E": ["111", "100", "110", "100", "111"],
+    "5": ["111", "100", "111", "001", "111"], "0": ["111", "101", "101", "101", "111"],
+}
+
+
+def _letras(d, texto, x, y, escala, color):
+    for k, ch in enumerate(texto):
+        for fy, fila in enumerate(LETRAS[ch]):
+            for fx, bit in enumerate(fila):
+                if bit == "1":
+                    x0 = x + (k * 4 + fx) * escala
+                    d.rectangle([x0, y + fy * escala, x0 + escala - 1, y + (fy + 1) * escala - 1], fill=color)
+
+
+def senales():
+    col = lambda n: P[n] + (255,)
+    # PARE: octágono rojo con filo blanco.
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    oct_ = lambda r: [(16 + r * np.cos(np.pi / 8 + k * np.pi / 4), 16 + r * np.sin(np.pi / 8 + k * np.pi / 4)) for k in range(8)]
+    d.polygon(oct_(15.8), fill=col("blanco"))
+    d.polygon(oct_(13.8), fill=col("rojo"))
+    _letras(d, "PARE", 9, 13, 1, col("blanco"))
+    # Peatones: rombo amarillo con filo negro y una persona caminando.
+    im2 = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d2 = ImageDraw.Draw(im2)
+    d2.polygon([(16, 0), (31, 16), (16, 31), (1, 16)], fill=col("negro"))
+    d2.polygon([(16, 2), (29, 16), (16, 29), (3, 16)], fill=col("amarillo_via"))
+    d2.ellipse([15, 7, 18, 10], fill=col("negro"))
+    d2.line([(16, 11), (15, 17)], fill=col("negro"), width=2)
+    d2.line([(15, 17), (12, 22)], fill=col("negro"), width=2)
+    d2.line([(15, 17), (18, 22)], fill=col("negro"), width=2)
+    d2.line([(16, 12), (12, 15)], fill=col("negro"), width=1)
+    d2.line([(16, 12), (19, 15)], fill=col("negro"), width=1)
+    # Velocidad máxima 50: círculo blanco con aro rojo.
+    im3 = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d3 = ImageDraw.Draw(im3)
+    d3.ellipse([0, 0, 31, 31], fill=col("rojo"))
+    d3.ellipse([4, 4, 27, 27], fill=col("blanco"))
+    _letras(d3, "50", 9, 11, 2, col("negro"))
+    for nombre, img in (("pare", im), ("peatones", im2), ("velocidad", im3)):
+        a = np.array(img).astype(np.float32)
+        lleno = a[..., 3] > 0
+        m = np.pad(lleno, 1)
+        borde = (m[:-2, 1:-1] | m[2:, 1:-1] | m[1:-1, :-2] | m[1:-1, 2:]) & ~lleno
+        rgb = a[..., :3]
+        rgb[borde] = c("negro")
+        guardar(rgb, TEX / f"senal_{nombre}.png", alfa=(lleno | borde).astype(np.float32), fuerza=0)
+
+
 # (El puesto de mando de cada moto, lo que se ve al manejar, sale de tools/gen_manubrios.py.)
 
 
 if __name__ == "__main__":
     TEX.mkdir(parents=True, exist_ok=True)
     UI.mkdir(parents=True, exist_ok=True)
-    for f in (asfalto, anden, pasto, lineas, cebras, fachada_ladrillo, fachada_concreto, fachada_vidrio, fachada_casa, peatones):
+    for f in (asfalto, anden, pasto, lineas, cebras, fachada_ladrillo, fachada_concreto, fachada_vidrio, fachada_casa, peatones, senales):
         f()
         print("generado:", f.__name__)

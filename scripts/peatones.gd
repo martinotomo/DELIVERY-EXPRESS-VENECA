@@ -18,7 +18,7 @@ const RADIO_GOLPE := 0.9                  # m entre moto y peatón que cuentan c
 const VEL_ATROPELLO := 1.5                # m/s: más despacio es un empujoncito, no cuenta
 const T_CAIDO := 3.0                      # s en el piso
 const T_GRITO := 2.0                      # s parado gritando antes de irse
-const ROPAS := 3                          # variantes de ropa del sprite
+const ROPAS := 6                          # variantes de ropa del sprite
 
 const CAMINA := "camina"
 const CAIDO := "caido"

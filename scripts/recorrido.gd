@@ -54,6 +54,8 @@ var _audio: Node
 var _lluvia: Control
 var _charcos: MultiMeshInstance3D
 var _peatones: Array[Sprite3D] = [] # uno por cada peatón que puede haber a la vez
+var _transeuntes: Array[Sprite3D] = [] # la gente de los andenes
+var _mats_semaforo := {}  # "x_rojo", "y_verde"...: una luz por eje y color, todas sincronizadas
 var _version_charcos := -1
 var _mat_asfalto: StandardMaterial3D
 var _acelerando := false
@@ -278,7 +280,9 @@ func _construir_mundo() -> void:
 	_construir_lineas(ciudad, c)
 	_construir_cebras(ciudad, c)
 	_construir_postes(ciudad, c)
+	_construir_transito(ciudad)
 	_construir_peatones()
+	_construir_transeuntes()
 
 	# Faros de pedido: columnas altas que se ven por encima de los edificios.
 	_faro_rest = _caja(_mundo, Vector3(1.2, 60, 1.2), Vector3.ZERO, Color("ff8a2a"), "FaroRestaurante")
@@ -418,6 +422,145 @@ func _actualizar_peatones() -> void:
 		sp.modulate = Color(brillo, brillo, brillo)
 		# El dibujo mira a la derecha: si camina hacia la izquierda de la pantalla, se voltea.
 		sp.flip_h = Vector3(p.dir.x, 0.0, p.dir.y).dot(derecha) < 0.0
+
+
+## Gente caminando por los andenes (de ambiente): los mismos dibujos de los peatones.
+func _construir_transeuntes() -> void:
+	var nodo := Node3D.new()
+	nodo.name = "Transeuntes"
+	_mundo.add_child(nodo)
+	var hoja: Texture2D = load(TEX + "peatones.png")
+	for k in partida.transeuntes.MAX:
+		var sp := Sprite3D.new()
+		sp.name = "Transeunte%d" % k
+		sp.texture = hoja
+		sp.hframes = 4
+		sp.vframes = partida.peatones.ROPAS
+		sp.pixel_size = PEATON_ALTO / 36.0
+		sp.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+		sp.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		sp.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		sp.shaded = false
+		sp.double_sided = true
+		sp.visible = false
+		nodo.add_child(sp)
+		_transeuntes.append(sp)
+
+
+func _actualizar_transeuntes() -> void:
+	var gente: Array = partida.transeuntes.lista
+	var derecha := _camara.global_transform.basis.x
+	var luz: float = lerpf(0.35, 1.0, partida.reloj.luz())
+	for k in _transeuntes.size():
+		var sp := _transeuntes[k]
+		sp.visible = k < gente.size()
+		if not sp.visible:
+			continue
+		var p: Dictionary = gente[k]
+		sp.position = Vector3(p.pos.x, ANDEN_ALTO + PEATON_PX * sp.pixel_size / 2.0, p.pos.y)
+		sp.frame = (p.ropa % partida.peatones.ROPAS) * 4 + int(p.andado / 0.45) % 2
+		var brillo := luz
+		if _farola.visible:
+			brillo = maxf(brillo, 0.95 * clampf(1.0 - p.pos.distance_to(partida.moto.pos) / 35.0, 0.0, 1.0))
+		sp.modulate = Color(brillo, brillo, brillo)
+		sp.flip_h = Vector3(p.dir.x, 0.0, p.dir.y).dot(derecha) < 0.0
+
+
+const SEMAFORO_ALTO := 4.2   # m del piso al centro de la caja de luces
+const COLORES_SEMAFORO := {"rojo": Color("ff3020"), "amarillo": Color("ffb020"), "verde": Color("40ff70")}
+
+
+## Semáforos (poste, caja y tres luces) y señales (poste, placa gris atrás y la señal adelante).
+func _construir_transito(padre: Node3D) -> void:
+	var tr = partida.transito
+	var sem: Array = tr.semaforos()
+	var nodo := Node3D.new()
+	nodo.name = "Transito"
+	padre.add_child(nodo)
+	var postes := _cajas("PostesSemaforo", sem.size(), _material(Color("5a5e66")))
+	var cajas := _cajas("CajasSemaforo", sem.size(), _material(Color("1a1a1e")))
+	var luces := {}
+	for eje in ["x", "y"]:
+		for color in COLORES_SEMAFORO:
+			var m := _material(COLORES_SEMAFORO[color])
+			m.emission_enabled = true
+			m.emission = COLORES_SEMAFORO[color]
+			_mats_semaforo["%s_%s" % [eje, color]] = m
+			var n := 0
+			for s_ in sem:
+				if s_.eje == eje:
+					n += 1
+			luces["%s_%s" % [eje, color]] = _cajas("Luz_%s_%s" % [eje, color], n, m)
+	var k_eje := {"x": 0, "y": 0}
+	var alturas := {"rojo": 0.44, "amarillo": 0.0, "verde": -0.44}
+	for k in sem.size():
+		var s_: Dictionary = sem[k]
+		var base := Vector3(s_.pos.x, ANDEN_ALTO, s_.pos.y)
+		var d3 := Vector3(s_.dir.x, 0.0, s_.dir.y)
+		postes.multimesh.set_instance_transform(k, Transform3D(Basis.from_scale(Vector3(0.2, SEMAFORO_ALTO + 0.6, 0.2)), base + Vector3(0, (SEMAFORO_ALTO + 0.6) / 2.0, 0)))
+		postes.multimesh.set_instance_color(k, Color.WHITE)
+		var caja := base + Vector3(0, SEMAFORO_ALTO, 0)
+		cajas.multimesh.set_instance_transform(k, Transform3D(Basis.from_scale(Vector3(0.55, 1.4, 0.5)), caja))
+		cajas.multimesh.set_instance_color(k, Color.WHITE)
+		var i: int = k_eje[s_.eje]
+		for color in alturas:
+			# La luz asoma por la cara que mira al que llega (hacia -dir).
+			# Delgada, pegada a la cara: de lado casi no se ve (no confunde al que cruza).
+			var pos := caja - d3 * 0.27 + Vector3(0, alturas[color], 0)
+			var mm: MultiMesh = luces["%s_%s" % [s_.eje, color]].multimesh
+			mm.set_instance_transform(i, Transform3D(Basis.looking_at(d3, Vector3.UP).scaled_local(Vector3(0.36, 0.36, 0.05)), pos))
+			mm.set_instance_color(i, Color.WHITE)
+		k_eje[s_.eje] = i + 1
+	nodo.add_child(postes)
+	nodo.add_child(cajas)
+	for l in luces.values():
+		nodo.add_child(l)
+
+	var senales: Array = tr.senales()
+	var por_tipo := {}
+	for s_ in senales:
+		if not por_tipo.has(s_.tipo):
+			por_tipo[s_.tipo] = []
+		por_tipo[s_.tipo].append(s_)
+	var palos := _cajas("PostesSenal", senales.size(), _material(Color("a0a2a8")))
+	var reves := _cajas("RevesSenal", senales.size(), _material(Color("6a6c70")))
+	var k_s := 0
+	for tipo in por_tipo:
+		var lista: Array = por_tipo[tipo]
+		var m := _material(Color.WHITE)
+		m.albedo_texture = load(TEX + "senal_%s.png" % tipo)
+		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		var placa := QuadMesh.new()
+		placa.size = Vector2(0.9, 0.9)
+		var caras := _cajas("Senal_%s" % tipo, lista.size(), m, placa)
+		for k in lista.size():
+			var s_: Dictionary = lista[k]
+			var base := Vector3(s_.pos.x, ANDEN_ALTO, s_.pos.y)
+			var d3 := Vector3(s_.dir.x, 0.0, s_.dir.y)
+			var arriba := base + Vector3(0, 2.4, 0)
+			# El QuadMesh mira a +Z: se gira para que mire al que llega (hacia -dir).
+			caras.multimesh.set_instance_transform(k, Transform3D(Basis.looking_at(d3, Vector3.UP), arriba - d3 * 0.06))
+			caras.multimesh.set_instance_color(k, Color.WHITE)
+			palos.multimesh.set_instance_transform(k_s, Transform3D(Basis.from_scale(Vector3(0.1, 2.4, 0.1)), base + Vector3(0, 1.2, 0)))
+			palos.multimesh.set_instance_color(k_s, Color.WHITE)
+			reves.multimesh.set_instance_transform(k_s, Transform3D(Basis.looking_at(d3, Vector3.UP).scaled_local(Vector3(0.86, 0.86, 0.03)), arriba))
+			reves.multimesh.set_instance_color(k_s, Color.WHITE)
+			k_s += 1
+		nodo.add_child(caras)
+	nodo.add_child(palos)
+	nodo.add_child(reves)
+
+
+## Cada fotograma: prende la luz que toca en cada eje y apaga las otras (todas van sincronizadas).
+func _actualizar_semaforos() -> void:
+	for eje in ["x", "y"]:
+		var prendida: String = partida.transito.luz(eje)
+		for color in COLORES_SEMAFORO:
+			var m: StandardMaterial3D = _mats_semaforo["%s_%s" % [eje, color]]
+			var on: bool = color == prendida
+			m.albedo_color = COLORES_SEMAFORO[color] if on else COLORES_SEMAFORO[color].darkened(0.8)
+			m.emission_energy_multiplier = 2.5 if on else 0.0
 
 
 ## Postes de luz en las esquinas de cada cuadra; la bombilla brilla de noche.
@@ -676,6 +819,8 @@ func _actualizar_vista(delta: float) -> void:
 			mm.set_instance_color(k, Color.WHITE)
 
 	_actualizar_peatones()
+	_actualizar_transeuntes()
+	_actualizar_semaforos()
 	if partida.multado:
 		_l_pedido.text += "\nSIN PROPINA: atropellaste a alguien"
 

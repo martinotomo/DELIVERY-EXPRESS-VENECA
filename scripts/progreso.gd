@@ -41,7 +41,7 @@ func cargar() -> void:
 	if not MOTOS.MOTOS.has(m):
 		m = MOTOS.MOTO_INICIAL
 	tenidas = {}
-	var guardadas = cfg.get_value("progreso", "tenidas", null)
+	var guardadas = cfg.get_value("progreso", "tenidas") if cfg.has_section_key("progreso", "tenidas") else null
 	if guardadas is Dictionary:
 		for id in guardadas:
 			if MOTOS.MOTOS.has(str(id)):
