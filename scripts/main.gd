@@ -17,7 +17,6 @@ var progreso
 var musica_actual := ""
 var _musica: AudioStreamPlayer
 const MUSICA_DB := {"menu": -12.0, "conduccion": -18.0, "muerte": -6.0} # la de la calle va −18 dB bajo los efectos
-const MUSICA_BAJA := 9.0 # dB que se baja mientras habla el domiciliario
 
 @onready var _pantallas: Node = $Pantallas
 
@@ -38,15 +37,6 @@ func musica(nombre: String) -> void:
 	_musica.volume_db = MUSICA_DB[nombre]
 	_musica.play()
 
-
-## Mientras habla el domiciliario, la música de la calle se baja y luego vuelve.
-func bajar_musica(segundos: float) -> void:
-	if musica_actual != "conduccion":
-		return
-	var tw := create_tween()
-	tw.tween_property(_musica, "volume_db", MUSICA_DB.conduccion - MUSICA_BAJA, 0.15)
-	tw.tween_interval(maxf(segundos - 0.3, 0.0))
-	tw.tween_property(_musica, "volume_db", MUSICA_DB.conduccion, 0.4)
 
 
 func pantalla_actual() -> Node:
@@ -73,7 +63,6 @@ func reiniciar() -> void:
 	musica("conduccion")
 	ride.partida.pagado.connect(progreso.ganar)
 	ride.partida.terminada_por.connect(func(_m): musica("muerte"))
-	ride.hablo.connect(bajar_musica)
 	ride.terminado.connect(_al_terminar)
 	ride.reintentar.connect(reiniciar, CONNECT_DEFERRED)
 	ride.al_menu.connect(menu, CONNECT_DEFERRED)

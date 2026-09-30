@@ -6,7 +6,6 @@ extends Control
 signal terminado(estado: String, mensaje: String)
 signal reintentar
 signal al_menu
-signal hablo(segundos: float) # el domiciliario dice algo en voz alta (el director baja la música)
 
 const PARTIDA := preload("res://scripts/partida.gd")
 const VOCES := preload("res://scripts/voces.gd")
@@ -79,12 +78,7 @@ var _acelerando := false
 ## Teclas de prueba (F9 = lluvia, F10 = +$50.000): solo en versiones de desarrollo, nunca en el .exe exportado.
 var trucos := OS.is_debug_build()
 var _subtitulo: Label
-var _voz: AudioStreamPlayer
 var _t_subtitulo := 0.0
-var _ultima_voz := -99.0
-var ultima_voz := "" # para las pruebas
-const VOZ_ESPACIO := 3.0
-const VOCES_SIEMPRE := ["estrellado", "final", "choque", "atropello", "pito", "grito"]
 var _giro_visual := 0.0
 var _cinematica := false
 var _ilustracion: TextureRect
@@ -1027,10 +1021,6 @@ func _construir_hud() -> void:
 	_mapa.visible = false
 	hud.add_child(_mapa)
 
-	_voz = AudioStreamPlayer.new()
-	_voz.name = "Voz"
-	add_child(_voz)
-
 
 func _fondo() -> StyleBoxFlat:
 	var f := StyleBoxFlat.new()
@@ -1185,17 +1175,6 @@ func _al_evento(nombre: String) -> void:
 	_subtitulo.text = texto
 	_subtitulo.visible = true
 	_t_subtitulo = SUBTITULO_S
-	# Nunca dos voces seguidas en menos de ~3 s (DISENO §8), salvo las que importan: se lee el subtítulo.
-	var ahora := Time.get_ticks_msec() / 1000.0
-	if ahora - _ultima_voz < VOZ_ESPACIO and not VOCES_SIEMPRE.has(nombre):
-		return
-	var ruta: String = VOCES.ruta_audio(nombre, voces._ultima.get(nombre, 0))
-	if ResourceLoader.exists(ruta):
-		_voz.stream = load(ruta)
-		_voz.play()
-		_ultima_voz = ahora
-		ultima_voz = nombre
-		hablo.emit(_voz.stream.get_length())
 
 
 # --- la caída ----------------------------------------------------------------------

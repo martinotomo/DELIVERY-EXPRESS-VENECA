@@ -18,7 +18,7 @@ var moto := MOTOS.MOTO_INICIAL:
 		if not tenidas.has(v):
 			tenidas[v] = {}
 ## Pedidos entregados en total, si ya se vio el final (DISENO §15.2) y la moto recién comprada
-## que falta estrenar (la voz de «moto nueva» sale al empezar la jornada siguiente).
+## que falta estrenar (la frase de «moto nueva» sale al empezar la jornada siguiente).
 var entregas := 0
 var final_hecho := false
 var estrenar := ""

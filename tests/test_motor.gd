@@ -82,7 +82,7 @@ func run(t) -> void:
 	var pedido_antes: Dictionary = p.pedido
 	var t0: float = p.tiempo_restante
 	p.advance(10.1, true, false, 0.0)
-	t.check(ev.has("fundido"), "la partida avisa «fundido» (para la voz)")
+	t.check(ev.has("fundido"), "la partida avisa «fundido» (para la frase)")
 	p.advance(5.0, false, false, 0.0)
 	t.check(ev.has("reparado"), "y «reparado»")
 	t.check(not p.terminada, "la jornada sigue")

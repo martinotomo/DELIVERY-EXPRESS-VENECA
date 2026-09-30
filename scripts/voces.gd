@@ -1,6 +1,5 @@
 extends RefCounted
-## Frases por evento. En la F1 salen como subtítulos; Tomás grabará las voces y cada una
-## irá en assets/voces/<evento>_<n>.wav (con su fila en LICENSES.md).
+## Frases por evento: salen como subtítulos, sin audio (D28: Tomás quitó las voces).
 
 const FRASES := {
 	"recogido": [
@@ -130,6 +129,3 @@ func frase(evento: String) -> String:
 	_ultima[evento] = k
 	return lista[k]
 
-
-static func ruta_audio(evento: String, indice: int) -> String:
-	return "res://assets/voces/%s_%d.wav" % [evento, indice + 1]
