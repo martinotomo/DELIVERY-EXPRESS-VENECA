@@ -12,6 +12,14 @@ CÓMO JUGAR
   Propiedades -> marcar «Desbloquear».)
 - Necesita Windows 10 u 11 de 64 bits y una tarjeta gráfica con OpenGL 3.3.
 
+SI WINDOWS LO BLOQUEA SIN DEJAR EJECUTARLO («Control inteligente de aplicaciones»)
+Windows 11 con ese control prendido no deja abrir programas sin firma digital. Para eso está el
+zip «-firmado»: su DeliveryExpress.exe es el programa oficial de Godot 4.7.2 tal cual, firmado por
+Prehensile Tales B.V. (la empresa que publica Godot), solo con otro nombre; el juego va en
+DeliveryExpress.pck y Godot lo carga solo porque se llama igual. Los dos archivos tienen que
+quedar juntos. El .exe muestra el icono de Godot; la ventana del juego lleva el suyo (para el
+escritorio: acceso directo y en Propiedades -> Cambiar icono, elegir DeliveryExpress.ico).
+
 TECLAS (se pueden cambiar en Opciones)
 - W o flecha arriba: acelerar          - S, flecha abajo o espacio: frenar
 - A / D o flechas: girar               - H: pito (no sirve para nada)
@@ -30,7 +38,8 @@ Las motos del taller y de las caídas salen de memes de TikTok (@d4rkfox, @migue
 publicar ni vender hasta cambiarlas por dibujo propio o CC0 (decisión D21 del proyecto).
 
 LICENCIAS
-- Hecho con Godot Engine 4.7.2 (licencia MIT, godotengine.org/license).
+- Hecho con Godot Engine 4.7.2 (licencia MIT, godotengine.org/license). En el zip firmado van
+  GODOT_LICENSE.txt y GODOT_COPYRIGHT.txt, que la licencia pide incluir al repartir el programa.
 - Letra Press Start 2P de CodeMan38, SIL Open Font License 1.1 (ver OFL.txt).
 - Todo lo demás (arte, sonido y música) sale de scripts de Python del proyecto.
 - LICENSES.md: una fila por archivo. AI_DISCLOSURE.md: qué se hizo con ayuda de IA.

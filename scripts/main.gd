@@ -35,7 +35,7 @@ func _ready() -> void:
 	# Primera línea del log: con --log-file, tools/build.ps1 comprueba que el .exe arrancó y que es
 	# la versión de entrega (sin las teclas de prueba F9/F10, que solo existen en debug).
 	print("%s %s (%s)" % [ProjectSettings.get_setting("application/config/name"),
-		ProjectSettings.get_setting("application/config/version"), "debug" if OS.is_debug_build() else "release"])
+		ProjectSettings.get_setting("application/config/version"), _modo()])
 	progreso = PROGRESO.new(ruta_progreso)
 	opciones = OPCIONES.new(ruta_opciones)
 	opciones.aplicar()
@@ -54,6 +54,14 @@ func _ready() -> void:
 
 ## Para comprobar un .exe sin jugarlo (tools/build.ps1): menú, taller y 6 s de calle con la moto
 ## guardada; escribe en el log lo que vio y los fps, y cierra. No guarda nada.
+## «release»: exportado con plantilla de entrega. «entrega»: el .pck de entrega corriendo en el
+## binario oficial firmado de Godot (D31). «desarrollo»: desde el editor o las pruebas.
+static func _modo() -> String:
+	if not OS.is_debug_build():
+		return "release"
+	return "entrega" if OS.has_feature("entrega") else "desarrollo"
+
+
 func _prueba_arranque() -> void:
 	progreso.ruta = "user://prueba_arranque.cfg" # lee la partida de verdad, pero no la toca
 	menu()
@@ -67,8 +75,8 @@ func _prueba_arranque() -> void:
 	var t0 := Time.get_ticks_msec()
 	await get_tree().create_timer(5.0).timeout
 	var fps := (Engine.get_frames_drawn() - cuadros) * 1000.0 / maxf(Time.get_ticks_msec() - t0, 1.0)
-	print("prueba-arranque: moto=%s plata=%d idioma=%s pantallas=%d recorrido=%s reloj=%.1f fps=%.0f trucos=%s" % [
-		progreso.moto, progreso.dinero, TranslationServer.get_locale(), _pantallas.get_child_count(),
+	print("prueba-arranque: binario=%s moto=%s plata=%d idioma=%s pantallas=%d recorrido=%s reloj=%.1f fps=%.0f trucos=%s" % [
+		OS.get_executable_path().get_file(), progreso.moto, progreso.dinero, TranslationServer.get_locale(), _pantallas.get_child_count(),
 		ride.name if is_instance_valid(ride) else "-", ride.partida.reloj.t if is_instance_valid(ride) else -1.0,
 		fps, ride.trucos if is_instance_valid(ride) else "-"])
 	print("prueba-arranque: OK")

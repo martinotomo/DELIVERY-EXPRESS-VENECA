@@ -79,7 +79,7 @@ var _version_charcos := -1
 var _mat_asfalto: StandardMaterial3D
 var _acelerando := false
 ## Teclas de prueba (F9 = lluvia, F10 = +$50.000): solo en versiones de desarrollo, nunca en el .exe exportado.
-var trucos := OS.is_debug_build()
+var trucos := OS.is_debug_build() and not OS.has_feature("entrega") # F9/F10: solo en desarrollo
 var _subtitulo: Label
 var _t_subtitulo := 0.0
 var _giro_visual := 0.0
