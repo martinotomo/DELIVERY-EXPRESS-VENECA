@@ -5,11 +5,13 @@ extends Control
 
 signal terminado(estado: String, mensaje: String)
 signal reintentar
+signal al_menu
 
 const PARTIDA := preload("res://scripts/partida.gd")
 const VOCES := preload("res://scripts/voces.gd")
 const MANUBRIO := preload("res://scripts/manubrio.gd")
 const MINIMAPA := preload("res://scripts/minimapa.gd")
+const PROGRESO := preload("res://scripts/progreso.gd")
 
 const ALTURA_OJOS := 1.35
 const ANDEN_ALTO := 0.2
@@ -18,7 +20,9 @@ const SUBTITULO_S := 3.5
 const C_TEXTO := Color("e8e8e8")
 const C_ROJO := Color("e0301e")
 
-var partida = PARTIDA.new(20260929)
+const SEMILLA := 20260929
+var partida = PARTIDA.new(SEMILLA)
+var progreso # lo pone el director; sin él se juega con la BWS de fábrica
 var voces = VOCES.new(1)
 var retraso_resultado := 2.2
 var duracion_encuadre := 0.5  # las pruebas lo ponen en 0 para medir el cuadro final
@@ -46,6 +50,8 @@ var _cinematica := false
 
 
 func _ready() -> void:
+	if progreso != null:
+		partida = PARTIDA.new(SEMILLA, progreso.datos_moto())
 	_construir_mundo()
 	_construir_hud()
 	partida.evento.connect(_al_evento)
@@ -56,6 +62,9 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("continuar"):
 		reintentar.emit()
+		return
+	if Input.is_action_just_pressed("menu"):
+		al_menu.emit()
 		return
 	if not partida.terminada:
 		var giro := Input.get_action_strength("derecha") - Input.get_action_strength("izquierda")
@@ -413,9 +422,9 @@ func _construir_hud() -> void:
 	_l_reloj = _texto(Vector2(248, 339), 16, "Reloj")
 	_l_reloj.add_theme_color_override("font_color", C_ROJO)
 	_etiqueta(Vector2(338, 344), "TIEMPO")
-	_l_cuenta = _texto(Vector2(452, 339), 16, "Cuenta")
+	_l_cuenta = _texto(Vector2(420, 339), 16, "Plata")
 	_l_cuenta.add_theme_color_override("font_color", C_ROJO)
-	_etiqueta(Vector2(500, 344), "ENTREGAS")
+	_etiqueta(Vector2(586, 344), "PLATA")
 
 	var mini: Control = MINIMAPA.new()
 	mini.name = "Minimapa"
@@ -427,8 +436,12 @@ func _construir_hud() -> void:
 
 	_l_pedido = _texto(Vector2(8, 8), 8, "Pedido")
 	_l_pedido.add_theme_stylebox_override("normal", _fondo())
-	_l_derrape = _texto(Vector2(0, 150), 16, "Derrape", 640.0)
+	# Aviso de derrape pequeño y en la esquina, encima de la velocidad (no tapa la calle).
+	_l_derrape = _texto(Vector2(8, 314), 8, "Derrape")
+	_l_derrape.text = "¡SE VA DE LADO!"
 	_l_derrape.add_theme_color_override("font_color", C_ROJO)
+	_l_derrape.add_theme_stylebox_override("normal", _fondo())
+	_l_derrape.visible = false
 
 	# Subtítulos con su propia franja de fondo, para que se lean sobre la calle en movimiento.
 	_subtitulo = _texto(Vector2(40, 156), 8, "Subtitulo", 560.0)
@@ -482,13 +495,13 @@ func _actualizar_vista(delta: float) -> void:
 	var s := int(ceil(maxf(partida.tiempo_restante, 0.0)))
 	_l_reloj.text = "%d:%02d" % [s / 60, s % 60]
 	_l_reloj.modulate.a = 0.35 if s <= 15 and int(Time.get_ticks_msec() / 250) % 2 == 0 else 1.0
-	_l_cuenta.text = "%d" % partida.entregados
+	_l_cuenta.text = PROGRESO.pesos(progreso.dinero if progreso != null else partida.ganado)
 	_l_hora.text = ("DIA " if partida.reloj.luz() > 0.25 else "NOCHE ") + partida.reloj.texto_hora()
 	if recoger:
 		_l_pedido.text = "RECOGE: %s\nSigue la columna naranja" % p.plato.to_upper()
 	else:
 		_l_pedido.text = "ENTREGA: %s\n%s" % [p.plato.to_upper(), p.direccion]
-	_l_derrape.text = "¡SE VA DE LADO!" if m.derrapando and not partida.terminada else ""
+	_l_derrape.visible = m.derrapando and not partida.terminada
 
 	_t_subtitulo = maxf(_t_subtitulo - delta, 0.0)
 	_subtitulo.visible = _t_subtitulo > 0.0
@@ -568,7 +581,10 @@ func _al_estrellarse(mensaje: String) -> void:
 			_camara.look_at(mira)
 		var tw := create_tween()
 		tw.tween_method(mover, 0.0, 1.0, duracion_encuadre).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	var final_msg := "%s\n\nEntregaste %d pedidos antes de irte." % [mensaje, partida.entregados]
+	var cierre := "Ni un pedido entregado. La app ya te está buscando reemplazo."
+	if partida.entregados > 0:
+		cierre = "Entregaste %d pedidos: +%s, y esa plata no se pierde." % [partida.entregados, PROGRESO.pesos(partida.ganado)]
+	var final_msg := "%s\n\n%s" % [mensaje, cierre]
 	if retraso_resultado <= 0.0:
 		terminado.emit("estrellado", final_msg)
 		return
