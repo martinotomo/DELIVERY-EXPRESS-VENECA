@@ -63,7 +63,7 @@ Para que se pueda terminar:
   edificios de caja texturizados, andenes, esquinas y semáforos. Cada zona cambia texturas, altura
   de edificios y tráfico (§6).
 - **Tres motos** con dos mejoras cada una (§7), en una ciudad de 40 × 80 cuadras (§6).
-- **Duración objetivo:** 20–30 minutos para llegar a la Ninja 300 y ver el final. Cada pedido dura
+- **Duración objetivo:** unos 40 minutos para llegar a la Ninja 300 y ver el final. Cada pedido dura
   entre 1 y 3 minutos.
 
 ### 3.1 Definición de «terminado»
@@ -102,7 +102,7 @@ ciudades, clima dinámico complejo, policía que persigue, guardado de varias pa
 pedido en curso (no se cobra) y el tiempo de volver. Así morir es el chiste, no un castigo.
 
 El dinero sirve para dos cosas, las dos en el garaje: **mejorar la moto actual** o **comprar la
-siguiente** (§7). Una partida son unos 15–20 pedidos.
+siguiente** (§7). Llegar a la Ninja 300 toma unos 19 pedidos.
 
 ---
 
@@ -146,9 +146,9 @@ más que el agarre, así que las esquinas hay que volver a aprenderlas.
 
 **El aviso de derrape** (cuando la moto se empieza a ir de lado):
 
-- Va en una **esquina de la pantalla y pequeño**, no en el centro, para que no tape la calle.
-- **No es tan sensible:** a baja velocidad girar a tope no hace irse de lado ni dispara el aviso;
-  solo aparece cuando de verdad se está pasando de la velocidad segura de ese giro.
+- Va **abajo a la izquierda y pequeño**, no en el centro, para que no tape la calle.
+- **No es tan sensible:** solo salta por encima del **75 % de la velocidad máxima** de la moto y
+  con el manubrio sostenido a tope. A baja velocidad girar a tope no hace irse de lado.
 - Además del aviso, el manubrio tiembla un poco y suena el chirrido de la llanta, para que se
   sienta sin tener que leerlo.
 
@@ -254,15 +254,20 @@ Solo **tres motos**, para que el juego no se alargue. Cada una tiene **dos mejor
    - **Motor:** sobre todo velocidad máxima.
 3. **Qué se puede comprar:** exosto y motor de la moto actual (en cualquier orden) o saltar
    directo a la siguiente moto si alcanza el dinero. Las mejoras no pasan a la moto nueva.
-4. **Precios orientativos** (en pedidos bien hechos con la moto actual): cada mejora ≈ 2 pedidos,
-   la siguiente moto ≈ 6 pedidos.
+4. **Precios:** ver la tabla de §7.2. Un pedido paga unos $10.000.
 
 ### 7.2 Valores
 
-Los números exactos (velocidad en m/s, aceleración, freno, agarre, cuánto suma cada mejora y los
-precios) viven en un solo archivo del juego, `scripts/motos.gd`, y se afinan jugando. Este documento
-solo fija las reglas de arriba. Como referencia, el prototipo usa para la BWS una velocidad máxima
-de 25 m/s (90 km/h).
+Los números viven en un solo archivo del juego, `scripts/motos.gd`, y **ese archivo manda**: si se
+afinan jugando, esta tabla se actualiza después. Valores actuales del prototipo:
+
+| Moto | Precio | Exosto | Motor | Vel. máx. de fábrica | Vel. máx. con las dos mejoras |
+|---|---|---|---|---|---|
+| BWS 125 | (inicial) | $8.000 | $12.000 | 90 km/h | 101 km/h |
+| NKD 125 | $40.000 | $15.000 | $22.000 | 110 km/h | 122 km/h |
+| Ninja 300 | $90.000 | $25.000 | $35.000 | 144 km/h | 162 km/h |
+
+Con unos $10.000 por pedido, llegar a la Ninja toma unos 19 pedidos (≈40 minutos).
 
 En el garaje cada moto muestra sus barras y, como chiste, una barra de **FE** que siempre es la más
 larga.
@@ -304,8 +309,8 @@ mejor piloto de la ciudad.
 1. **Advertencia de contenido** (humor negro, sangre pixelada, muertes de tráfico), saltable tras
    2 s.
 2. **Menú de inicio:** el título del juego sobre la vista en primera persona con la moto parada en
-   una esquina del barrio (y el ciclo de día y noche corriendo de fondo). Opciones: **Jugar**
-   (o **Continuar** si hay dinero guardado), **Opciones**, **Créditos** y **Salir**.
+   una esquina del barrio (y el ciclo de día y noche corriendo de fondo). Opciones: **Jugar**,
+   **Garaje** y **Salir** (Opciones y Créditos se añaden en la F6).
 3. **App de pedidos:** celular pixelado con el pedido, el pago, el tiempo y el minimapa.
 4. **Conducción** (§5), con el HUD estilo *Doom*.
 5. **Entrega:** pago, propina, estrellas y comentario del cliente.
@@ -427,7 +432,7 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | D9 (30/09) | Dos mejoras por moto, exosto y motor. La moto con las dos mejoras sigue siendo peor que la siguiente de fábrica |
 | D10 (30/09) | El dinero se acumula y no se pierde al morir |
 | D11 (30/09) | Menú de inicio |
-| D12 (30/09) | El aviso de derrape va en una esquina, más pequeño, y no salta a baja velocidad |
+| D12 (30/09) | El aviso de derrape va abajo a la izquierda, más pequeño, y solo salta por encima del 75 % de la velocidad máxima |
 
 ### 15.2 Abiertas (con la recomendación que se sigue mientras tanto)
 
