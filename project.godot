@@ -53,6 +53,10 @@ continuar={
 ]
 }
 
+[gui]
+
+theme/custom_font="res://assets/fuentes/PressStart2P-Regular.ttf"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

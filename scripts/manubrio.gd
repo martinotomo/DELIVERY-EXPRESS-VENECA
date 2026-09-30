@@ -1,16 +1,21 @@
 extends Control
-## El manubrio de la BWS visto desde el puesto del domiciliario, en bloques grises.
+## El manubrio de la BWS visto desde el puesto del domiciliario: sprite en pixel art
+## (tools/gen_texturas.py) dibujado a 2×, con la aguja del velocímetro encima.
 ## Se inclina con el giro y tiembla con la velocidad.
 
-const C_OSCURO := Color("2b2b2b")
-const C_METAL := Color("8c8c8c")
-const C_GUANTE := Color("6a6a6a")
-const C_ESPEJO := Color("a9b4bf")
-const C_TABLERO := Color("dcdcdc")
+const SPRITE := preload("res://assets/ui/manubrio.png")
+const ESCALA := 2.0
+const ARRIBA := 154.0        # y en pantalla donde empieza el sprite (termina en la barra de estado)
+const CENTRO_AGUJA := Vector2(160, 66) # en píxeles del sprite
+const PIVOTE := Vector2(320, 334)
 
 var giro := 0.0
 var vel_kmh := 0
 var _t := 0.0
+
+
+func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 
 func _process(delta: float) -> void:
@@ -19,24 +24,12 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var temblor := sin(_t * 40.0) * clampf(vel_kmh / 90.0, 0.0, 1.0) * 1.2
-	draw_set_transform(Vector2(320, 300 + temblor), giro * 0.12, Vector2.ONE)
-	# Tablero central (de la BWS: ancho y chato) con el velocímetro.
-	draw_colored_polygon(PackedVector2Array([Vector2(-70, 60), Vector2(70, 60), Vector2(52, -8), Vector2(-52, -8)]), C_OSCURO)
-	draw_circle(Vector2(0, 18), 20, C_TABLERO)
-	draw_circle(Vector2(0, 18), 17, C_OSCURO)
+	var temblor := roundf(sin(_t * 40.0) * clampf(vel_kmh / 90.0, 0.0, 1.0) * 1.5)
+	draw_set_transform(PIVOTE + Vector2(0, temblor), giro * 0.06, Vector2.ONE)
+	var origen := Vector2(-PIVOTE.x, ARRIBA - PIVOTE.y)
+	draw_texture_rect(SPRITE, Rect2(origen, SPRITE.get_size() * ESCALA), false)
+	# Aguja: de 0 a 100 km/h en el arco de la carátula.
 	var ang := lerpf(PI * 0.8, PI * 2.2, clampf(vel_kmh / 100.0, 0.0, 1.0))
-	draw_line(Vector2(0, 18), Vector2(0, 18) + Vector2(cos(ang), sin(ang)) * 14, Color("e05a3a"), 2.0)
-	# Barra del manubrio.
-	draw_polyline(PackedVector2Array([Vector2(-190, -6), Vector2(-100, 4), Vector2(0, 0), Vector2(100, 4), Vector2(190, -6)]), C_METAL, 9.0)
-	# Espejos: palo y espejo redondo.
-	for lado in [-1, 1]:
-		draw_line(Vector2(lado * 120, 0), Vector2(lado * 150, -62), C_METAL, 4.0)
-		draw_circle(Vector2(lado * 156, -74), 17, C_METAL)
-		draw_circle(Vector2(lado * 156, -74), 13, C_ESPEJO)
-	# Puños y manos con guante, con el antebrazo saliendo de abajo.
-	for lado in [-1, 1]:
-		var x: float = lado * 200.0
-		draw_rect(Rect2(x - 26, -16, 52, 20), C_OSCURO)
-		draw_colored_polygon(PackedVector2Array([Vector2(x - 24, -20), Vector2(x + 24, -20), Vector2(x + 30 * lado + 10, 80), Vector2(x - 30 + lado * 30, 80)]), C_GUANTE)
-		draw_rect(Rect2(x - 22, -24, 44, 16), C_GUANTE.lightened(0.15))
+	var c := origen + CENTRO_AGUJA * ESCALA
+	draw_line(c, c + Vector2(cos(ang), sin(ang)) * 20.0, Color("c41e18"), 2.0)
+	draw_rect(Rect2(c - Vector2(3, 3), Vector2(6, 6)), Color("1c1c22"))

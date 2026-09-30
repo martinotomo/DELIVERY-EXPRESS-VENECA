@@ -3,7 +3,7 @@ extends RefCounted
 
 
 static func muerte_curva(nombre_moto: String) -> String:
-	return "Has muerto al entrar demasiado rápido en la curva,\ntu fe era más grande que el agarre de tu %s." % nombre_moto
+	return "Has muerto al entrar demasiado rápido en la curva, tu fe era más grande que el agarre de tu %s." % nombre_moto
 
 
 static func sin_tiempo() -> String:
