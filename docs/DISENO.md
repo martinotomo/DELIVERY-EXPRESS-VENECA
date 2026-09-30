@@ -209,8 +209,8 @@ cuadras cercanas** a la moto (por trozos), para que corra en PCs modestos.
 
 | Zona | Moto con la que se abre | Cómo se ve | Peligros |
 |---|---|---|---|
-| **Barrio** (inicio) | BWS 125 | Casas de ladrillo de 2–3 pisos, tiendas, calles estrechas | Perros, huecos, niños jugando fútbol |
-| **Centro** | BWS 125 | Edificios viejos, buses, vendedores ambulantes | Buses, peatones, trancones |
+| **Barrio** (inicio) | Bwis 125 | Casas de ladrillo de 2–3 pisos, tiendas, calles estrechas | Perros, huecos, niños jugando fútbol |
+| **Centro** | Bwis 125 | Edificios viejos, buses, vendedores ambulantes | Buses, peatones, trancones |
 | **Zona industrial** | NKD 125 | Bodegas, tractomulas, calles anchas | Aceite en el piso, tractomulas |
 | **Avenida / autopista** | NKD 125 | Avenida de varios carriles, puentes, letreros verdes de vía | Velocidad alta, esquinas de salida cerradas |
 | **Zona rica / loma** | Ninja 300 | Edificios altos de vidrio, curvas de montaña con vista a la ciudad (la curva del meme) | Curvas cerradas, lluvia |
@@ -239,7 +239,7 @@ Solo **tres motos**, para que el juego no se alargue. Cada una tiene **dos mejor
 
 | # | Moto | Personalidad | Manubrio y tablero |
 |---|---|---|---|
-| 1 | **Yamaha BWS 125** (inicial) | Scooter de llantas gordas, estable pero lenta | Manubrio alto con carenaje, tablero redondo |
+| 1 | **Yamaha Bwis 125** (inicial) | Scooter de llantas gordas, estable pero lenta | Manubrio alto con carenaje, tablero redondo |
 | 2 | **AKT NKD 125** | Clásica de domicilios, farola grande | Farola redonda visible abajo, velocímetro redondo |
 | 3 | **Kawasaki Ninja 300** (final) | La soñada, bicilíndrica, mucho más rápida | Semimanubrios bajos, tablero digital, parabrisas |
 
@@ -263,7 +263,7 @@ afinan jugando, esta tabla se actualiza después. Valores actuales del prototipo
 
 | Moto | Precio | Exosto | Motor | Vel. máx. de fábrica | Vel. máx. con las dos mejoras |
 |---|---|---|---|---|---|
-| BWS 125 | (inicial) | $8.000 | $12.000 | 90 km/h | 101 km/h |
+| Bwis 125 | (inicial) | $8.000 | $12.000 | 90 km/h | 101 km/h |
 | NKD 125 | $40.000 | $15.000 | $22.000 | 110 km/h | 122 km/h |
 | Ninja 300 | $90.000 | $25.000 | $35.000 | 144 km/h | 162 km/h |
 
@@ -334,7 +334,7 @@ Un único director (`main.gd`) cambia entre pantallas, como en los juegos anteri
   Ambas escalan entero a 720p, 1080p, 1440p y 4K.
 - **Paleta fija** (~32 colores) en `tools/paleta.py`: ladrillo, concreto, asfalto, verdes de los
   letreros, naranjas del alumbrado de sodio, rojos del HUD y la sangre, y el color propio de cada
-  moto (azul claro BWS, gris NKD, verde lima Ninja).
+  moto (azul claro Bwis, gris NKD, verde lima Ninja).
 - **Assets por código** (paleta → cuantizar → *dithering*): texturas de fachadas, asfalto, andenes,
   letreros; sprites de carros, buses y peatones.
 - **Los manubrios** son el asset más visible y el más difícil: tres sprites grandes con manos y
@@ -353,7 +353,7 @@ Efectos y música sintetizados por código y definidos con números antes de gen
 
 | Sonido | Descripción | Requisito medible (borrador) |
 |---|---|---|
-| Motor de cada moto | Tono que sube con las RPM. BWS: zumbido de CVT; NKD: monocilíndrico «pum-pum»; Ninja: bicilíndrico agudo. El exosto mejorado suena más duro | Fundamental 30–250 Hz según RPM; paso-alto a 90 Hz; bucle sin clic |
+| Motor de cada moto | Tono que sube con las RPM. Bwis: zumbido de CVT; NKD: monocilíndrico «pum-pum»; Ninja: bicilíndrico agudo. El exosto mejorado suena más duro | Fundamental 30–250 Hz según RPM; paso-alto a 90 Hz; bucle sin clic |
 | Frenazo | Chirrido de llanta | 0,4–1,0 s, ≥ 50 % de la energía sobre 1 kHz |
 | Golpe con el andén | Golpe seco corto | ≤ 0,5 s |
 | Caída | Golpe + metal arrastrándose + silencio | ≤ 1,5 s, final en silencio |
@@ -368,7 +368,7 @@ Efectos y música sintetizados por código y definidos con números antes de gen
 
 - **Tono:** humor negro sobre la prisa y la fe del domiciliario, no burla de las víctimas ni de los
   venezolanos. Advertencia de contenido al inicio.
-- **Marcas reales:** los modelos (BWS, NKD, Ninja) y los logos (Yamaha, AKT,
+- **Marcas reales:** los modelos (Bwis, NKD, Ninja) y los logos (Yamaha, AKT,
   Kawasaki) son marcas registradas. Para un `.exe` entre amigos el riesgo es bajo; para publicar,
   mejor nombres parodia reconocibles («Yamajá Bwis», «Kawasuki Ninya 300») y logos inventados. Los
   nombres viven en un solo archivo de datos para cambiarlos con una línea.
@@ -428,12 +428,13 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | D5 | Las voces del domiciliario las graba Tomás |
 | D6 | Fases F0–F7 como en §14 |
 | D7 | Todo con herramientas de código abierto |
-| D8 (30/09) | Solo tres motos: BWS 125 → NKD 125 → Ninja 300 |
+| D8 (30/09) | Solo tres motos: Bwis 125 → NKD 125 → Ninja 300 |
 | D9 (30/09) | Dos mejoras por moto, exosto y motor. La moto con las dos mejoras sigue siendo peor que la siguiente de fábrica |
 | D10 (30/09) | El dinero se acumula y no se pierde al morir |
 | D11 (30/09) | Menú de inicio |
 | D12 (30/09) | El aviso de derrape va abajo a la izquierda, más pequeño, y solo salta por encima del 75 % de la velocidad máxima |
 | D13 (30/09) | El juego se llama **Delivery Express** |
+| D14 (30/09) | La moto inicial se escribe **Bwis** (no «BWS») en todo el juego |
 
 ### 15.2 Abiertas (con la recomendación que se sigue mientras tanto)
 
