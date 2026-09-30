@@ -47,12 +47,13 @@ func reiniciar() -> void:
 
 
 func _al_terminar(estado: String, mensaje: String) -> void:
-	_mostrar_resultado.call_deferred(estado, mensaje)
+	var ilustracion: Texture2D = pantalla_actual().get("ilustracion_final")
+	_mostrar_resultado.call_deferred(estado, mensaje, ilustracion)
 
 
-func _mostrar_resultado(estado: String, mensaje: String) -> void:
+func _mostrar_resultado(estado: String, mensaje: String, ilustracion: Texture2D = null) -> void:
 	var res := _mostrar(RESULTADO)
-	res.mostrar(estado, mensaje)
+	res.mostrar(estado, mensaje, ilustracion)
 	res.continuar.connect(reiniciar, CONNECT_DEFERRED)
 	res.al_menu.connect(menu, CONNECT_DEFERRED)
 

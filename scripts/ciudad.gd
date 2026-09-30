@@ -1,13 +1,15 @@
 extends RefCounted
 ## La ciudad, tipo Bogotá pero más pequeña: 40 cuadras de ancho (carreras) por 80 de largo
 ## (calles), con cuadras de tamaños distintos para que no se vea cuadriculada.
-## Plano en metros: x hacia el oriente, y hacia el norte. Cada cuadra incluye su andén.
+## Plano en metros: y hacia el norte y x hacia el occidente (como en Bogotá, las carreras se numeran
+## desde los cerros orientales, que quedan en x = 0). Cada cuadra incluye su andén.
+## Zonas (DISENO §6, D26): barrio de casas, centro viejo, industrial de bodegas al occidente y la
+## zona rica de torres de vidrio al nororiente, contra los cerros.
 
 const N_ANCHO := 40
 const N_LARGO := 80
 const CALLE := 12.0 # ancho de la calzada entre andenes
 const ANDEN := 3.0  # franja de andén dentro de cada cuadra
-const PROB_PARQUE := 0.08
 
 var anchos: Array[float] = []
 var largos: Array[float] = []
@@ -15,6 +17,17 @@ var inicio_x := PackedFloat64Array()
 var inicio_y := PackedFloat64Array()
 var parques := {}                  # Vector2i -> true
 var alturas := PackedFloat32Array() # por cuadra, índice j * N_ANCHO + i
+var zonas := PackedStringArray()     # por cuadra, mismo índice
+var fachadas := PackedStringArray()  # tipo de edificio por cuadra ("parque" si es parque)
+
+## Por zona: probabilidad de parque y [probabilidad, fachada, altura mínima, altura máxima] por tipo.
+const ZONAS := {
+	"barrio": {"parque": 0.08, "tipos": [[0.7, "casa", 6.0, 10.0], [1.0, "ladrillo", 10.0, 16.0]]},
+	"centro": {"parque": 0.05, "tipos": [[0.4, "ladrillo", 12.0, 20.0], [0.9, "concreto", 20.0, 32.0], [1.0, "vidrio", 32.0, 45.0]]},
+	"industrial": {"parque": 0.03, "tipos": [[0.75, "bodega", 7.0, 11.0], [1.0, "concreto", 10.0, 16.0]]},
+	"rica": {"parque": 0.14, "tipos": [[0.6, "vidrio", 30.0, 60.0], [1.0, "concreto", 18.0, 32.0]]},
+}
+const NOMBRES_ZONA := {"barrio": "Barrio", "centro": "Centro", "industrial": "Zona Industrial", "rica": "El Alto"}
 
 
 func _init(semilla := 1) -> void:
@@ -24,11 +37,49 @@ func _init(semilla := 1) -> void:
 	largos = _tamanos(rng, N_LARGO)
 	inicio_x = _inicios(anchos)
 	inicio_y = _inicios(largos)
+	_repartir_zonas(rng)
 	for j in N_LARGO:
 		for i in N_ANCHO:
-			if rng.randf() < PROB_PARQUE:
+			var z: Dictionary = ZONAS[zonas[j * N_ANCHO + i]]
+			var parque: bool = rng.randf() < z.parque
+			var d := rng.randf()
+			for tipo in z.tipos:
+				if d < tipo[0]:
+					alturas.append(rng.randf_range(tipo[2], tipo[3]))
+					fachadas.append("parque" if parque else tipo[1])
+					break
+			if parque:
 				parques[Vector2i(i, j)] = true
-			alturas.append(rng.randf_range(6.0, 12.0) if rng.randf() < 0.6 else rng.randf_range(12.0, 45.0))
+
+
+## Bordes de zona que culebrean (caminata al azar de ±1 cuadra) para que no sean rectángulos.
+func _borde(rng: RandomNumberGenerator, n: int, base: int, juego: int) -> PackedInt32Array:
+	var r := PackedInt32Array()
+	var v := base
+	for k in n:
+		v = clampi(v + rng.randi_range(-1, 1), base - juego, base + juego)
+		r.append(v)
+	return r
+
+
+func _repartir_zonas(rng: RandomNumberGenerator) -> void:
+	var rica_i := _borde(rng, N_LARGO, 9, 2)     # por calle j: hasta qué carrera llega la zona rica
+	var rica_j := _borde(rng, N_ANCHO, 52, 3)    # por carrera i: desde qué calle empieza
+	var centro_i := _borde(rng, N_LARGO, 11, 2)
+	var centro_sur := _borde(rng, N_ANCHO, 24, 2)
+	var centro_norte := _borde(rng, N_ANCHO, 44, 2)
+	var ind_i := _borde(rng, N_LARGO, 29, 2)
+	var ind_j := _borde(rng, N_ANCHO, 45, 3)
+	for j in N_LARGO:
+		for i in N_ANCHO:
+			var z := "barrio"
+			if i < rica_i[j] and j >= rica_j[i]:
+				z = "rica"
+			elif i < centro_i[j] and j >= centro_sur[i] and j <= centro_norte[i]:
+				z = "centro"
+			elif i > ind_i[j] and j < ind_j[i]:
+				z = "industrial"
+			zonas.append(z)
 
 
 ## Mezcla de cuadras cortas, medianas y largas: 0,6 a 1,6 veces la cuadra normal de 100 m (DISENO §6).
@@ -65,6 +116,22 @@ func es_parque(i: int, j: int) -> bool:
 
 func altura(i: int, j: int) -> float:
 	return alturas[j * N_ANCHO + i]
+
+
+## "barrio", "centro", "industrial" o "rica" (fuera de la ciudad, "barrio").
+func zona(i: int, j: int) -> String:
+	if not _existe(Vector2i(i, j)):
+		return "barrio"
+	return zonas[j * N_ANCHO + i]
+
+
+## Qué edificio tiene la cuadra: "casa", "ladrillo", "concreto", "vidrio", "bodega" o "parque".
+func fachada(i: int, j: int) -> String:
+	return fachadas[j * N_ANCHO + i]
+
+
+func nombre_zona(z: String) -> String:
+	return NOMBRES_ZONA.get(z, "")
 
 
 ## Centro de la carrera i (0..40) cruzando con la calle j (0..80).
@@ -209,3 +276,36 @@ func en_cebra(p: Vector2) -> bool:
 		if rect_cebra(cb).grow(0.01).has_point(p):
 			return true
 	return false
+
+
+# --- nomenclatura (F3): placas de las esquinas, ubicación en el HUD y mapa completo ----------
+
+const CADA_AVENIDA := 6 # cada sexta calle y sexta carrera es avenida (placa verde, más ancha en el mapa)
+
+
+## tipo: "calle" (vía k a lo largo de x, k de 0..N_LARGO) o "carrera" (vía k a lo largo de y, 0..N_ANCHO).
+func es_avenida(tipo: String, k: int) -> bool:
+	var n := N_LARGO if tipo == "calle" else N_ANCHO
+	return k > 0 and k < n and k % CADA_AVENIDA == 0
+
+
+## "Cl 42", "Kr 21", "Av Cl 7": como en las placas de Bogotá.
+func nombre_via(tipo: String, k: int) -> String:
+	var r := "%s %d" % ["Cl" if tipo == "calle" else "Kr", k + 1]
+	return "Av " + r if es_avenida(tipo, k) else r
+
+
+## Por dónde va: la vía en la que está y la vía cruzada más cercana («Cl 42 · Kr 21»).
+func ubicacion(p: Vector2) -> String:
+	var i := _via_cercana(inicio_x, anchos, p.x)
+	var j := _via_cercana(inicio_y, largos, p.y)
+	if absf(_centro_via(inicio_y, largos, j) - p.y) <= CALLE / 2.0:
+		return "%s · %s" % [nombre_via("calle", j), nombre_via("carrera", i)]
+	return "%s · %s" % [nombre_via("carrera", i), nombre_via("calle", j)]
+
+
+## Zona de la cuadra que hay en p (o la más cercana, si p está en la calle).
+func zona_en(p: Vector2) -> String:
+	var i := clampi(_indice(inicio_x, p.x), 0, N_ANCHO - 1)
+	var j := clampi(_indice(inicio_y, p.y), 0, N_LARGO - 1)
+	return zona(i, j)

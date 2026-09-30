@@ -58,5 +58,18 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | sonidos/reparado.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/charco.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/atropello.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/fachada_bodega.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/fachada_bodega_luz.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/cerros.png | `tools/gen_cerros.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/cerros_luz.png | `tools/gen_cerros.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/vehiculos.png | `tools/gen_vehiculos.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/vehiculos_grandes.png | `tools/gen_vehiculos.py` | proyecto | propia | — | 30/09/2026 |
+| ui/logo.png | `tools/gen_logo.py` | proyecto | propia | — | 30/09/2026 |
+| ui/logo_1280.png | `tools/gen_logo.py` | proyecto | propia | — | 30/09/2026 |
+| ui/cinematica_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| sonidos/choque_carro.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
+| sonidos/pito.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | fuentes/PressStart2P-Regular.ttf | Google Fonts | CodeMan38 (The Press Start 2P Project Authors) | SIL OFL 1.1 | https://fonts.google.com/specimen/Press+Start+2P | 30/09/2026 |
 | fuentes/OFL.txt | Licencia de la fuente anterior | SIL | SIL OFL 1.1 | https://openfontlicense.org | 30/09/2026 |

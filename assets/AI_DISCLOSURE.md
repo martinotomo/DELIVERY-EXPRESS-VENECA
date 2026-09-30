@@ -66,6 +66,19 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | sonidos/reparado.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/charco.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/atropello.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| texturas/fachada_bodega.png | `tools/gen_texturas.py` |
+| texturas/fachada_bodega_luz.png | `tools/gen_texturas.py` |
+| texturas/cerros.png | `tools/gen_cerros.py` |
+| texturas/cerros_luz.png | `tools/gen_cerros.py` |
+| texturas/vehiculos.png | `tools/gen_vehiculos.py` |
+| texturas/vehiculos_grandes.png | `tools/gen_vehiculos.py` |
+| ui/logo.png | `tools/gen_logo.py` |
+| ui/logo_1280.png | `tools/gen_logo.py` |
+| ui/cinematica_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
+| ui/cinematica_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
+| ui/cinematica_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
+| sonidos/choque_carro.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/pito.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 
 ## De terceros, sin IA
 

@@ -14,6 +14,7 @@ const MINIMAPA := preload("res://scripts/minimapa.gd")
 const PROGRESO := preload("res://scripts/progreso.gd")
 const AUDIO := preload("res://scripts/audio.gd")
 const LLUVIA := preload("res://scripts/lluvia_pantalla.gd")
+const MAPA := preload("res://scripts/mapa.gd")
 
 const ALTURA_OJOS := 1.5
 const MIRADA_ABAJO := 0.1   # rad que se inclina la vista hacia la calle (se ve más camino por encima del tablero)
@@ -30,7 +31,8 @@ const SEMILLA := 20260929
 var partida = PARTIDA.new(SEMILLA)
 var progreso # lo pone el director; sin él se juega con la BWS de fábrica
 var voces = VOCES.new(1)
-var retraso_resultado := 2.2
+var retraso_resultado := 3.0
+var ilustracion_final: Texture2D # la caída dibujada, para que el remate se lea encima
 var duracion_encuadre := 0.5  # las pruebas lo ponen en 0 para medir el cuadro final
 
 var _mundo: SubViewport
@@ -50,11 +52,21 @@ var _l_cuenta: Label
 var _l_derrape: Label
 var _l_motor: Label
 var _l_bono: Label
+var _l_ubicacion: Label
+var _mapa: Control
+var _letreros: Array[Node3D] = [] # placas de las esquinas cercanas (se reacomodan al cambiar de cruce)
+var _cruce_letreros := Vector2i(-99, -99)
+var _mats_placa: Array[StandardMaterial3D] = []
 var _audio: Node
 var _lluvia: Control
 var _charcos: MultiMeshInstance3D
 var _peatones: Array[Sprite3D] = [] # uno por cada peatón que puede haber a la vez
 var _transeuntes: Array[Sprite3D] = [] # la gente de los andenes
+var _vehiculos: Array[Sprite3D] = []  # tráfico: un sprite por vehículo que puede haber a la vez
+var _hojas_vehiculos := {}
+var _cerros: MeshInstance3D
+var _mat_cerros: StandardMaterial3D
+var _mat_cerros_luz: StandardMaterial3D
 var _mats_semaforo := {}  # "x_rojo", "y_verde"...: una luz por eje y color, todas sincronizadas
 var _version_charcos := -1
 var _mat_asfalto: StandardMaterial3D
@@ -66,6 +78,10 @@ var _voz: AudioStreamPlayer
 var _t_subtitulo := 0.0
 var _giro_visual := 0.0
 var _cinematica := false
+var _ilustracion: TextureRect
+const ILUSTRACION_TRAS := 0.35  # s de cámara en 3D antes de pasar al dibujo de la caída (el golpe)
+const ILUSTRACION_FUNDIDO := 0.25
+const ILUSTRACION_ZOOM := 1.08  # acercamiento lento mientras se ve
 
 
 func _ready() -> void:
@@ -83,6 +99,10 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("mapa") and not partida.terminada:
+		_mapa.visible = not _mapa.visible
+		get_viewport().set_input_as_handled()
+		return
 	var tecla := event as InputEventKey
 	if trucos and tecla != null and tecla.pressed and not tecla.echo and tecla.keycode == KEY_F9:
 		partida.clima.alternar_lluvia()
@@ -99,7 +119,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("menu"):
 		al_menu.emit()
 		return
-	if not partida.terminada:
+	if not partida.terminada and not _mapa.visible: # con el mapa abierto, la partida espera
 		var giro := Input.get_action_strength("derecha") - Input.get_action_strength("izquierda")
 		_giro_visual = lerpf(_giro_visual, giro, minf(delta * 8.0, 1.0))
 		_acelerando = Input.is_action_pressed("acelerar")
@@ -111,8 +131,8 @@ func _process(delta: float) -> void:
 # --- mundo 3D con texturas pixeladas --------------------------------------------------
 
 const TEX := "res://assets/texturas/"
-## Tipos de fachada por altura: [nombre, altura máxima, metros que ocupa la textura (ancho, alto)].
-const FACHADAS := [["casa", 10.0], ["ladrillo", 20.0], ["concreto", 32.0], ["vidrio", 999.0]]
+## Tipos de fachada (cada cuadra dice el suyo según su zona, ciudad.fachada()).
+const FACHADAS := ["casa", "ladrillo", "concreto", "vidrio", "bodega"]
 const TINTES_CASA := [Color("9fc4a8"), Color("9db4d8"), Color("e6cf8a"), Color("e3a9a0"), Color("f2efe6"), Color("c9a6d6")]
 
 var _mats_luz: Array[StandardMaterial3D] = []
@@ -229,18 +249,17 @@ func _construir_mundo() -> void:
 	# Primero contar cuántos edificios hay de cada tipo.
 	var por_tipo := {}
 	for f in FACHADAS:
-		por_tipo[f[0]] = []
+		por_tipo[f] = []
 	for j in c.N_LARGO:
 		for i in c.N_ANCHO:
 			if not c.es_parque(i, j):
-				por_tipo[_tipo_fachada(c.altura(i, j))].append(Vector2i(i, j))
+				por_tipo[c.fachada(i, j)].append(Vector2i(i, j))
 	var edificios := Node3D.new()
 	edificios.name = "Edificios"
 	ciudad.add_child(edificios)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
-	for f in FACHADAS:
-		var tipo: String = f[0]
+	for tipo in FACHADAS:
 		var mat := _material_tex("fachada_" + tipo, Vector3(8, 6.4, 8), true)
 		mat.emission_enabled = true
 		mat.emission_texture = load(TEX + "fachada_%s_luz.png" % tipo)
@@ -283,6 +302,9 @@ func _construir_mundo() -> void:
 	_construir_transito(ciudad)
 	_construir_peatones()
 	_construir_transeuntes()
+	_construir_letreros()
+	_construir_vehiculos()
+	_construir_cerros()
 
 	# Faros de pedido: columnas altas que se ven por encima de los edificios.
 	_faro_rest = _caja(_mundo, Vector3(1.2, 60, 1.2), Vector3.ZERO, Color("ff8a2a"), "FaroRestaurante")
@@ -309,13 +331,6 @@ func _construir_mundo() -> void:
 	_moto_caida = _construir_moto_caida()
 	_moto_caida.visible = false
 	_mundo.add_child(_moto_caida)
-
-
-func _tipo_fachada(h: float) -> String:
-	for f in FACHADAS:
-		if h <= f[1]:
-			return f[0]
-	return "vidrio"
 
 
 ## Línea amarilla a trazos por el centro de cada tramo de vía (entre cruce y cruce).
@@ -648,6 +663,222 @@ func encuadre_caida() -> Array:
 	return [ojo, mira]
 
 
+# --- cerros orientales -------------------------------------------------------------
+
+const CERROS_RADIO := 420.0     # m: una franja curva que sigue a la cámara (como un fondo de Doom)
+const CERROS_ARCO := PI * 0.9   # rad que ocupa, centrado en el oriente (x negativa)
+const CERROS_GRADOS_TEX := 140.0 # grados de horizonte que cubre el ancho de la textura (píxel casi cuadrado)
+const CERROS_ABAJO := -2.0      # grados bajo el horizonte donde empieza (lo tapan la ciudad y la niebla)
+const CERROS_ARRIBA := 21.0     # grados sobre el horizonte donde acaba la textura
+
+
+## Los cerros quedan siempre al oriente, lejos: una banda curva sin niebla que se mueve con la
+## cámara (no con su giro). La noche prende las casitas y la capilla (cerros_luz.png).
+func _construir_cerros() -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 48
+	var y0 := CERROS_RADIO * tan(deg_to_rad(CERROS_ABAJO))
+	var y1 := CERROS_RADIO * tan(deg_to_rad(CERROS_ARRIBA))
+	for k in n:
+		var a0 := PI - CERROS_ARCO / 2.0 + CERROS_ARCO * k / n
+		var a1 := PI - CERROS_ARCO / 2.0 + CERROS_ARCO * (k + 1) / n
+		var p0 := Vector3(cos(a0), 0, sin(a0)) * CERROS_RADIO
+		var p1 := Vector3(cos(a1), 0, sin(a1)) * CERROS_RADIO
+		var u0 := rad_to_deg(a0) / CERROS_GRADOS_TEX
+		var u1 := rad_to_deg(a1) / CERROS_GRADOS_TEX
+		var q := [[p0 + Vector3(0, y1, 0), Vector2(u0, 0)], [p1 + Vector3(0, y1, 0), Vector2(u1, 0)], [p1 + Vector3(0, y0, 0), Vector2(u1, 1)],
+			[p0 + Vector3(0, y1, 0), Vector2(u0, 0)], [p1 + Vector3(0, y0, 0), Vector2(u1, 1)], [p0 + Vector3(0, y0, 0), Vector2(u0, 1)]]
+		for v in q:
+			st.set_uv(v[1])
+			st.add_vertex(v[0])
+	var malla := st.commit()
+	_mat_cerros = StandardMaterial3D.new()
+	_mat_cerros.albedo_texture = load(TEX + "cerros.png")
+	_mat_cerros.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	_mat_cerros.texture_repeat = true
+	_mat_cerros.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_mat_cerros.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	_mat_cerros.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_mat_cerros.disable_fog = true
+	_mat_cerros.render_priority = -10
+	_mat_cerros_luz = _mat_cerros.duplicate()
+	_mat_cerros_luz.albedo_texture = load(TEX + "cerros_luz.png")
+	_mat_cerros_luz.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_mat_cerros_luz.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	_mat_cerros_luz.render_priority = -9
+	_mat_cerros.next_pass = _mat_cerros_luz
+	malla.surface_set_material(0, _mat_cerros)
+	_cerros = MeshInstance3D.new()
+	_cerros.name = "Cerros"
+	_cerros.mesh = malla
+	_cerros.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_mundo.add_child(_cerros)
+
+
+## Color de los cerros según la hora: azulados por la distancia de día, casi negros de noche,
+## y con la lluvia se pierden en la bruma.
+func _actualizar_cerros(luz: float, llueve: float, cielo: Color) -> void:
+	_cerros.position = Vector3(_camara.position.x, 0.0, _camara.position.z)
+	var tinte := Color(0.92, 0.96, 1.0).lerp(Color(0.16, 0.18, 0.28), 1.0 - luz)
+	tinte = tinte.lerp(cielo, 0.55 * llueve)
+	_mat_cerros.albedo_color = tinte
+	var noche := clampf(1.0 - luz * 2.5, 0.0, 1.0) * (1.0 - 0.6 * llueve)
+	_mat_cerros_luz.albedo_color = Color(noche, noche, noche)
+
+
+# --- tráfico ------------------------------------------------------------------------
+
+const VEHICULO_PX_M := 14.0 # px del dibujo por metro (tools/gen_vehiculos.py)
+
+
+## Sprites de 8 direcciones a lo Doom: cada columna de la hoja es el vehículo girado 45° más.
+func _construir_vehiculos() -> void:
+	var nodo := Node3D.new()
+	nodo.name = "Vehiculos"
+	_mundo.add_child(nodo)
+	for hoja in ["vehiculos", "vehiculos_grandes"]:
+		_hojas_vehiculos[hoja] = load(TEX + hoja + ".png")
+	for k in partida.trafico.MAX:
+		var sp := Sprite3D.new()
+		sp.name = "Vehiculo%d" % k
+		sp.hframes = 8
+		sp.pixel_size = 1.0 / VEHICULO_PX_M
+		sp.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+		sp.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		sp.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		sp.shaded = false
+		sp.double_sided = true
+		sp.visible = false
+		nodo.add_child(sp)
+		_vehiculos.append(sp)
+
+
+## Columna de la hoja según cómo se ve el vehículo desde la cámara: 0 de frente, 2 con el frente
+## a la derecha de la pantalla, 4 de espaldas, 6 con el frente a la izquierda.
+static func cuadro_vehiculo(camara: Vector2, pos: Vector2, rumbo_v: Vector2) -> int:
+	var hacia := (pos - camara).normalized()
+	var derecha := Vector2(-hacia.y, hacia.x)
+	var phi := atan2(rumbo_v.dot(derecha), rumbo_v.dot(-hacia))
+	return posmod(roundi(phi / (PI / 4.0)), 8)
+
+
+func _actualizar_vehiculos() -> void:
+	var lista: Array = partida.trafico.lista
+	var cam := Vector2(_camara.global_position.x, _camara.global_position.z)
+	var luz: float = lerpf(0.35, 1.0, partida.reloj.luz())
+	for k in _vehiculos.size():
+		var sp := _vehiculos[k]
+		sp.visible = k < lista.size()
+		if not sp.visible:
+			continue
+		var v: Dictionary = lista[k]
+		var datos: Dictionary = partida.trafico.TIPOS[v.tipo]
+		var hoja: Texture2D = _hojas_vehiculos[datos.hoja]
+		if sp.texture != hoja:
+			sp.texture = hoja
+			sp.vframes = 3 if datos.hoja == "vehiculos" else 2
+		sp.frame = datos.fila * 8 + cuadro_vehiculo(cam, v.pos, v.dir)
+		var alto_px: float = hoja.get_height() / float(sp.vframes)
+		sp.position = Vector3(v.pos.x, (alto_px / 2.0 - 1.0) * sp.pixel_size, v.pos.y)
+		var brillo := luz
+		if _farola.visible:
+			brillo = maxf(brillo, 0.95 * clampf(1.0 - v.pos.distance_to(partida.moto.pos) / 40.0, 0.0, 1.0))
+		sp.modulate = Color(brillo, brillo, brillo)
+
+
+# --- placas de nomenclatura -----------------------------------------------------------
+
+const LETREROS_RADIO := 2          # cruces a cada lado de la moto con placa (5 × 5)
+const PLACA_ALTO := [2.9, 2.5]    # m: la placa de la calle arriba, la de la carrera abajo
+const C_PLACA := Color("f2efe6")   # placa blanca con letras negras
+const C_PLACA_AV := Color("1f7a3a") # avenidas: placa verde con letras blancas
+
+
+## Un poste con dos placas (calle y carrera) en una esquina de cada cruce cercano. Se reusan: cuando
+## la moto cambia de cruce, se mueven y cambian de texto.
+func _construir_letreros() -> void:
+	var nodo := Node3D.new()
+	nodo.name = "Letreros"
+	_mundo.add_child(nodo)
+	var fuente: Font = load("res://assets/fuentes/PressStart2P-Regular.ttf")
+	var m_poste := _material(Color("5c5f66"))
+	for mat_color in [C_PLACA, C_PLACA_AV]:
+		_mats_placa.append(_material(mat_color))
+	var lado := (LETREROS_RADIO * 2 + 1)
+	for k in lado * lado:
+		var poste := Node3D.new()
+		poste.name = "Poste%d" % k
+		nodo.add_child(poste)
+		var palo := MeshInstance3D.new()
+		var b := BoxMesh.new()
+		b.size = Vector3(0.1, 3.1, 0.1)
+		b.material = m_poste
+		palo.mesh = b
+		palo.position.y = 3.1 / 2.0
+		poste.add_child(palo)
+		for q in 2: # 0: placa de la calle (se lee yendo por la carrera), 1: la de la carrera
+			var placa := MeshInstance3D.new()
+			placa.name = "Placa%d" % q
+			placa.mesh = BoxMesh.new()
+			placa.position.y = PLACA_ALTO[q]
+			poste.add_child(placa)
+			for cara in 2: # un letrero por cada cara, para que se lea de los dos lados
+				var l := Label3D.new()
+				l.name = "Texto%d" % cara
+				l.font = fuente
+				l.font_size = 8
+				l.outline_size = 0
+				l.pixel_size = 0.035
+				l.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+				l.shaded = false
+				l.double_sided = false
+				l.position = Vector3(0, 0, 0.051 if cara == 0 else -0.051)
+				l.rotation.y = 0.0 if cara == 0 else PI
+				placa.add_child(l)
+		_letreros.append(poste)
+
+
+func _actualizar_letreros() -> void:
+	var c = partida.ciudad
+	var p: Vector2 = partida.moto.pos
+	var centro := Vector2i(c._via_cercana(c.inicio_x, c.anchos, p.x), c._via_cercana(c.inicio_y, c.largos, p.y))
+	var luz: float = lerpf(0.4, 1.0, partida.reloj.luz())
+	for m in _mats_placa:
+		m.albedo_color = (C_PLACA if m == _mats_placa[0] else C_PLACA_AV) * Color(luz, luz, luz)
+	if centro == _cruce_letreros:
+		return
+	_cruce_letreros = centro
+	var lado := LETREROS_RADIO * 2 + 1
+	for k in _letreros.size():
+		var i := centro.x + k % lado - LETREROS_RADIO
+		var j := centro.y + k / lado - LETREROS_RADIO
+		var poste := _letreros[k]
+		poste.visible = i >= 0 and j >= 0 and i <= c.N_ANCHO and j <= c.N_LARGO
+		if not poste.visible:
+			continue
+		# En la esquina de la cuadra (i, j), o de la (i-1, j-1) en el borde; lejos del poste del semáforo.
+		var s := Vector2(1, 1) if i < c.N_ANCHO and j < c.N_LARGO else Vector2(-1, -1)
+		var esq: Vector2 = c.cruce(i, j) + s * (c.CALLE / 2.0 + 0.6)
+		poste.position = Vector3(esq.x, ANDEN_ALTO, esq.y)
+		for q in 2:
+			var tipo := "calle" if q == 0 else "carrera"
+			var texto: String = c.nombre_via(tipo, j if q == 0 else i)
+			var av: bool = c.es_avenida(tipo, j if q == 0 else i)
+			var placa: MeshInstance3D = poste.get_node("Placa%d" % q)
+			var ancho := texto.length() * 8 * 0.035 + 0.24
+			(placa.mesh as BoxMesh).size = Vector3(ancho, 0.38, 0.1)
+			(placa.mesh as BoxMesh).material = _mats_placa[1 if av else 0]
+			# La placa de la calle va a lo largo de la calle (x): se lee de frente yendo por la carrera.
+			placa.rotation.y = 0.0 if q == 0 else PI / 2.0
+			placa.position.x = (ancho / 2.0 - 0.05) * (1.0 if q == 0 else 0.0) * s.x
+			placa.position.z = (ancho / 2.0 - 0.05) * (1.0 if q == 1 else 0.0) * s.y
+			for cara in 2:
+				var l: Label3D = placa.get_node("Texto%d" % cara)
+				l.text = texto
+				l.modulate = Color.WHITE if av else Color("15151a")
+
+
 # --- HUD --------------------------------------------------------------------------
 
 func _texto(pos: Vector2, tam: int, nombre: String, ancho := 0.0) -> Label:
@@ -715,6 +946,9 @@ func _construir_hud() -> void:
 	mini.size = Vector2(130, 130)
 	hud.add_child(mini)
 	_l_hora = _texto(Vector2(502, 142), 8, "Hora")
+	# Por dónde va (la vía y la cruzada más cercana) y en qué zona, bajo la hora.
+	_l_ubicacion = _texto(Vector2(502, 154), 8, "Ubicacion")
+	_l_ubicacion.add_theme_color_override("font_color", Color("c8d8ff"))
 
 	_l_pedido = _texto(Vector2(8, 8), 8, "Pedido")
 	_l_pedido.add_theme_stylebox_override("normal", _fondo())
@@ -744,6 +978,24 @@ func _construir_hud() -> void:
 	_subtitulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_subtitulo.add_theme_stylebox_override("normal", _fondo())
 	_subtitulo.visible = false
+
+	# La ilustración de la caída (tools/gen_cinematica.py): encima de todo, se prende al estrellarse.
+	_ilustracion = TextureRect.new()
+	_ilustracion.name = "Cinematica"
+	_ilustracion.texture = load("res://assets/ui/cinematica_%s.png" % partida.moto.moto.id)
+	_ilustracion.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_ilustracion.stretch_mode = TextureRect.STRETCH_SCALE
+	_ilustracion.size = Vector2(640, 360)
+	_ilustracion.pivot_offset = Vector2(320, 190)
+	_ilustracion.visible = false
+	hud.add_child(_ilustracion)
+
+	_mapa = MAPA.new()
+	_mapa.name = "Mapa"
+	_mapa.partida = partida
+	_mapa.size = Vector2(640, 360)
+	_mapa.visible = false
+	hud.add_child(_mapa)
 
 	_voz = AudioStreamPlayer.new()
 	_voz.name = "Voz"
@@ -793,6 +1045,7 @@ func _actualizar_vista(delta: float) -> void:
 	_l_reloj.text = "%d:%02d" % [s / 60, s % 60]
 	_l_reloj.modulate.a = 0.35 if s <= 15 and int(Time.get_ticks_msec() / 250) % 2 == 0 else 1.0
 	_l_cuenta.text = PROGRESO.pesos(progreso.dinero if progreso != null else partida.ganado)
+	_l_ubicacion.text = "%s\n%s" % [partida.ciudad.ubicacion(m.pos), partida.ciudad.nombre_zona(partida.ciudad.zona_en(m.pos)).to_upper()]
 	_l_hora.text = ("DIA " if partida.reloj.luz() > 0.25 else "NOCHE ") + partida.reloj.texto_hora()
 	if recoger:
 		_l_pedido.text = "RECOGE: %s\nSigue la columna naranja" % p.plato.to_upper()
@@ -821,6 +1074,8 @@ func _actualizar_vista(delta: float) -> void:
 	_actualizar_peatones()
 	_actualizar_transeuntes()
 	_actualizar_semaforos()
+	_actualizar_letreros()
+	_actualizar_vehiculos()
 	if partida.multado:
 		_l_pedido.text += "\nSIN PROPINA: atropellaste a alguien"
 
@@ -859,6 +1114,7 @@ func _actualizar_cielo(delta: float) -> void:
 	_mat_bombillos.emission_energy_multiplier = noche * 4.0
 	_farola.visible = ciclo.farola_encendida()
 	_farola.light_energy = 2.5
+	_actualizar_cerros(luz, llueve, cielo)
 
 
 func _al_evento(nombre: String) -> void:
@@ -883,6 +1139,15 @@ func _al_estrellarse(mensaje: String) -> void:
 	# Solo queda el subtítulo, abajo, para que no tape la escena.
 	for hijo in $HUD.get_children():
 		hijo.visible = hijo == _subtitulo and _subtitulo.visible
+	# Primero la cámara sale a ver la moto en 3D; luego, el dibujo de la caída con un zoom lento.
+	_ilustracion.visible = true
+	_ilustracion.move_to_front()
+	_ilustracion.modulate.a = 0.0
+	_ilustracion.scale = Vector2.ONE
+	var tw_i := create_tween()
+	tw_i.tween_interval(ILUSTRACION_TRAS if retraso_resultado > 0.0 else 0.0)
+	tw_i.tween_property(_ilustracion, "modulate:a", 1.0, ILUSTRACION_FUNDIDO)
+	tw_i.tween_property(_ilustracion, "scale", Vector2.ONE * ILUSTRACION_ZOOM, maxf(retraso_resultado - ILUSTRACION_TRAS, 0.1))
 	# Moto de lado en el andén y el piloto unos metros adelante.
 	_moto_caida.visible = true
 	_moto_caida.position = Vector3(m.pos.x, ANDEN_ALTO, m.pos.y)
@@ -911,6 +1176,7 @@ func _al_estrellarse(mensaje: String) -> void:
 	if partida.entregados > 0:
 		cierre = "Entregaste %d pedidos: +%s, y esa plata no se pierde." % [partida.entregados, PROGRESO.pesos(partida.ganado)]
 	var final_msg := "%s\n\n%s" % [mensaje, cierre]
+	ilustracion_final = _ilustracion.texture
 	if retraso_resultado <= 0.0:
 		terminado.emit("estrellado", final_msg)
 		return

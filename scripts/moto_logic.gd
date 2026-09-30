@@ -31,7 +31,7 @@ const FRENO_FUNDIDO := 18.0    # m/s²: frenazo en seco
 var moto: Dictionary
 var ciudad
 var pos := Vector2.ZERO
-var rumbo := 0.0 # radianes; 0 = oriente (+x), PI/2 = norte (+y)
+var rumbo := 0.0 # radianes; 0 = occidente (+x, como en Bogotá las carreras crecen hacia el occidente), PI/2 = norte (+y)
 var vel := 0.0
 var derrapando := false
 var estado := RODANDO

@@ -23,7 +23,7 @@ func _ready() -> void:
 	caja.size = Vector2(600, 164)
 	add_child(caja)
 	var interior := ColorRect.new()
-	interior.color = Color.BLACK
+	interior.color = Color(0, 0, 0, 0.8) # deja ver un poco la caída dibujada detrás
 	interior.position = Vector2(2, 2)
 	interior.size = caja.size - Vector2(4, 4)
 	caja.add_child(interior)
@@ -47,8 +47,19 @@ func _ready() -> void:
 	add_child(pista)
 
 
-func mostrar(estado: String, mensaje: String) -> void:
+## ilustracion: la caída dibujada (F2); el remate se lee encima, con el dibujo oscurecido.
+func mostrar(estado: String, mensaje: String, ilustracion: Texture2D = null) -> void:
 	_texto.text = mensaje
+	if ilustracion != null:
+		var fondo := TextureRect.new()
+		fondo.name = "Ilustracion"
+		fondo.texture = ilustracion
+		fondo.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		fondo.stretch_mode = TextureRect.STRETCH_SCALE
+		fondo.size = Vector2(640, 360)
+		fondo.modulate = Color(0.45, 0.45, 0.5) # oscuro, para que la letra mande
+		add_child(fondo)
+		move_child(fondo, 1) # encima del negro, debajo de la caja y los textos
 	var titulo := Label.new()
 	titulo.name = "Titulo"
 	titulo.text = {"estrellado": "R.I.P.", "entregado": "ENTREGADO", "sin_tiempo": "CANCELADO"}.get(estado, "")
