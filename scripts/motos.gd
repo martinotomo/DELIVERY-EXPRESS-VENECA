@@ -14,7 +14,7 @@ const MOTOS := {
 		"roce": 0.8,        # lo que pierde sin acelerar ni frenar
 		# Maniobrabilidad: rad/s con el manubrio a tope. Despacio gira mucho y se pierde de forma
 		# progresiva al acelerar; a tope queda igual que en la primera versión (6 m/s² / 25 m/s).
-		"giro_lento": 2.4,  # casi parado
+		"giro_lento": 2.7,  # casi parado (a 7 km/h da 9 veces el giro de tope)
 		"giro_rapido": 0.24, # a velocidad máxima
 		"curva_giro": 0.6,  # <1: se pierde pronto al arrancar y más suave cerca del tope
 		"vel_derrape": 12.0, # por encima (43 km/h), girar a tope la hace irse de lado
