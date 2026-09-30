@@ -232,9 +232,25 @@ func run(t) -> void:
 	t.check(r2.get_node("HUD/Lluvia").intensidad > 0.9, "se ven las gotas")
 	var mm: MultiMesh = r2.get_node("Vista/Mundo/Ciudad/Charcos").multimesh
 	t.check(mm.instance_count > 0 and mm.instance_count == r2.partida.clima.charcos.size(), "los charcos se dibujan (%d)" % mm.instance_count)
-	t.check(r2.has_node("Audio/Motor") and r2.get_node("Audio/Motor").playing, "el motor suena")
+	var suenan := 0
+	for rpm in r2.partida.moto.moto.rpm_muestras:
+		if r2.get_node("Audio/Motor%d" % rpm).playing:
+			suenan += 1
+	t.check_eq(suenan, r2.partida.moto.moto.rpm_muestras.size(), "los bucles del motor están sonando")
+	# Pisar un charco suena (Tomás: «que suene que pasa por encima de un charco»).
+	r2.partida.clima.charcos.assign([{"pos": r2.partida.moto.pos + Vector2(2, 0), "radio": 1.5}])
+	r2.partida.moto.vel = 15.0
+	r2.partida.moto.pos += Vector2(2, 0)
+	r2._audio.ultimo_efecto = ""
+	r2.partida._revisar_charco()
+	t.check_eq(r2._audio.ultimo_efecto, "charco", "pisar un charco en el recorrido suena a chapoteo")
 	r2._process(0.1)
-	t.check(r2.get_node("Audio/Lluvia").volume_db > -20.0, "la lluvia se oye mientras llueve")
+	var llu: float = r2.get_node("Audio/Lluvia").volume_db
+	t.check(llu > -3.0, "la lluvia se oye fuerte mientras llueve (%.1f dB)" % llu)
+	var motor_max := -99.0
+	for rpm in r2.partida.moto.moto.rpm_muestras:
+		motor_max = maxf(motor_max, r2.get_node("Audio/Motor%d" % rpm).volume_db)
+	t.check(llu > motor_max, "la lluvia no queda tapada por el motor (%.1f vs %.1f dB)" % [llu, motor_max])
 	# F9 prende y apaga la lluvia, solo en versiones de desarrollo.
 	var f9 := InputEventKey.new()
 	f9.keycode = KEY_F9

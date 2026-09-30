@@ -1,7 +1,8 @@
 extends RefCounted
 ## Cómo suena el motor según la velocidad (Tomás, 30/09): despacio tranquilo, rápido revolucionado.
-## Calcula las rpm de la moto (automática o con cambios) y de ahí el tono y el volumen del bucle
-## assets/sonidos/motor_<id>.wav, que se grabó a moto.rpm_bucle. Sin nodos: se prueba con números.
+## Calcula las rpm de la moto (automática o con cambios) y cómo mezclar sus bucles: hay uno grabado
+## a cada rpm de moto.rpm_muestras y se suenan los dos más cercanos, con el tono apenas corrido
+## (corrido mucho, el timbre del exosto se deforma y suena «a nave espacial»). Sin nodos.
 
 const SUBIR := 9000.0   # rpm/s que puede subir el tacómetro (sube rápido)
 const BAJAR := 6000.0   # rpm/s que puede bajar (al soltar cae más despacio)
@@ -44,9 +45,16 @@ func advance(delta: float, vel: float, acelerar: bool) -> void:
 	rpm = move_toward(rpm, meta, (SUBIR if meta > rpm else BAJAR) * delta)
 
 
-## Tono del bucle: 1.0 = las rpm a las que se grabó.
-func tono() -> float:
-	return rpm / float(moto.rpm_bucle)
+## Los bucles que suenan ahora: [[índice en rpm_muestras, peso 0..1, tono], ...] (dos, que suman 1).
+func mezcla() -> Array:
+	var m: Array = moto.rpm_muestras
+	var r := clampf(rpm, float(m[0]), float(m[-1]))
+	var k := 0
+	while k < m.size() - 2 and r > float(m[k + 1]):
+		k += 1
+	# Mezcla en escala logarítmica: el oído oye proporciones, no diferencias.
+	var p := clampf(log(r / float(m[k])) / log(float(m[k + 1]) / float(m[k])), 0.0, 1.0)
+	return [[k, 1.0 - p, rpm / float(m[k])], [k + 1, p, rpm / float(m[k + 1])]]
 
 
 ## 0 en ralentí, 1 al tope de rpm.
