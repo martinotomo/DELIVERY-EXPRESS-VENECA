@@ -1,0 +1,36 @@
+DELIVERY EXPRESS 1.0.0
+Un juego de Tomás Ardila Marín
+Escuela Colombiana de Ingeniería Julio Garavito
+
+Domicilios en moto por una ciudad tipo Bogotá, en primera persona y con humor negro.
+
+
+CÓMO JUGAR
+- Descomprimir el .zip en cualquier carpeta (mejor fuera de OneDrive) y abrir DeliveryExpress.exe.
+- Windows puede avisar «Windows protegió su PC» porque el juego no está firmado:
+  «Más información» -> «Ejecutar de todas formas». (O antes de extraer: clic derecho en el .zip ->
+  Propiedades -> marcar «Desbloquear».)
+- Necesita Windows 10 u 11 de 64 bits y una tarjeta gráfica con OpenGL 3.3.
+
+TECLAS (se pueden cambiar en Opciones)
+- W o flecha arriba: acelerar          - S, flecha abajo o espacio: frenar
+- A / D o flechas: girar               - H: pito (no sirve para nada)
+- Tab: mapa completo                   - Esc: pausa
+- Enter: otra jornada (tras caerse)
+
+DÓNDE SE GUARDA
+La plata, las motos y las opciones quedan en
+  %APPDATA%\Godot\app_userdata\Delivery Express\
+(progreso.cfg y opciones.cfg). Borrar esa carpeta empieza de cero.
+
+
+AVISO: SOLO PARA USO PRIVADO
+Las motos del taller y de las caídas salen de memes de TikTok (@d4rkfox, @miguelfrancolon,
+@soy_hey_77 y otros) que no tienen licencia. Esta versión es para jugarla en privado: no se puede
+publicar ni vender hasta cambiarlas por dibujo propio o CC0 (decisión D21 del proyecto).
+
+LICENCIAS
+- Hecho con Godot Engine 4.7.2 (licencia MIT, godotengine.org/license).
+- Letra Press Start 2P de CodeMan38, SIL Open Font License 1.1 (ver OFL.txt).
+- Todo lo demás (arte, sonido y música) sale de scripts de Python del proyecto.
+- LICENSES.md: una fila por archivo. AI_DISCLOSURE.md: qué se hizo con ayuda de IA.

@@ -32,6 +32,10 @@ const MUSICA_DB := {"menu": -12.0, "conduccion": -18.0, "muerte": -6.0} # la de 
 
 
 func _ready() -> void:
+	# Primera línea del log: con --log-file, tools/build.ps1 comprueba que el .exe arrancó y que es
+	# la versión de entrega (sin las teclas de prueba F9/F10, que solo existen en debug).
+	print("%s %s (%s)" % [ProjectSettings.get_setting("application/config/name"),
+		ProjectSettings.get_setting("application/config/version"), "debug" if OS.is_debug_build() else "release"])
 	progreso = PROGRESO.new(ruta_progreso)
 	opciones = OPCIONES.new(ruta_opciones)
 	opciones.aplicar()
@@ -40,10 +44,36 @@ func _ready() -> void:
 	_musica.bus = &"Musica"
 	_musica.process_mode = Node.PROCESS_MODE_ALWAYS # sigue sonando en la pausa
 	add_child(_musica)
-	if mostrar_advertencia:
+	if "--prueba-arranque" in OS.get_cmdline_user_args():
+		_prueba_arranque()
+	elif mostrar_advertencia:
 		advertencia()
 	else:
 		menu()
+
+
+## Para comprobar un .exe sin jugarlo (tools/build.ps1): menú, taller y 6 s de calle con la moto
+## guardada; escribe en el log lo que vio y los fps, y cierra. No guarda nada.
+func _prueba_arranque() -> void:
+	progreso.ruta = "user://prueba_arranque.cfg" # lee la partida de verdad, pero no la toca
+	menu()
+	await get_tree().create_timer(0.5).timeout
+	taller()
+	await get_tree().create_timer(0.5).timeout
+	reiniciar()
+	var ride := pantalla_actual()
+	await get_tree().create_timer(1.0).timeout
+	var cuadros := Engine.get_frames_drawn()
+	var t0 := Time.get_ticks_msec()
+	await get_tree().create_timer(5.0).timeout
+	var fps := (Engine.get_frames_drawn() - cuadros) * 1000.0 / maxf(Time.get_ticks_msec() - t0, 1.0)
+	print("prueba-arranque: moto=%s plata=%d idioma=%s pantallas=%d recorrido=%s reloj=%.1f fps=%.0f trucos=%s" % [
+		progreso.moto, progreso.dinero, TranslationServer.get_locale(), _pantallas.get_child_count(),
+		ride.name if is_instance_valid(ride) else "-", ride.partida.reloj.t if is_instance_valid(ride) else -1.0,
+		fps, ride.trucos if is_instance_valid(ride) else "-"])
+	print("prueba-arranque: OK")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(progreso.ruta))
+	get_tree().quit()
 
 
 func musica(nombre: String) -> void:
