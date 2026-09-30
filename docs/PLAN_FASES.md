@@ -16,7 +16,7 @@
 | Dónde | Qué |
 |---|---|
 | **Nube (repositorio en GitHub + Claude Code)** | Código, escenas, generador de la ciudad, generadores de arte y audio en Python, pruebas headless, CI, documentos, PRs |
-| **PC de Tomás** | Jugar cada fase en Godot 4.7.2, grabar y editar las voces (Audacity), grabar partidas y clips (OBS), exportar y probar el `.exe` |
+| **PC de Tomás** | Jugar cada fase en Godot 4.7.2, escuchar el audio (Audacity), grabar partidas y clips (OBS), exportar y probar el `.exe` |
 
 **La ida y vuelta de cada fase:** Claude abre un PR → el CI pasa a verde → Tomás hace `git pull`,
 juega y comenta (mejor con un clip de OBS) → se ajusta → Tomás aprueba → se fusiona. Cuando haga
@@ -168,7 +168,7 @@ Krita/LibreSprite. Claude Design solo si Tomás lo prefiere.
 
 ---
 
-## F5 — Contenido: pedidos, economía, garaje y voces
+## F5 — Contenido: pedidos, economía y garaje
 
 **Entrega**
 - Pedidos según `DISENO.md` §5.4: restaurante → recoger → dirección → entregar; tipos de pedido
@@ -178,21 +178,16 @@ Krita/LibreSprite. Claude Design solo si Tomás lo prefiere.
   archivo de datos** (estadísticas, precio, remate), y las zonas que abre cada moto.
 - Final (según lo que se decida en `DISENO.md` §15.2).
 - Guardado del progreso (dinero, moto, pedidos hechos).
-- **Voces grabadas por Tomás (D5).** Claude entrega antes: el guion por situación (recoger,
-  entregar, casi-choque, golpe, caída, comprar moto…), la lista exacta de nombres de archivo, el
-  formato (WAV mono 44,1 kHz) y un paso a paso para grabar y limpiar en Audacity. Tomás deja los
-  archivos en `assets/voces/`; un script los normaliza y el juego elige una al azar sin repetir
-  seguidas.
+- **Sin voces (D28, 30/09/2026):** Tomás las quitó del juego y no quedan pendientes. Las líneas
+  de texto en pantalla se mantienen.
 
 **Criterios de salida**
 1. Prueba que simula una partida entera con `advance()` y llega a la Ninja 300 con unos 20
    pedidos, sin quedarse sin dinero ni bloqueada.
-2. Prueba de que cada moto tiene estadísticas, precio y remate, y de que cada situación tiene al
-   menos una voz.
-3. Prueba de voces: volumen igualado y silencio al principio y al final de cada archivo.
-4. Tomás juega de la BWS a la Ninja y se afinan precios y agarres con lo que diga.
+2. Prueba de que cada moto tiene estadísticas, precio y remate.
+3. Tomás juega de la BWS a la Ninja y se afinan precios y agarres con lo que diga.
 
-**Tomás en su PC:** grabar las voces y jugar la partida completa.
+**Tomás en su PC:** jugar la partida completa.
 
 ---
 
@@ -201,11 +196,11 @@ Krita/LibreSprite. Claude Design solo si Tomás lo prefiere.
 **Entrega**
 - `Main` como único director de pantallas: menú, opciones, créditos, pausa, final. La música vive
   en `Main`.
-- Opciones: volumen de música, efectos y voces por separado, pantalla completa, idioma. Se guardan
+- Opciones: volumen de música y efectos por separado, pantalla completa, idioma. Se guardan
   en `user://opciones.cfg`.
 - Advertencia de contenido al arrancar (humor negro, caídas, sangre), saltable a los 2 s.
 - Español, y además inglés si se decide, con `localization/textos.csv` (clave = texto en español,
-  filas con coma entre comillas). Las voces se quedan en español: son parte del chiste.
+  filas con coma entre comillas).
 
 **Criterios de salida**
 1. Prueba de que solo hay una pantalla viva a la vez y de que la música no se corta al entrar en
