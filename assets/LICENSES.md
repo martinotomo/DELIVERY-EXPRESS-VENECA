@@ -66,6 +66,8 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | texturas/vehiculos_grandes.png | `tools/gen_vehiculos.py` | proyecto | propia | — | 30/09/2026 |
 | ui/logo.png | `tools/gen_logo.py` | proyecto | propia | — | 30/09/2026 |
 | ui/logo_1280.png | `tools/gen_logo.py` | proyecto | propia | — | 30/09/2026 |
+| ui/icono.png | `tools/gen_icono.py` | proyecto | propia | — | 30/09/2026 |
+| ui/icono.ico | `tools/gen_icono.py` | proyecto | propia | — | 30/09/2026 |
 | ui/cinematica_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
 | ui/cinematica_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
 | ui/cinematica_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |

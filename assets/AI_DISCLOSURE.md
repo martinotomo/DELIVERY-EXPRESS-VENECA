@@ -74,6 +74,8 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | texturas/vehiculos_grandes.png | `tools/gen_vehiculos.py` |
 | ui/logo.png | `tools/gen_logo.py` |
 | ui/logo_1280.png | `tools/gen_logo.py` |
+| ui/icono.png | `tools/gen_icono.py` |
+| ui/icono.ico | `tools/gen_icono.py` |
 | ui/cinematica_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
 | ui/cinematica_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
 | ui/cinematica_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
