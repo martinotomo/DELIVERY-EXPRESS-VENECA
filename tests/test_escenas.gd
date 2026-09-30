@@ -84,7 +84,13 @@ func run(t) -> void:
 	t.check_eq(main.progreso.moto, "nkd", "comprar desde la vitrina cambia de moto")
 	t.check(taller.get_node("Estado").text.contains("EN USO") and not b_exosto.disabled, "la nueva queda en uso y con sus mejoras a la venta")
 	taller.mover(-1)
-	t.check(taller.get_node("Estado").text.contains("ENTREGADA"), "la Bwis ya se entregó")
+	t.check(taller.get_node("Estado").text.contains("EN TU GARAJE"), "la Bwis sigue siendo tuya (%s)" % taller.get_node("Estado").text)
+	t.check(not b_moto.disabled and b_moto.text.contains("USAR"), "y tiene botón para usarla (%s)" % b_moto.text)
+	t.check(b_exosto.disabled, "las mejoras se compran con la moto en uso")
+	b_moto.pressed.emit()
+	t.check_eq(main.progreso.moto, "bws", "USAR vuelve a la Bwis")
+	t.check(taller.get_node("Estado").text.contains("EN USO"), "y la Bwis queda en uso")
+	t.check(taller.get_node("Nombre").text.contains("BWIS"), "sin moverse de la Bwis en la vitrina")
 	# F10 da plata de prueba en el taller, solo en desarrollo.
 	var f10 := InputEventKey.new()
 	f10.keycode = KEY_F10
@@ -119,8 +125,8 @@ func run(t) -> void:
 	t.check(colores[0].b > colores[0].g and colores[2].g > colores[2].r * 1.3, "la Bwis es azulada y la Ninja verde")
 	t.check(hoja.get_width() == 384 and hoja.get_height() == 96, "tres motos de 128×96")
 	# Deja el progreso como venía (Bwis con exosto) para el resto de la prueba.
+	main.progreso.tenidas = {"bws": {"exosto": true}}
 	main.progreso.moto = "bws"
-	main.progreso.mejoras = {"exosto": true}
 	main.progreso.dinero = 5000
 	main.progreso.guardar()
 	taller.find_child("Volver", true, false).pressed.emit()

@@ -162,7 +162,7 @@ func actualizar() -> void:
 	var id: String = MOTOS.ORDEN[escogida]
 	var estado: String = progreso.estado_moto(id)
 	var de_fabrica := MOTOS.get_moto(id)
-	var datos: Dictionary = progreso.datos_moto() if estado == PROGRESO.EN_USO else de_fabrica
+	var datos: Dictionary = progreso.datos_de(id)
 	var precio := int(de_fabrica.precio)
 	_l_plata.text = PROGRESO.pesos(progreso.dinero)
 	_l_nombre.text = str(de_fabrica.nombre).to_upper()
@@ -170,7 +170,7 @@ func actualizar() -> void:
 	_candado.visible = estado in [PROGRESO.BLOQUEADA, PROGRESO.SIN_PLATA]
 	var textos := {
 		PROGRESO.EN_USO: ["EN USO", C_VERDE],
-		PROGRESO.ENTREGADA: ["ENTREGADA", UI.C_GRIS],
+		PROGRESO.TENIDA: ["EN TU GARAJE", UI.C_TEXTO],
 		PROGRESO.COMPRABLE: ["A LA VENTA  " + PROGRESO.pesos(precio), UI.C_AMARILLO],
 		PROGRESO.SIN_PLATA: ["BLOQUEADA  " + PROGRESO.pesos(precio), UI.C_ROJO],
 		PROGRESO.BLOQUEADA: ["BLOQUEADA  " + PROGRESO.pesos(precio), UI.C_ROJO],
@@ -186,10 +186,10 @@ func actualizar() -> void:
 			faltan = "Te faltan %s para comprarla." % PROGRESO.pesos(progreso.falta_para(id))
 		PROGRESO.BLOQUEADA:
 			faltan = "Primero compra la %s." % MOTOS.get_moto(MOTOS.ORDEN[escogida - 1]).nombre
-		PROGRESO.ENTREGADA:
-			faltan = "La entregaste como parte de pago."
+		PROGRESO.TENIDA:
+			faltan = "Es tuya, con sus mejoras. Sácala con USAR; las mejoras se compran con la moto en uso."
 		PROGRESO.COMPRABLE:
-			faltan = "Entregas la %s como parte de pago." % MOTOS.get_moto(progreso.moto).nombre
+			faltan = "Tu %s se queda en el garaje." % MOTOS.get_moto(progreso.moto).nombre
 		PROGRESO.EN_USO:
 			faltan = "Con todas las mejoras sigue siendo peor que la siguiente de fábrica." if id != MOTOS.ORDEN[-1] else "La mejor moto de la ciudad."
 	_l_falta.text = faltan
@@ -203,7 +203,7 @@ func actualizar() -> void:
 		var b: Button = _botones[mej]
 		var nombre: String = MOTOS.NOMBRE_MEJORA[mej].to_upper()
 		var precio_mej := int(de_fabrica.mejoras[mej].precio)
-		if estado == PROGRESO.EN_USO and progreso.tiene_mejora(mej):
+		if progreso.tenidas.get(id, {}).get(mej, false):
 			b.text = "%s  (ya instalado)" % nombre
 		else:
 			b.text = "%s  %s" % [nombre, PROGRESO.pesos(precio_mej)]
@@ -212,13 +212,13 @@ func actualizar() -> void:
 	match estado:
 		PROGRESO.EN_USO:
 			bm.text = "ESTA ES TU MOTO"
-		PROGRESO.ENTREGADA:
-			bm.text = "YA LA ENTREGASTE"
+		PROGRESO.TENIDA:
+			bm.text = "USAR ESTA MOTO"
 		PROGRESO.BLOQUEADA:
 			bm.text = "BLOQUEADA"
 		_:
 			bm.text = "COMPRAR %s  %s" % [str(de_fabrica.nombre).to_upper(), PROGRESO.pesos(precio)]
-	bm.disabled = estado != PROGRESO.COMPRABLE
+	bm.disabled = estado not in [PROGRESO.COMPRABLE, PROGRESO.TENIDA]
 	_candado.queue_redraw()
 	_acomodar()
 	queue_redraw()
@@ -246,7 +246,7 @@ func _draw() -> void:
 	if progreso == null:
 		return
 	var id: String = MOTOS.ORDEN[escogida]
-	var ahora: Dictionary = progreso.datos_moto() if progreso.estado_moto(id) == PROGRESO.EN_USO else MOTOS.get_moto(id)
+	var ahora: Dictionary = progreso.datos_de(id)
 	var todo := MOTOS.con_mejoras(id, {"exosto": true, "motor": true})
 	for k in 2:
 		var campo: String = ["vel_max", "acel"][k]
@@ -286,5 +286,9 @@ func _comprar_mejora(nombre: String) -> void:
 
 
 func _comprar_moto() -> void:
-	progreso.comprar_moto()
+	var id: String = MOTOS.ORDEN[escogida]
+	if progreso.estado_moto(id) == PROGRESO.TENIDA:
+		progreso.usar(id)
+	else:
+		progreso.comprar_moto()
 	actualizar()

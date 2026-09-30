@@ -77,6 +77,14 @@ func _correr() -> void:
 	tl.mover(1)
 	await create_timer(0.8).timeout
 	await _foto("0e_taller_ninja")
+	# Comprar la NKD no entrega la Bwis: sigue en el garaje con su exosto, lista para USAR.
+	tl.mover(-1)
+	tl._comprar_moto()
+	tl.mover(-1)
+	await create_timer(0.8).timeout
+	await _foto("0f_taller_garaje")
+	_main.progreso.tenidas = {"bws": {"exosto": true}}
+	_main.progreso.moto = "bws"
 	_main.progreso.dinero = 23500
 	_main.reiniciar()
 	await process_frame
