@@ -1,7 +1,7 @@
 extends RefCounted
 ## Una jornada de domiciliario: recoger, entregar, otro pedido... hasta que la fe supere al agarre.
 
-signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado, fundido, reparado, charco, lluvia, escampo, atropello, grito
+signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado, fundido, reparado, charco, lluvia, escampo, atropello, grito, choque, pito
 signal terminada_por(mensaje: String)
 signal pagado(pesos: int)           # al entregar: tarifa más propina por el tiempo que sobró
 
@@ -13,6 +13,8 @@ const CLIMA := preload("res://scripts/clima.gd")
 const PEATONES := preload("res://scripts/peatones.gd")
 const TRANSITO := preload("res://scripts/transito.gd")
 const TRANSEUNTES := preload("res://scripts/transeuntes.gd")
+const TRAFICO := preload("res://scripts/trafico.gd")
+const VEL_CHOQUE_CARRO := 1.5 # m/s: más despacio, solo se queda pegado
 
 const RECOGER := "recoger"
 const ENTREGAR := "entregar"
@@ -34,6 +36,10 @@ var clima
 var peatones
 var transito     # semáforos (de ambiente: pasarse el rojo no tiene castigo)
 var transeuntes  # gente caminando por los andenes (de ambiente)
+var trafico      # carros, taxis, buses y camiones (chocarlos frena en seco, no mata)
+var _pegado := false # la moto está tocando un carro (el choque suena una sola vez)
+var _t_pito := -1.0   # s para que el conductor pite e insulte, después del choque
+const PITO_TRAS := 1.6
 var multado := false     # atropelló a alguien en este pedido: se queda sin propina
 var _charco := -1            # el charco que se está pisando (frena una sola vez al entrar)
 var pedido := {}
@@ -57,6 +63,7 @@ func _init(semilla := 1, datos_moto: Dictionary = {}) -> void:
 	peatones.levantado.connect(func(): evento.emit("grito"))
 	transito = TRANSITO.new(ciudad)
 	transeuntes = TRANSEUNTES.new(semilla, ciudad)
+	trafico = TRAFICO.new(semilla, ciudad, transito)
 	moto = MOTO.new()
 	var datos := datos_moto if not datos_moto.is_empty() else MOTOS.get_moto(MOTOS.MOTO_INICIAL)
 	moto.setup(datos, ciudad, ciudad.cruce(20, 40), 0.0)
@@ -81,6 +88,12 @@ func advance(delta: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	_revisar_atropello()
 	transito.advance(delta)
 	transeuntes.advance(delta, moto.pos, moto.direccion())
+	trafico.advance(delta, moto.pos, moto.direccion())
+	_revisar_choque()
+	if _t_pito >= 0.0:
+		_t_pito -= delta
+		if _t_pito < 0.0:
+			evento.emit("pito")
 	tiempo_restante -= delta
 	_revisar_llegada()
 	if tiempo_restante <= 0.0:
@@ -126,6 +139,25 @@ func _revisar_atropello() -> void:
 	moto.vel = 0.0
 	multado = true
 	evento.emit("atropello")
+
+
+## Chocar con un carro: frenazo en seco, la moto queda por fuera y el conductor pita e insulta.
+## No mata ni quita plata (D26).
+func _revisar_choque() -> void:
+	if trafico.chocado(moto.pos, 0.5) == -1:
+		_pegado = false
+		return
+	if moto.vel > VEL_CHOQUE_CARRO and not _pegado:
+		evento.emit("choque")
+		_t_pito = PITO_TRAS
+	_pegado = true
+	moto.vel = 0.0
+	# Sacarla hacia atrás hasta que no toque.
+	var atras: Vector2 = -moto.direccion()
+	for k in 24:
+		if trafico.chocado(moto.pos, 0.3) == -1:
+			break
+		moto.pos += atras * 0.25
 
 
 ## Pisar un charco frena un poco, una vez por charco.

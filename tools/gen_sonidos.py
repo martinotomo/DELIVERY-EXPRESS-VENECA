@@ -37,6 +37,10 @@ SPEC = {
     "charco":    {"dur": (0.4, 0.8), "rms": (0.05, 0.35), "graves": 0.05, "cola": True},
     # atropello: chillido corto de llanta, golpe blando (no metálico) y la caja del domicilio rodando
     "atropello": {"dur": (0.8, 1.3), "rms": (0.06, 0.35), "graves": 0.08, "cola": True},
+    # choque contra un carro (F3): golpe de lata y vidrio de farola, más corto que la caída
+    "choque_carro": {"dur": (0.5, 1.0), "rms": (0.06, 0.35), "graves": 0.10, "cola": True},
+    # pito del carro: dos pitazos de bocina de dos tonos (el segundo largo, de rabia)
+    "pito": {"dur": (0.9, 1.5), "rms": (0.08, 0.35), "graves": 0.03, "cola": True},
 }
 
 # Motores (Tomás, 30/09: «suena a nave espacial»). Ahora cada explosión es un golpe de presión
@@ -345,6 +349,34 @@ def atropello():
     return efecto(y, 0.8)
 
 
+def choque_carro():
+    """Moto contra carro: «tong» de lámina que resuena, crujido de plástico y vidrio que cae."""
+    rng = np.random.default_rng(59)
+    t = t_de(0.8)
+    lamina = sum(np.sin(2 * np.pi * f * t) * a for f, a in ((310, 1.0), (523, 0.6), (871, 0.35), (1390, 0.2)))
+    lamina *= envolvente(t, 0.001, 0.09) * (1 + 0.3 * rng.standard_normal(len(t)).clip(-1, 1))
+    pum = np.sin(2 * np.pi * (130 - 50 * t) * t) * envolvente(t, 0.002, 0.06)
+    crujido = banda(rng.standard_normal(len(t)), 600, 4000) * envolvente(t, 0.001, 0.07)
+    y = 1.1 * pum + 0.7 * lamina + 0.6 * crujido
+    for _ in range(7):  # vidrio de la farola
+        tp = t_de(0.02)
+        poner(y, np.sin(2 * np.pi * rng.uniform(3000, 6000) * tp) * envolvente(tp, 0.0003, 0.004) * 0.35,
+              rng.uniform(0.1, 0.6))
+    return efecto(y, 0.8)
+
+
+def pito():
+    """Bocina de carro: dos tonos a la vez (tercera mayor), con cuerpo de corneta; «pi, piiiii»."""
+    t = t_de(1.2)
+    y = np.zeros(len(t))
+    for inicio, largo in ((0.0, 0.16), (0.26, 0.8)):
+        tp = t_de(largo)
+        tono = sum(np.tanh(3.0 * np.sin(2 * np.pi * f * tp)) for f in (415.0, 523.0))
+        tono = banda(tono, 300, 3500) * envolvente(tp, 0.01, largo) * np.clip((largo - tp) / 0.03, 0, 1)
+        poner(y, tono, inicio)
+    return efecto(y, 0.7)
+
+
 def main():
     for id_moto, m in MOTORES.items():
         for rpm in m["rpm"]:
@@ -353,7 +385,7 @@ def main():
     guardar("ambiente_noche", trafico(True))
     guardar("viento", viento())
     guardar("lluvia", lluvia())
-    for fn in (choque, golpe, casi, fundido, entregado, recogido, reparado, charco, atropello):
+    for fn in (choque, golpe, casi, fundido, entregado, recogido, reparado, charco, atropello, choque_carro, pito):
         guardar(fn.__name__, fn())
 
 

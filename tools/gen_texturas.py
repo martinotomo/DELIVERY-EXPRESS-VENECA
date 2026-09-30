@@ -175,6 +175,78 @@ def fachada_casa():
     guardar(emi, TEX / "fachada_casa_luz.png", fuerza=0)
 
 
+def fachada_bodega():
+    """Bodega industrial de un piso: lámina acanalada con zócalo de concreto pintado, una franja
+    amarilla desteñida, cortina metálica enrollable, ventanitas altas con reja y óxido. De noche
+    solo se prenden dos ventanitas y el bombillo de sodio encima de la cortina."""
+    rng = np.random.default_rng(205)
+    # Lámina acanalada: costillas verticales cada 8 px (0,5 m), luz desde la izquierda. Cada
+    # columna es un color de la paleta: así la lámina se lee limpia y no como ruido.
+    perfil = ["concreto_claro", "concreto", "concreto", "concreto", "gris", "asfalto", "gris", "concreto"]
+    img = np.stack([c(perfil[x % 8]) for x in range(128)])[None, :, :].repeat(128, 0)
+    emi = np.zeros_like(img)
+    mugre = ruido(rng, 128, 128, 6)                                   # lámina sucia, a parches
+    img *= 1.0 - np.clip(mugre, 0, None)[..., None] * 0.07
+    # Traslapo de las láminas con su fila de remaches.
+    img[64, :] = c("asfalto")
+    img[65, :] = c("concreto_claro")
+    img[62, 2::8] = c("carbon")
+    # Franja amarilla pintada, desteñida y descascarada.
+    franja = np.zeros((128, 128), bool)
+    franja[38:44, :] = True
+    pelado = ruido(rng, 128, 128, 2) < -1.0
+    img[franja & ~pelado] = img[franja & ~pelado] * 0.25 + c("amarillo_casa") * 0.75
+    img[44, :] *= 0.75
+    # Zócalo de concreto pintado (1,5 m), con barro salpicado al pie.
+    img[104:128, :] = c("concreto_claro") + ruido(rng, 24, 128, 3)[..., None] * 4
+    img[104, :] = c("hueso")
+    img[105, :] = c("gris")
+    barro = (np.linspace(0, 1, 24)[:, None] ** 4) * (ruido(rng, 24, 128, 2) > -0.3)
+    img[104:128] = img[104:128] * (1 - 0.5 * barro[..., None]) + c("guante_oscuro") * 0.5 * barro[..., None]
+    # Ventanitas altas con reja: solo se prenden dos.
+    for k, x in enumerate((6, 38, 70, 102)):
+        ventana(img, emi, x, 8, 20, 14, k in (0, 2), rng, marco="gris", reja=True)
+        for gx in rng.choice(np.arange(x + 1, x + 19), 2, replace=False):   # chorreones de óxido
+            largo = int(rng.integers(5, 14))
+            for y in range(24, 24 + largo):
+                f = 0.65 * (1 - (y - 24) / largo)
+                img[y, gx] = img[y, gx] * (1 - f) + c("ladrillo") * f
+    # Cortina metálica enrollable (3,75 m de ancho), con su caja arriba y guías a los lados.
+    x0, x1, y0 = 34, 94, 56
+    img[y0 - 8:y0, x0 - 4:x1 + 4] = c("cromo_oscuro")
+    img[y0 - 8, x0 - 4:x1 + 4] = c("cromo_brillo")
+    img[y0 - 7, x0 - 4:x1 + 4] = c("cromo")
+    img[y0 - 1, x0 - 4:x1 + 4] = c("carbon")
+    img[y0 - 5, x0 - 1:x1 + 1:6] = c("carbon")                        # tornillos de la caja
+    for y in range(y0, 121):
+        fase = (y - y0) % 4                       # tablillas de 4 px (25 cm) con su pliegue
+        img[y, x0:x1] = c(["cromo_oscuro", "cromo_brillo", "cromo", "cromo"][fase])
+    img[y0:121, x0:x1] *= 1.0 - np.clip(ruido(rng, 121 - y0, x1 - x0, 5), 0, None)[..., None] * 0.08
+    img[y0:128, x0 - 4:x0] = c("carbon")          # guías
+    img[y0:128, x1:x1 + 4] = c("carbon")
+    img[y0:128, x0 - 3] = c("cromo_oscuro")
+    img[y0:128, x1 + 1] = c("cromo_oscuro")
+    img[121, x0:x1] = c("cromo_brillo")           # barra de abajo con manija y candado
+    img[122:126, x0:x1] = c("cromo_oscuro")
+    img[126:128, x0:x1] = c("carbon")
+    img[119:124, 62:66] = c("carbon")
+    img[120:123, 63:65] = c("amarillo_via")
+    # Óxido: manchas al pie de la cortina (lo que le salpica la lluvia) y bajo la caja.
+    alto = np.zeros((128, 128), np.float32)
+    alto[106:121] = np.linspace(0, 1, 15)[:, None] ** 2
+    alto[y0:y0 + 3] = 0.6
+    oxido = (ruido(rng, 128, 128, 3) * 0.5 + alto * 1.4 > 1.0) & (alto > 0)
+    oxido[:, :x0] = False
+    oxido[:, x1:] = False
+    img[oxido] = img[oxido] * 0.35 + c("ladrillo") * 0.65
+    # Bombillo de sodio con su pantalla, encima de la cortina.
+    img[y0 - 13:y0 - 11, 60:68] = c("carbon")
+    img[y0 - 11, 61:67] = c("ventana_luz")
+    emi[y0 - 11, 61:67] = c("sodio")
+    emi[y0 - 10, 62:66] = c("sodio") * 0.6
+    guardar(img, TEX / "fachada_bodega.png", fuerza=6)
+    guardar(emi, TEX / "fachada_bodega_luz.png", fuerza=0)
+
 def cebras():
     """Franjas blancas de la cebra, gastadas por las llantas: 32 px = 4 m, franjas de 0,5 m.
     cebra_h para las cebras que cruzan calles (franjas a lo largo de x), cebra_v para las carreras."""
@@ -356,6 +428,6 @@ def senales():
 if __name__ == "__main__":
     TEX.mkdir(parents=True, exist_ok=True)
     UI.mkdir(parents=True, exist_ok=True)
-    for f in (asfalto, anden, pasto, lineas, cebras, fachada_ladrillo, fachada_concreto, fachada_vidrio, fachada_casa, peatones, senales):
+    for f in (asfalto, anden, pasto, lineas, cebras, fachada_ladrillo, fachada_concreto, fachada_vidrio, fachada_casa, fachada_bodega, peatones, senales):
         f()
         print("generado:", f.__name__)

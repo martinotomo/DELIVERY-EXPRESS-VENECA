@@ -116,13 +116,15 @@ func _correr() -> void:
 
 	# Contra el andén a toda: la cinemática y el remate.
 	var r := _ride()
-	r.retraso_resultado = 2.0
+	r.retraso_resultado = 3.0
 	await _colocar(c.punto_frente_a(20, 41), PI / 2.0, 16.0, 120.0)
 	r.set_process(true)
 	r.partida.advance(1.0, true, false, 0.0)
-	await create_timer(0.8).timeout
+	await create_timer(0.55).timeout
 	await _foto("5_caida")
-	await create_timer(1.8).timeout
+	await create_timer(1.5).timeout
+	await _foto("5b_caida_dibujo")
+	await create_timer(1.6).timeout
 	await process_frame
 	await _foto("6_remate")
 
@@ -135,7 +137,7 @@ func _correr() -> void:
 	await _colocar(c.punto_frente_a(21, 43) + Vector2(-6, 0), PI / 2.0 - 0.6, 16.0, 460.0)
 	r.set_process(true)
 	r.partida.advance(1.0, true, false, 0.0)
-	await create_timer(0.8).timeout
+	await create_timer(0.55).timeout
 	await _foto("7_caida_noche")
 
 	# Lluvia de tarde: gotas, piso mojado, charcos y el bono.
@@ -193,6 +195,42 @@ func _correr() -> void:
 		await _colocar(cruce_sem + Vector2(-24, 3), 0.0, 6.0, foto[1])
 		await _foto(foto[0])
 
+	# Zonas de la ciudad (F3): una foto en cada una, con las placas de la esquina de enfrente.
+	r.partida.transeuntes.lista.clear()
+	for z in ["barrio", "centro", "industrial", "rica"]:
+		var ij := _cruce_en_zona(c, z)
+		await _colocar(c.cruce(ij.x, ij.y) + Vector2(-22, 3), 0.0, 6.0, 140.0)
+		await _foto("15_zona_" + z)
+	# Tráfico: carros haciendo fila en el rojo de una avenida, de día y de noche.
+	for foto in [["17_trafico_dia", 140.0], ["18_trafico_noche", 470.0]]:
+		var sem_ij := Vector2i(21, 42)
+		var moto_p: Vector2 = c.cruce(sem_ij.x, sem_ij.y) + Vector2(-100, 3)
+		var tf = r.partida.trafico
+		tf.lista.clear()
+		r.partida.transito.t = r.partida.transito.CICLO / 2.0 + 1.0
+		for k in 5:
+			var tipo: String = ["taxi", "bus", "carro", "carro_rojo", "camion"][k]
+			tf.poner(tipo, sem_ij, Vector2.RIGHT, 20.0 + k * 13.0)
+		tf.poner("taxi", sem_ij, Vector2.LEFT, 40.0)
+		tf.poner("camion", sem_ij, Vector2.DOWN, 25.0)
+		tf.poner("carro", sem_ij, Vector2.UP, -15.0)
+		for k in 150:
+			tf.advance(0.1, moto_p, Vector2.ZERO)
+			r.partida.transito.t = r.partida.transito.CICLO / 2.0 + 1.0
+		tf.MAX_ACTIVOS = 0
+		await _colocar(moto_p + Vector2(45, -1.5), 0.0, 3.0, foto[1]) # a unos 15 m del último de la fila
+		await _foto(foto[0])
+		tf.MAX_ACTIVOS = tf.MAX
+	# Los cerros orientales: mirando al oriente (rumbo PI), de día, al atardecer y de noche.
+	for foto in [["19_cerros_dia", 140.0], ["19b_cerros_tarde", 290.0], ["19c_cerros_noche", 470.0]]:
+		await _colocar(c.cruce(8, 60) + Vector2(40, 3), PI, 0.0, foto[1])
+		await _foto(foto[0])
+	# Mapa completo (Tab).
+	r._mapa.visible = true
+	await process_frame
+	await _foto("16_mapa")
+	r._mapa.visible = false
+
 	# Cada moto con su puesto de mando.
 	for id in ["nkd", "ninja"]:
 		_main.progreso.moto = id
@@ -207,6 +245,22 @@ func _correr() -> void:
 	_hoja()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
 	quit(0)
+
+
+## Un cruce con las cuatro cuadras de alrededor en la zona z (el más cercano al centro de la zona).
+func _cruce_en_zona(c, z: String) -> Vector2i:
+	var suma := Vector2.ZERO
+	var n := 0
+	var todos: Array[Vector2i] = []
+	for j in range(1, c.N_LARGO):
+		for i in range(1, c.N_ANCHO):
+			if c.zona(i, j) == z and c.zona(i - 1, j) == z and c.zona(i, j - 1) == z and c.zona(i - 1, j - 1) == z:
+				todos.append(Vector2i(i, j))
+				suma += Vector2(i, j)
+				n += 1
+	var medio := suma / maxf(n, 1)
+	todos.sort_custom(func(a, b): return Vector2(a).distance_to(medio) < Vector2(b).distance_to(medio))
+	return todos[0]
 
 
 func _hoja() -> void:

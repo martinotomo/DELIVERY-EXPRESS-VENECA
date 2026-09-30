@@ -6,7 +6,7 @@ const MOTOS := preload("res://scripts/motos.gd")
 const AUDIO := preload("res://scripts/audio.gd")
 
 const BUCLES := ["ambiente_dia", "ambiente_noche", "viento", "lluvia"]
-const EFECTOS := ["choque", "golpe", "casi", "fundido", "entregado", "recogido", "reparado", "charco"]
+const EFECTOS := ["choque", "golpe", "casi", "fundido", "entregado", "recogido", "reparado", "charco", "choque_carro", "pito"]
 
 
 func run(t) -> void:

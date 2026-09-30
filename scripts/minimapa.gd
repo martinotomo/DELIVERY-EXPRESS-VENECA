@@ -59,6 +59,10 @@ func _draw() -> void:
 	for q in partida.peatones.lista:
 		if q.pos.distance_to(p) < PEATONES_CERCA:
 			draw_rect(Rect2(_a_pantalla(q.pos) - Vector2(1.5, 1.5), Vector2(3, 3)), C_PEATON)
+	for v in partida.trafico.lista:
+		if v.pos.distance_to(p) < 90.0:
+			var col := Color("f0c41e") if v.tipo == "taxi" else Color("b8c0cc")
+			draw_rect(Rect2(_a_pantalla(v.pos) - Vector2(2, 2), Vector2(4, 4)), col)
 	# La moto, en el centro mirando hacia arriba.
 	draw_colored_polygon(PackedVector2Array([centro + Vector2(0, -6), centro + Vector2(4, 4), centro + Vector2(-4, 4)]), Color.WHITE)
 	draw_rect(Rect2(Vector2.ZERO, size), Color("888888"), false, 1.0)

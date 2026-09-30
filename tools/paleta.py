@@ -64,6 +64,18 @@ PALETA = {
     "piel_clara": (214, 166, 128),
     "piel": (168, 114, 78),
     "piel_oscura": (112, 72, 48),
+    # cerros orientales (panorama del fondo): de lejos azulados por la bruma, de cerca monte
+    "cerro_bruma": (112, 132, 142),
+    "cerro_lejano": (86, 106, 118),
+    "cerro_medio": (54, 80, 72),
+    "monte_oscuro": (20, 36, 26),
+    # vehículos de la ciudad (tools/gen_vehiculos.py): taxi, carro vinotinto y bus azul
+    "amarillo_taxi": (240, 196, 30),
+    "amarillo_taxi_oscuro": (168, 124, 18),
+    "vinotinto": (132, 24, 36),
+    "vinotinto_oscuro": (78, 14, 24),
+    "azul_sitp": (36, 96, 170),
+    "azul_sitp_oscuro": (20, 56, 108),
 }
 
 LISTA = list(PALETA.values())

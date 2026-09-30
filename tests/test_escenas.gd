@@ -33,6 +33,14 @@ func run(t) -> void:
 	t.check(menu.get_node("Titulo").text == str(ProjectSettings.get_setting("application/config/name")).to_upper(), "el título sale de project.godot")
 	t.check_eq(ProjectSettings.get_setting("application/config/name"), "Delivery Express", "el juego se llama Delivery Express (D14)")
 	t.check_eq(menu.get_node("Titulo").text, "DELIVERY EXPRESS", "el menú muestra el nombre nuevo")
+	# Logo (F2): dibujado para ese nombre; si el nombre cambia, vuelve el título en letras.
+	var logo: TextureRect = menu.get_node_or_null("Logo")
+	t.check(logo != null and logo.visible and logo.texture != null, "el menú muestra el logo")
+	t.check(not menu.get_node("Titulo").visible, "con logo, el título en letras se esconde")
+	if logo != null:
+		var r_logo := Rect2(logo.position, logo.size * logo.scale)
+		t.check(r_logo.end.y <= menu.find_child("Jugar", true, false).global_position.y and r_logo.position.x >= 0.0 and r_logo.end.x <= 640.0, "el logo no se monta en los botones (%s)" % r_logo)
+	t.check(menu.LOGO_PARA == "Delivery Express", "el logo dice para qué nombre está hecho")
 	t.check(menu.get_node("Estado").text.contains("Bwis"), "el menú dice qué moto se tiene")
 
 	# Taller: con plata se compra; sin plata los botones están apagados.
@@ -312,12 +320,18 @@ func run(t) -> void:
 	var visible_px := cuadro.intersection(vista)
 	t.check(visible_px.size.x >= 55.0 and visible_px.size.y >= 30.0, "la moto caída se ve grande (%s px en 320×180)" % visible_px.size)
 	t.check(vista.has_point(cuadro.get_center()), "la moto caída queda cerca del centro (%s)" % cuadro.get_center())
+	# Luego la ilustración de la caída (F2), de la moto con que se jugaba, a pantalla completa.
+	var ilus: TextureRect = ride.get_node("HUD/Cinematica")
+	t.check(ilus.visible and ilus.texture != null and ilus.texture.resource_path.ends_with("cinematica_bws.png"), "sale la ilustración de la caída de la Bwis")
+	t.check(ilus.size == Vector2(640, 360) or ilus.size * ilus.scale >= Vector2(640, 360), "a pantalla completa")
 	await t.process_frame
 	await t.process_frame
 	t.check_eq(_pantallas(main).size(), 1, "tras estrellarse sigue habiendo una sola pantalla")
 	var res: Node = main.pantalla_actual()
 	t.check_eq(res.name, "Resultado", "tras estrellarse sale el resultado")
 	t.check(res.get_node("Caja/Texto").text.contains("agarre de tu Bwis"), "el resultado muestra el remate")
+	var ilus_res: TextureRect = res.get_node_or_null("Ilustracion")
+	t.check(ilus_res != null and ilus_res.visible and ilus_res.texture.resource_path.ends_with("cinematica_bws.png"), "el remate va sobre la ilustración de la caída")
 
 	main.reiniciar()
 	await t.process_frame
@@ -483,6 +497,57 @@ func run(t) -> void:
 	r2.partida.transito.t = 12.0
 	r2._actualizar_vista(0.0)
 	t.check(r2._mats_semaforo.x_rojo.emission_energy_multiplier > 0.0 and r2._mats_semaforo.y_verde.emission_energy_multiplier > 0.0, "los semáforos cambian")
+	# Tráfico (F3): cada vehículo se dibuja donde va, con el cuadro según cómo se ve.
+	r2.partida.trafico.advance(0.1, r2.partida.moto.pos, r2.partida.moto.direccion())
+	r2._actualizar_vista(0.0)
+	var n_veh := 0
+	var veh_ok := true
+	for k in r2.partida.trafico.lista.size():
+		var vs: Sprite3D = r2.get_node("Vista/Mundo/Vehiculos/Vehiculo%d" % k)
+		var vd: Dictionary = r2.partida.trafico.lista[k]
+		if vs.visible:
+			n_veh += 1
+			if Vector2(vs.position.x, vs.position.z).distance_to(vd.pos) > 0.01 or vs.texture == null:
+				veh_ok = false
+	t.check(n_veh == r2.partida.trafico.lista.size() and n_veh > 0 and veh_ok, "cada carro del tráfico tiene su sprite en su sitio (%d)" % n_veh)
+	var cam0 := Vector2.ZERO
+	t.check_eq(r2.cuadro_vehiculo(cam0, Vector2(10, 0), Vector2(-1, 0)), 0, "un carro que viene de frente se ve de frente")
+	t.check_eq(r2.cuadro_vehiculo(cam0, Vector2(10, 0), Vector2(1, 0)), 4, "uno que va adelante se ve de espaldas")
+	t.check_eq(r2.cuadro_vehiculo(cam0, Vector2(10, 0), Vector2(0, 1)), 2, "uno que cruza hacia la derecha muestra el frente a la derecha")
+	t.check_eq(r2.cuadro_vehiculo(cam0, Vector2(10, 0), Vector2(0, -1)), 6, "y hacia la izquierda, a la izquierda")
+	# Los cerros orientales (F3): siempre al oriente (x negativa), lejos y siguiendo a la cámara.
+	var cerros: MeshInstance3D = r2.get_node("Vista/Mundo/Cerros")
+	var caja_c: AABB = cerros.get_aabb()
+	t.check(Vector2(cerros.position.x, cerros.position.z).distance_to(r2.partida.moto.pos) < 0.01, "los cerros siguen a la moto")
+	t.check(caja_c.get_center().x < -200.0 and caja_c.position.y + caja_c.size.y > 50.0, "los cerros quedan al oriente y altos (%s)" % str(caja_c))
+	t.check((cerros.mesh.surface_get_material(0) as StandardMaterial3D).disable_fog, "la niebla no se los come")
+	# Nomenclatura (F3): placas en las esquinas cercanas y la ubicación bajo el minimapa.
+	r2.partida.moto.pos = c.cruce(20, 41) + Vector2(30, 0)
+	r2._actualizar_vista(0.0)
+	var placas := 0
+	var cerca_ok := true
+	for pl in r2.get_node("Vista/Mundo/Letreros").find_children("*", "Label3D", true, false):
+		if pl.visible:
+			placas += 1
+			if Vector2(pl.global_position.x, pl.global_position.z).distance_to(r2.partida.moto.pos) > 2.5 * 172.0:
+				cerca_ok = false
+			if not (pl.text.begins_with("Cl ") or pl.text.begins_with("Kr ") or pl.text.begins_with("Av ")):
+				cerca_ok = false
+	t.check(placas >= 16 and cerca_ok, "las esquinas cercanas tienen placa con su calle y carrera (%d)" % placas)
+	t.check(r2.get_node("HUD/Ubicacion").text.begins_with("Cl 42"), "bajo el minimapa dice por dónde va: %s" % r2.get_node("HUD/Ubicacion").text)
+	t.check(r2.get_node("HUD/Ubicacion").text.contains(c.nombre_zona(c.zona_en(r2.partida.moto.pos)).to_upper()), "y en qué zona")
+	# Tab abre el mapa completo (DISENO §6) y lo vuelve a cerrar.
+	var mapa: Control = r2.get_node("HUD/Mapa")
+	t.check(not mapa.visible, "el mapa completo empieza cerrado")
+	var tab := InputEventAction.new()
+	tab.action = "mapa"
+	tab.pressed = true
+	r2._input(tab)
+	t.check(mapa.visible, "Tab abre el mapa completo")
+	t.check(mapa.a_pantalla(Vector2.ZERO).distance_to(mapa.a_pantalla(c.tamano())) > 300.0, "el mapa cubre toda la ciudad a buen tamaño")
+	t.check(Rect2(Vector2.ZERO, mapa.size).has_point(mapa.a_pantalla(r2.partida.moto.pos)), "la moto cae dentro del mapa")
+	r2._input(tab)
+	t.check(not mapa.visible, "Tab otra vez lo cierra")
 	main.menu()
 	await t.process_frame
 	t.check_eq(main.pantalla_actual().name, "Menu", "se puede volver al menú")

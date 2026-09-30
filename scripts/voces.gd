@@ -58,6 +58,18 @@ const FRASES := {
 		"Peatón: ¡Esto va pa' las redes, sonría!",
 		"Peatón: ¡Uy, no, qué pecado! ¡Casi me mata!",
 	],
+	"choque": [
+		"¡Perdón, patrón! Es que el pedido se enfría.",
+		"¡Na' guará, chamo, ese carro salió de la nada!",
+		"Tranquilo, mi pana, que eso con crema dental sale.",
+		"¡Chamo, frenó en seco! Bueno... frené yo, más bien.",
+	],
+	"pito": [
+		"Conductor: ¡Piiii! ¡Mire por dónde va, domiciliario!",
+		"Conductor: ¡Me rayó el carro! ¡Venga, venga!",
+		"Conductor: ¡Otro de estos en moto! ¡Piiiii!",
+		"Conductor: ¡La vía no es suya, joven!",
+	],
 	"estrellado": [
 		"Ay, no, chamo... se nos fue el pana.",
 		"Otro más pa' la estadística, vale.",

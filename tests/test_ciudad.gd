@@ -60,3 +60,72 @@ func run(t) -> void:
 
 	# La dirección suena a Bogotá.
 	t.check(c.direccion(destino).begins_with("Calle "), "las direcciones son «Calle N # M-xx»: %s" % c.direccion(destino))
+
+	_zonas(t, c)
+
+
+## Barrios con cara propia (DISENO §6): residencial, centro, industrial y zona rica junto a los cerros.
+func _zonas(t, c) -> void:
+	var cuenta := {}
+	var alto := {}
+	var tipos := {}
+	var iguales := 0
+	var vecinos := 0
+	for j in c.N_LARGO:
+		for i in c.N_ANCHO:
+			var z: String = c.zona(i, j)
+			cuenta[z] = cuenta.get(z, 0) + 1
+			alto[z] = alto.get(z, 0.0) + c.altura(i, j)
+			if not tipos.has(z):
+				tipos[z] = {}
+			tipos[z][c.fachada(i, j)] = true
+			if i + 1 < c.N_ANCHO:
+				vecinos += 1
+				iguales += int(c.zona(i + 1, j) == z)
+	for z in ["barrio", "centro", "industrial", "rica"]:
+		t.check(cuenta.get(z, 0) >= 150, "la zona %s tiene al menos 150 cuadras (%d)" % [z, cuenta.get(z, 0)])
+	t.check(cuenta.size() == 4, "solo hay 4 zonas: %s" % str(cuenta.keys()))
+	t.check(cuenta.get("barrio", 0) > cuenta.get("rica", 0), "casi toda la ciudad es barrio")
+	t.check(float(iguales) / vecinos > 0.85, "las zonas son manchas, no un salpicado (%.2f)" % (float(iguales) / vecinos))
+	var media := func(z): return alto[z] / cuenta[z]
+	t.check(media.call("rica") > 25.0, "la zona rica es de torres (%.1f m)" % media.call("rica"))
+	t.check(media.call("barrio") < 14.0, "el barrio es de casas bajas (%.1f m)" % media.call("barrio"))
+	t.check(media.call("industrial") < 14.0, "las bodegas son bajas (%.1f m)" % media.call("industrial"))
+	t.check(tipos["industrial"].has("bodega"), "la zona industrial tiene bodegas")
+	t.check(not tipos["barrio"].has("vidrio") and not tipos["barrio"].has("bodega"), "en el barrio no hay torres de vidrio ni bodegas: %s" % str(tipos["barrio"].keys()))
+	t.check(tipos["rica"].has("vidrio"), "la zona rica tiene torres de vidrio")
+	# Los cerros quedan al oriente, donde va la carrera 1 (como en Bogotá): la zona rica y el centro, pegados.
+	var i_medio := func(z):
+		var s := 0.0
+		var n := 0
+		for j in c.N_LARGO:
+			for i in c.N_ANCHO:
+				if c.zona(i, j) == z:
+					s += i
+					n += 1
+		return s / n
+	t.check(i_medio.call("rica") < 12.0 and i_medio.call("centro") < 14.0, "rica y centro, junto a los cerros (carreras bajas)")
+	t.check(i_medio.call("industrial") > 26.0, "la zona industrial, al occidente (carreras altas)")
+	var sur := 0
+	for j in 20:
+		for i in c.N_ANCHO:
+			sur += int(c.zona(i, j) == "rica")
+	t.check(sur == 0, "la zona rica queda al norte, no al sur")
+	t.check(c.zona(-1, 3) == "barrio" and c.zona(99, 99) == "barrio", "fuera de la ciudad cuenta como barrio")
+	t.check(c.nombre_zona("rica") != "" and c.nombre_zona("industrial") != "", "cada zona tiene nombre para los letreros")
+	_nomenclatura(t, c)
+
+
+## Nombres de las vías como en Bogotá: calles (a lo largo de x) y carreras (a lo largo de y), con avenidas.
+func _nomenclatura(t, c) -> void:
+	t.check_eq(c.nombre_via("calle", 41), "Cl 42", "la vía 41 es la Calle 42")
+	t.check_eq(c.nombre_via("carrera", 20), "Kr 21", "la vía 20 es la Carrera 21")
+	t.check(c.es_avenida("calle", 6) and c.es_avenida("carrera", 12), "cada sexta vía es avenida")
+	t.check(not c.es_avenida("calle", 7) and not c.es_avenida("carrera", 0) and not c.es_avenida("calle", c.N_LARGO), "las demás y los bordes no")
+	t.check_eq(c.nombre_via("calle", 6), "Av Cl 7", "las avenidas se marcan con «Av»")
+	var p: Vector2 = c.cruce(20, 41) + Vector2(30, 0) # sobre la Calle 42, entre carreras
+	var u: String = c.ubicacion(p)
+	t.check(u.begins_with("Cl 42") and u.contains("Kr 2"), "la ubicación dice la vía por la que va y la carrera cercana: %s" % u)
+	var q: Vector2 = c.cruce(20, 41) + Vector2(0, 30) # sobre la Carrera 21
+	t.check(c.ubicacion(q).begins_with("Kr 21"), "yendo por una carrera, primero la carrera: %s" % c.ubicacion(q))
+	t.check(c.zona_en(c.cuadra(3, 70).get_center()) == c.zona(3, 70), "zona_en(p) dice la zona de la cuadra donde está p")

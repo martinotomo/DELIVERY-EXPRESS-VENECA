@@ -8,6 +8,10 @@ signal salir
 const UI := preload("res://scripts/ui.gd")
 const PROGRESO := preload("res://scripts/progreso.gd")
 
+const LOGO_PARA := "Delivery Express" # tools/gen_logo.py lo dibuja para este nombre (D14, D26)
+const LOGO_RECORTE := Rect2(54, 100, 526, 152) # dónde está el dibujo dentro de logo.png (640×360)
+const LOGO_ESCALA := 0.75
+
 var progreso
 
 
@@ -27,8 +31,23 @@ func _ready() -> void:
 		add_child(linea)
 
 	var nombre := str(ProjectSettings.get_setting("application/config/name", ""))
-	UI.texto(self, nombre.to_upper(), Vector2(0, 50), 32, UI.C_ROJO, 640.0, "Titulo")
-	UI.texto(self, "Domicilios a toda. La fe no frena.", Vector2(0, 96), 8, UI.C_GRIS, 640.0)
+	var titulo := UI.texto(self, nombre.to_upper(), Vector2(0, 50), 32, UI.C_ROJO, 640.0, "Titulo")
+	var lema_y := 96.0
+	if nombre == LOGO_PARA:
+		var recorte := AtlasTexture.new()
+		recorte.atlas = load("res://assets/ui/logo.png")
+		recorte.region = LOGO_RECORTE
+		var logo := TextureRect.new()
+		logo.name = "Logo"
+		logo.texture = recorte
+		logo.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		logo.size = LOGO_RECORTE.size
+		logo.scale = Vector2.ONE * LOGO_ESCALA
+		logo.position = Vector2((640.0 - LOGO_RECORTE.size.x * LOGO_ESCALA) / 2.0, 4)
+		add_child(logo)
+		titulo.visible = false
+		lema_y = 4 + LOGO_RECORTE.size.y * LOGO_ESCALA
+	UI.texto(self, "Domicilios a toda. La fe no frena.", Vector2(0, lema_y), 8, UI.C_GRIS, 640.0)
 
 	var col := UI.columna(self, Vector2(170, 140), 300.0)
 	var b_jugar := UI.boton(col, "JUGAR", "Jugar")
