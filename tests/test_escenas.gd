@@ -176,6 +176,42 @@ func run(t) -> void:
 			if img.get_pixel(x, y).a > 0.5:
 				opacos += 1
 	t.check(opacos > img.get_width() * img.get_height() / 4, "el sprite del manubrio no está vacío (%d píxeles opacos)" % opacos)
+	# Puestos de mando dibujados a partir de cómo se ven de verdad (Tomás, 30/09): la aguja cae sobre
+	# la carátula clara, los números sobre la pantalla, espejos a los dos lados y la calle al frente libre.
+	var MANUBRIO_T := load("res://scripts/manubrio.gd")
+	for id in MANUBRIO_T.TABLEROS:
+		var tab: Dictionary = MANUBRIO_T.TABLEROS[id]
+		var im: Image = MANUBRIO_T.SPRITES[id].get_image()
+		t.check(im.get_width() == 320 and im.get_height() == 96, "%s: puesto de 320×96" % id)
+		if tab.has("aguja"):
+			var cara := im.get_pixelv(Vector2i(tab.aguja) + Vector2i(0, -4))
+			t.check(cara.a > 0.5 and cara.v > 0.6, "%s: la aguja gira sobre una carátula clara (%s)" % [id, cara])
+		if tab.has("lcd"):
+			var r: Rect2 = tab.lcd
+			var dentro_lcd := im.get_pixelv(Vector2i(r.get_center()))
+			var fuera_lcd := im.get_pixelv(Vector2i(r.position) + Vector2i(-3, int(r.size.y / 2)))
+			t.check(dentro_lcd.a > 0.5 and absf(dentro_lcd.v - fuera_lcd.v) > 0.05 or dentro_lcd != fuera_lcd, "%s: los números van sobre la pantalla" % id)
+			var tinta: Color = tab.tinta
+			t.check(absf(tinta.get_luminance() - dentro_lcd.get_luminance()) > 0.35, "%s: los números se leen sobre la pantalla" % id)
+		for lado in [Rect2i(0, 0, 110, 26), Rect2i(210, 0, 110, 26)]:
+			var n_esp := 0
+			for y in range(lado.position.y, lado.end.y):
+				for x in range(lado.position.x, lado.end.x):
+					if im.get_pixel(x, y).a > 0.5:
+						n_esp += 1
+			t.check(n_esp > 150, "%s: tiene espejo a cada lado (%d px)" % [id, n_esp])
+		var n_frente := 0
+		for y in 18:
+			for x in range(130, 190):
+				if im.get_pixel(x, y).a > 0.5:
+					n_frente += 1
+		t.check(n_frente < 60 * 18 * 0.6, "%s: la calle de enfrente se sigue viendo (%d px tapados)" % [id, n_frente])
+	var m_prueba = MANUBRIO_T.new()
+	m_prueba.moto_id = "ninja"
+	t.check_eq(m_prueba.tablero().marca, "rpm", "la Ninja marca revoluciones con la aguja y la velocidad en la pantalla")
+	m_prueba.moto_id = "otra"
+	t.check(m_prueba.tablero().has("lcd"), "una moto desconocida usa el tablero de la Bwis")
+	m_prueba.free()
 	# A las resoluciones de pantalla comunes la interfaz de 640×360 escala entera y cabe completa.
 	t.check_eq(ProjectSettings.get_setting("display/window/stretch/mode"), "viewport", "estirado por viewport")
 	for res in [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(2560, 1600), Vector2i(1366, 768)]:

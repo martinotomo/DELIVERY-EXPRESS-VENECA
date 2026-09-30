@@ -292,115 +292,12 @@ def peatones():
     guardar(rgb, TEX / "peatones.png", alfa=alfa, fuerza=4)
 
 
-# --- manubrio de la BWS, 320×90 px a 1× (se dibuja a 2× sobre la pantalla de 640×360) ---------
-
-# Cada moto tiene su puesto de mando (la aguja del velocímetro siempre va en (160, 66)):
-# Bwis con carenado negro de scooter, NKD sin carenado (tanque y reloj redondo en su soporte),
-# Ninja con la cúpula verde y semimanubrios más bajos.
-PUESTOS = {
-    "bws": {"archivo": "manubrio.png", "dy": 0},
-    "nkd": {"archivo": "manubrio_nkd.png", "dy": -4},
-    "ninja": {"archivo": "manubrio_ninja.png", "dy": 6},
-}
-
-
-def manubrio(id_moto="bws"):
-    puesto = PUESTOS[id_moto]
-    dy = puesto["dy"]
-    W, H = 320, 90
-    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    col = lambda n: P[n] + (255,)
-
-    # Brazos (mangas de la chaqueta) desde abajo hasta las muñecas, con el borde exterior en sombra.
-    for s in (-1, 1):
-        cx = 160 + s * 118
-        d.polygon([(cx - 12, 48 + dy), (cx + 12, 48 + dy), (cx + s * 30 + 24, H), (cx + s * 30 - 24, H)], fill=col("chaqueta"))
-        d.polygon([(cx + s * 12, 48 + dy), (cx + s * 6, 48 + dy), (cx + s * 30 + s * 16, H), (cx + s * 30 + s * 24, H)], fill=col("chaqueta_oscura"))
-        d.line([(cx + s * 16 - 20, 74), (cx + s * 16 + 20, 74)], fill=col("hueso"), width=2)   # franja reflectiva
-
-    # Tablero con velocímetro (la aguja la dibuja el juego).
-    if id_moto == "bws":    # carenado negro de scooter
-        d.polygon([(112, H), (208, H), (194, 44), (126, 44)], fill=col("carbon"))
-        d.polygon([(126, 44), (194, 44), (191, 48), (129, 48)], fill=col("gris"))
-    elif id_moto == "nkd":  # sin carenado: tanque negro abajo y el reloj en su soporte cromado
-        d.polygon([(104, H), (216, H), (204, 76), (116, 76)], fill=col("carbon"))
-        d.polygon([(126, 78), (194, 78), (190, 81), (130, 81)], fill=col("gris"))
-        d.line([(128, 86), (192, 86)], fill=col("rojo"), width=2)
-        d.line([(146, 76), (140, 40)], fill=col("cromo_oscuro"), width=3)   # barras de la suspensión
-        d.line([(174, 76), (180, 40)], fill=col("cromo_oscuro"), width=3)
-        d.rectangle([150, 58, 170, 78], fill=col("cromo_oscuro"))           # soporte del reloj
-        d.ellipse([140, 46, 180, 86], fill=col("cromo"))
-    else:                   # cúpula verde de deportiva
-        d.polygon([(92, H), (228, H), (214, 46), (106, 46)], fill=col("verde_ninja"))
-        d.polygon([(106, 46), (214, 46), (211, 50), (109, 50)], fill=col("verde_ninja_oscuro"))
-        d.polygon([(92, H), (108, H), (116, 52), (106, 46)], fill=col("verde_ninja_oscuro"))
-        d.polygon([(212, H), (228, H), (214, 46), (204, 52)], fill=col("verde_ninja_oscuro"))
-        d.line([(108, 45), (122, 30)], fill=col("vidrio_brillo"), width=1)  # filo del parabrisas
-        d.line([(212, 45), (198, 30)], fill=col("vidrio_brillo"), width=1)
-        d.rounded_rectangle([132, 48, 188, 86], radius=4, fill=col("carbon"))
-    d.ellipse([144, 50, 176, 82], fill=col("cromo"))
-    d.ellipse([146, 52, 174, 80], fill=col("hueso"))
-    for k in range(9):
-        a = np.pi * (0.8 + 1.4 * k / 8)
-        x0, y0 = 160 + np.cos(a) * 10, 66 + np.sin(a) * 10
-        x1, y1 = 160 + np.cos(a) * 13, 66 + np.sin(a) * 13
-        d.line([(x0, y0), (x1, y1)], fill=col("negro") if k < 7 else col("rojo"), width=1)
-    d.ellipse([180, 60, 190, 70], fill=col("asfalto_oscuro"))              # gasolina
-    d.rectangle([183, 63, 187, 66], fill=col("naranja"))
-    d.rectangle([130, 62, 138, 67], fill=col("pasto_claro"))               # testigo verde
-
-    # Barra del manubrio en cromo con brillo.
-    barra = [(50, 40 + dy), (100, 44 + dy), (160, 41 + dy), (220, 44 + dy), (270, 40 + dy)]
-    if id_moto == "ninja":  # semimanubrios: dos tubos que bajan hacia afuera, sin barra en el centro
-        barra = [(50, 40 + dy), (100, 42 + dy), (124, 46)]
-    d.line(barra, fill=col("cromo_oscuro"), width=6, joint="curve")
-    d.line(barra, fill=col("cromo"), width=4, joint="curve")
-    d.line([(x, y - 2) for x, y in barra], fill=col("cromo_brillo"), width=1)
-    if id_moto == "ninja":
-        otra = [(320 - x, y) for x, y in barra]
-        d.line(otra, fill=col("cromo_oscuro"), width=6, joint="curve")
-        d.line(otra, fill=col("cromo"), width=4, joint="curve")
-    if id_moto != "ninja":
-        d.rectangle([148, 36 + dy, 172, 48 + dy], fill=col("negro"))       # abrazadera
-        d.rectangle([150, 38 + dy, 170, 39 + dy], fill=col("gris"))
-
-    # Espejos redondos, pequeños y bien afuera para no tapar la calle.
-    for s in (-1, 1):
-        bx = 160 + s * (56 if id_moto == "ninja" else 78)   # la Ninja los lleva en la cúpula
-        mx = 160 + s * 102
-        d.line([(bx, 42 + dy), (mx, 16)], fill=col("cromo_oscuro"), width=2)
-        d.ellipse([mx - 12, 2, mx + 12, 22], fill=col("negro"))
-        d.ellipse([mx - 10, 4, mx + 10, 20], fill=col("vidrio"))
-        d.ellipse([mx - 8, 5, mx + 4, 13], fill=col("vidrio_brillo"))
-        d.ellipse([mx - 6, 7, mx + 1, 11], fill=col("cielo_noche"))
-
-    # Manetas de freno, puños negros y manos con guante agarrando.
-    for s in (-1, 1):
-        gx = 160 + s * 118
-        d.line([(gx - s * 26, 38 + dy), (gx + s * 14, 33 + dy)], fill=col("cromo"), width=2)
-        d.rounded_rectangle([gx - 22, 35 + dy, gx + 22, 46 + dy], radius=4, fill=col("negro"))
-        for k in range(-20, 22, 3):
-            d.point((gx + k, 36 + dy), fill=col("carbon"))
-        d.rounded_rectangle([gx - 13, 31 + dy, gx + 13, 50 + dy], radius=6, fill=col("guante"))
-        for k in range(4):                                                   # nudillos
-            fx = gx - 10 + k * 7
-            d.rectangle([fx, 31 + dy, fx + 4, 33 + dy], fill=col("guante_claro"))
-            d.line([(fx + 5, 33 + dy), (fx + 5, 48 + dy)], fill=col("negro"), width=1)
-        d.ellipse([gx - s * 16 - 6, 34 + dy, gx - s * 16 + 6, 44 + dy], fill=col("guante_claro"))  # pulgar
-
-    a = np.array(im).astype(np.float32)
-    guardar(a[..., :3], UI / puesto["archivo"], alfa=a[..., 3] / 255.0, fuerza=8)
-
-
-def manubrios():
-    for id_moto in PUESTOS:
-        manubrio(id_moto)
+# (El puesto de mando de cada moto, lo que se ve al manejar, sale de tools/gen_manubrios.py.)
 
 
 if __name__ == "__main__":
     TEX.mkdir(parents=True, exist_ok=True)
     UI.mkdir(parents=True, exist_ok=True)
-    for f in (asfalto, anden, pasto, lineas, cebras, fachada_ladrillo, fachada_concreto, fachada_vidrio, fachada_casa, manubrios, peatones):
+    for f in (asfalto, anden, pasto, lineas, cebras, fachada_ladrillo, fachada_concreto, fachada_vidrio, fachada_casa, peatones):
         f()
         print("generado:", f.__name__)

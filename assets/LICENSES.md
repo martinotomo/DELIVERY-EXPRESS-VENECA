@@ -20,9 +20,9 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | texturas/fachada_vidrio_luz.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_casa.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_casa_luz.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
-| ui/manubrio.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
-| ui/manubrio_nkd.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
-| ui/manubrio_ninja.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| ui/manubrio.png | `tools/gen_manubrios.py` | proyecto | propia | — | 30/09/2026 |
+| ui/manubrio_nkd.png | `tools/gen_manubrios.py` | proyecto | propia | — | 30/09/2026 |
+| ui/manubrio_ninja.png | `tools/gen_manubrios.py` | proyecto | propia | — | 30/09/2026 |
 | ui/motos_taller.png | `tools/recortar_motos.py` sobre `docs/referencias/moto_*.png`: recortes de capturas de TikTok (memes en pixel art de @d4rkfox, @miguelfrancolon, @soy_hey_77 y otros) que aportó Tomás | terceros (autores de los memes); recorte y pixelado del proyecto | **sin licencia: solo uso privado** (decisión D21). Reemplazar por dibujo propio o CC0 antes de publicar el juego | — | 30/09/2026 |
 | sonidos/motor_bws_1700.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/motor_bws_2350.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
