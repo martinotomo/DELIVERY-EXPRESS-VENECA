@@ -122,7 +122,7 @@ func run(t) -> void:
 	r.calificado.connect(func(n, c): calif.append(n))
 	_entregar(r)
 	t.check(calif.size() == 1 and calif[0] >= 1 and calif[0] <= 5, "al entregar el cliente califica")
-	# Entrega tarde (le quedaban menos de 10 s): voz de excusa.
+	# Entrega tarde (le quedaban menos de 10 s): frase de excusa.
 	ev_r.clear()
 	r.moto.pos = r.pedido.restaurante
 	r._revisar_llegada()

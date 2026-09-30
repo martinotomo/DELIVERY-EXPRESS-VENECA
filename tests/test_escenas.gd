@@ -294,13 +294,9 @@ func run(t) -> void:
 	t.check(larga + 12.0 <= r_sub.size.x, "la frase más larga cabe en una línea (%d px)" % larga)
 
 	t.check_eq(main.musica_actual, "conduccion", "en la calle suena la música de conducción")
-	var voces_antes: String = ride.ultima_voz
-	ride._ultima_voz = -99.0
-	ride._al_evento("recogido")
-	t.check_eq(ride.ultima_voz, "recogido", "la voz del domiciliario suena (assets/voces)")
 	ride._al_evento("casi")
-	t.check_eq(ride.ultima_voz, "recogido", "pero no dos voces seguidas en menos de 3 s")
-	t.check(ride.get_node("HUD/Subtitulo").text in ride.voces.FRASES.casi, "aunque el subtítulo sí sale")
+	t.check(ride.get_node("HUD/Subtitulo").text in ride.voces.FRASES.casi, "el comentario sale como subtítulo")
+	t.check(ride.get_node_or_null("Voz") == null, "y no suena ninguna voz (D28)")
 	# Estrellarse: cinemática y luego el remate.
 	ride.retraso_resultado = 0.0
 	ride.duracion_encuadre = 0.0

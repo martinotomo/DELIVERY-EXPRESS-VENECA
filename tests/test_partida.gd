@@ -25,7 +25,7 @@ func run(t) -> void:
 	p._revisar_llegada()
 	t.check_eq(p.fase, PARTIDA.ENTREGAR, "parado en el restaurante recoge")
 	t.check(p.objetivo() == p.pedido.cliente, "después guía al cliente")
-	t.check(eventos.has("recogido"), "sale el evento recogido (para la voz)")
+	t.check(eventos.has("recogido"), "sale el evento recogido (para la frase)")
 
 	p.moto.pos = p.pedido.cliente
 	p.moto.vel = 0.5

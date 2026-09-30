@@ -1,5 +1,5 @@
 extends RefCounted
-## Frases por evento: hoy son subtítulos; Tomás grabará las voces.
+## Frases por evento: solo subtítulos (D28: sin voces).
 
 const VOCES := preload("res://scripts/voces.gd")
 
@@ -12,10 +12,6 @@ func run(t) -> void:
 	var b: String = v.frase("casi")
 	t.check(a != b, "no repite la misma frase dos veces seguidas")
 	t.check_eq(v.frase("no-existe"), "", "evento sin frases devuelve vacío")
-	t.check_eq(VOCES.ruta_audio("casi", 0), "res://assets/voces/casi_1.wav", "cada frase tiene su ruta de audio prevista")
-	# F5: cada situación tiene al menos una voz grabada (hoy, provisionales de espeak-ng; D27).
-	var sin_voz: Array[String] = []
-	for e in VOCES.FRASES:
-		if not ResourceLoader.exists(VOCES.ruta_audio(e, 0)):
-			sin_voz.append(e)
-	t.check(sin_voz.is_empty(), "cada situación tiene su voz en assets/voces (faltan: %s)" % ", ".join(sin_voz))
+	# D28: Tomás quitó las voces. Las frases quedan solo como subtítulos, sin ningún audio.
+	t.check(not DirAccess.dir_exists_absolute("res://assets/voces"), "no hay carpeta de voces (D28)")
+	t.check(not (VOCES.new(1) as Object).has_method("ruta_audio"), "el juego ya no busca audios de voz")

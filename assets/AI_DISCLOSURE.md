@@ -108,68 +108,6 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | ui/cinematica_perro_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
 | ui/cinematica_perro_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
 | ui/cinematica_perro_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| voces/atropello_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/atropello_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/atropello_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/atropello_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/atropello_5.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/bache_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/bache_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/cancelado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/cancelado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/casi_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/casi_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/casi_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/casi_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/casi_5.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/choque_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/choque_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/choque_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/choque_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/entregado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/entregado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/entregado_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/escampo_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/escampo_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/estrellado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/estrellado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/final_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/final_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/fundido_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/fundido_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/golpe_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/golpe_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/grito_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/grito_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/grito_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/grito_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/lluvia_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/lluvia_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/moto_nueva_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/moto_nueva_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/pedido_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/pedido_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/pedido_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/perro_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/perro_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/pito_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/pito_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/pito_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/pito_4.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/racha_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/racha_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/racha_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/recogido_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/recogido_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/recogido_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/regado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/regado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/regado_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/reparado_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/reparado_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/reparado_3.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/tarde_1.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
-| voces/tarde_2.wav | `tools/gen_voces.py` + `tools/normalizar_voces.py` (voz sintética por formantes, **provisional** hasta que Tomás las grabe (D11); espeak-ng es GPLv3, su salida no queda bajo la GPL) |
 
 ## De terceros, sin IA
 
