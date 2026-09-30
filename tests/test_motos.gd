@@ -8,7 +8,7 @@ func run(t) -> void:
 	var bws: Dictionary = MOTOS.get_moto("bws")
 	t.check(not bws.is_empty(), "existe la BWS")
 	t.check_eq(MOTOS.MOTO_INICIAL, "bws", "la moto inicial es la BWS")
-	t.check_eq(bws.get("nombre"), "BWS", "la BWS se llama BWS en los mensajes")
+	t.check_eq(bws.get("nombre"), "Bwis", "la BWS se llama «Bwis» en todo lo que ve el jugador (Tomás, 30/09)")
 	t.check(MOTOS.get_moto("no-existe").is_empty(), "una moto desconocida devuelve vacío")
 	# Dos o tres motos como mucho (Tomás, 30/09): BWS, una intermedia y la Ninja 300 al final.
 	t.check_eq(MOTOS.ORDEN.size(), 3, "hay tres motos")
