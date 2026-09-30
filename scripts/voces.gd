@@ -70,6 +70,41 @@ const FRASES := {
 		"Conductor: ¡Otro de estos en moto! ¡Piiiii!",
 		"Conductor: ¡La vía no es suya, joven!",
 	],
+	"pedido": [
+		"¡Epa, llegó la chamba!",
+		"Dale, dale, ya voy saliendo, mi amor.",
+		"Otro pedido, mi pana. La fe no descansa.",
+	],
+	"racha": [
+		"¡Qué nivel! Nadie me para hoy.",
+		"¡Chamo, esquivo como en las películas!",
+		"La fe está prendida, vale. ¡Propina segura!",
+	],
+	"tarde": [
+		"Es que había un trancón arrecho, se lo juro.",
+		"Llegué, llegué... tarde, pero llegué.",
+	],
+	"regado": [
+		"¡Na' guará, se regó el sancocho!",
+		"Chamo, eso ya es mitad sopa, mitad maleta.",
+		"La torta ahora es un mapa, mi pana.",
+	],
+	"moto_nueva": [
+		"¡Mírala! Ahora sí llego más rápido... a la misma esquina.",
+		"Moto nueva, fe nueva, mi pana.",
+	],
+	"bache": [
+		"¡Ay, mi columna! Ese hueco tiene nombre propio.",
+		"¡Epa! Ese hueco ya estaba cuando yo llegué al país.",
+	],
+	"perro": [
+		"¡Quítate, Firulais, que voy con prisa!",
+		"¡Perrito, perrito, no me mires así!",
+	],
+	"final": [
+		"¿Mamá? ¿Usted fue la que pidió?",
+		"Llegó frío, mamá, pero llegó con fe.",
+	],
 	"estrellado": [
 		"Ay, no, chamo... se nos fue el pana.",
 		"Otro más pa' la estadística, vale.",

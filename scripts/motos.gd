@@ -22,10 +22,15 @@ const BASE := {
 	"agarre": 1.0,      # cuánto aguanta el giro a tope antes de irse de lado (multiplica DERRAPE_SOSTENIDO)
 }
 
+## El remate de la caída en la curva (D9): el chiste central, con el nombre de cada moto.
+const REMATE := "Has muerto al entrar demasiado rápido en la curva, tu fe era más grande que el agarre de tu %s."
+
 const MOTOS := {
 	"bws": {
 		"nombre": "Bwis", # así la llama Tomás (30/09); el id interno sigue siendo "bws"
 		"precio": 0,
+		# Zonas a las que llegan sus pedidos (DISENO §7): cada moto abre una más (D27).
+		"zonas": ["barrio", "centro"],
 		"vel_max": 25.0,    # 90 km/h, y porque va bajando
 		"acel": 3.2,        # empuje a baja velocidad; se apaga al acercarse al tope
 		"freno": 7.0,
@@ -42,6 +47,7 @@ const MOTOS := {
 	"nkd": {
 		"nombre": "NKD 125",
 		"precio": 40000,
+		"zonas": ["barrio", "centro", "industrial"],
 		"vel_max": 30.5,    # 110 km/h
 		"acel": 4.2,
 		"freno": 8.0,
@@ -57,6 +63,7 @@ const MOTOS := {
 	"ninja": {
 		"nombre": "Ninja 300",
 		"precio": 90000,
+		"zonas": ["barrio", "centro", "industrial", "rica"],
 		"vel_max": 40.0,    # 144 km/h
 		"acel": 6.0,
 		"freno": 9.0,
@@ -79,6 +86,8 @@ static func get_moto(id: String) -> Dictionary:
 	var m: Dictionary = BASE.duplicate()
 	m.merge(MOTOS[id], true)
 	m["id"] = id
+	if not m.has("remate"):
+		m["remate"] = REMATE % m.nombre
 	return m
 
 

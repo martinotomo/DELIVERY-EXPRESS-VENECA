@@ -38,6 +38,8 @@ var estado := RODANDO
 var _t_derrape := 0.0
 var calor := 0.0            # s acumulados a fondo (0 a MOTOR_GRACIA + MOTOR_AVISO)
 var motor_fundido := false
+var factor_freno := 1.0  # <1: frena peor (un pedido de licor pesa, DISENO §5.4)
+var agarre_suelo := 1.0  # <1: el piso no agarra (aceite) y el manubrio casi no gira
 var _t_reparar := 0.0
 var _enfriar_casi := 0.0
 var _enfriar_golpe := 0.0
@@ -123,13 +125,13 @@ func _paso(dt: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	if motor_fundido:
 		a = -FRENO_FUNDIDO # frena en seco y no acelera hasta repararlo
 	elif frenar:
-		a = -float(moto.freno)
+		a = -float(moto.freno) * factor_freno
 	elif acelerar:
 		a = float(moto.acel) * (1.0 - pow(vel / vmax, 2))
 	vel = clampf(vel + a * dt, 0.0, vmax)
 
 	# Girar: más maniobrable despacio; a toda, el manubrio a tope la hace irse de lado.
-	rumbo += giro * giro_max_a(vel) * dt
+	rumbo += giro * giro_max_a(vel) * dt * agarre_suelo
 	if absf(giro) >= DERRAPE_GIRO and vel > DERRAPE_FRACCION * float(moto.vel_max):
 		_t_derrape += dt
 	else:
@@ -143,7 +145,7 @@ func _paso(dt: float, acelerar: bool, frenar: bool, giro: float) -> void:
 		if vel > float(moto.vel_choque):
 			pos = nueva
 			estado = ESTRELLADA
-			estrellado.emit(MENSAJES.muerte_curva(moto.nombre))
+			estrellado.emit(str(moto.get("remate", MENSAJES.muerte_curva(moto.nombre))))
 		else:
 			if vel > 0.5 and _enfriar_golpe <= 0.0:
 				_enfriar_golpe = CASI_ENFRIAR

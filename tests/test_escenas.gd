@@ -41,6 +41,10 @@ func run(t) -> void:
 		var r_logo := Rect2(logo.position, logo.size * logo.scale)
 		t.check(r_logo.end.y <= menu.find_child("Jugar", true, false).global_position.y and r_logo.position.x >= 0.0 and r_logo.end.x <= 640.0, "el logo no se monta en los botones (%s)" % r_logo)
 	t.check(menu.LOGO_PARA == "Delivery Express", "el logo dice para qué nombre está hecho")
+	# Música en el director (sobrevive a los cambios de pantalla).
+	t.check(main.get_node("Musica").playing and main.musica_actual == "menu", "en el menú suena su música")
+	var loop_menu: AudioStreamWAV = main.get_node("Musica").stream
+	t.check(loop_menu.loop_mode != AudioStreamWAV.LOOP_DISABLED, "la música del menú da vueltas sin cortarse")
 	t.check(menu.get_node("Estado").text.contains("Bwis"), "el menú dice qué moto se tiene")
 
 	# Taller: con plata se compra; sin plata los botones están apagados.
@@ -289,6 +293,14 @@ func run(t) -> void:
 			larga = maxf(larga, fuente.get_string_size(f, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x)
 	t.check(larga + 12.0 <= r_sub.size.x, "la frase más larga cabe en una línea (%d px)" % larga)
 
+	t.check_eq(main.musica_actual, "conduccion", "en la calle suena la música de conducción")
+	var voces_antes: String = ride.ultima_voz
+	ride._ultima_voz = -99.0
+	ride._al_evento("recogido")
+	t.check_eq(ride.ultima_voz, "recogido", "la voz del domiciliario suena (assets/voces)")
+	ride._al_evento("casi")
+	t.check_eq(ride.ultima_voz, "recogido", "pero no dos voces seguidas en menos de 3 s")
+	t.check(ride.get_node("HUD/Subtitulo").text in ride.voces.FRASES.casi, "aunque el subtítulo sí sale")
 	# Estrellarse: cinemática y luego el remate.
 	ride.retraso_resultado = 0.0
 	ride.duracion_encuadre = 0.0
@@ -300,6 +312,7 @@ func run(t) -> void:
 	# Antes de que cambie la pantalla: la moto caída tiene que verse, y grande.
 	var caida: Node3D = ride.get_node("Vista/Mundo/MotoCaida")
 	t.check(caida.is_visible_in_tree(), "en la caída la moto está visible")
+	t.check_eq(main.musica_actual, "muerte", "al caer entra la música épica y trágica")
 	var caja := AABB()
 	var primera := true
 	for pieza in caida.get_node("Cuerpo").get_children():
@@ -521,6 +534,26 @@ func run(t) -> void:
 	t.check(Vector2(cerros.position.x, cerros.position.z).distance_to(r2.partida.moto.pos) < 0.01, "los cerros siguen a la moto")
 	t.check(caja_c.get_center().x < -200.0 and caja_c.position.y + caja_c.size.y > 50.0, "los cerros quedan al oriente y altos (%s)" % str(caja_c))
 	t.check((cerros.mesh.surface_get_material(0) as StandardMaterial3D).disable_fog, "la niebla no se los come")
+	# F5 en el HUD: tipo de pedido con su aviso, racha de fe y calificación del cliente.
+	r2.partida.pedido.tipo = "sopa"
+	r2.partida.fase = r2.partida.ENTREGAR
+	r2.partida.estado_pedido = 0.5
+	r2._actualizar_vista(0.0)
+	var l_ped: String = r2.get_node("HUD/Pedido").text
+	t.check(l_ped.contains("SOPA") and l_ped.contains("50%"), "el pedido dice que es sopa y cómo va (%s)" % l_ped.replace("\n", " / "))
+	t.check(l_ped.contains(r2.partida.pedido.nombre_cliente.to_upper()), "y para quién es")
+	r2.partida.racha = 4
+	r2._actualizar_vista(0.0)
+	var l_racha: Label = r2.get_node("HUD/Racha")
+	t.check(l_racha.visible and l_racha.text.contains("4"), "la racha de fe se ve en el HUD (%s)" % l_racha.text)
+	r2.partida.racha = 0
+	r2._actualizar_vista(0.0)
+	t.check(not l_racha.visible, "sin racha no se muestra")
+	r2.partida.calificado.emit(4, "Rápido y completo.")
+	r2._actualizar_vista(0.0)
+	var l_estr: Label = r2.get_node("HUD/Estrellas")
+	t.check(l_estr.visible and l_estr.text.count("★") == 4 and l_estr.text.count("☆") == 1, "sale la calificación con estrellas (%s)" % l_estr.text)
+	t.check(not Rect2(l_estr.position, l_estr.get_minimum_size()).intersects(Rect2(r2.get_node("HUD/Minimapa").position, r2.get_node("HUD/Minimapa").size)), "la calificación no tapa el minimapa")
 	# Nomenclatura (F3): placas en las esquinas cercanas y la ubicación bajo el minimapa.
 	r2.partida.moto.pos = c.cruce(20, 41) + Vector2(30, 0)
 	r2._actualizar_vista(0.0)

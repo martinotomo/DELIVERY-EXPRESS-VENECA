@@ -12,13 +12,41 @@ const RESULTADO := preload("res://scenes/resultado.tscn")
 static var ruta_progreso := "user://progreso.cfg"
 
 var progreso
+## Música (DISENO §11): vive aquí, en el director, para que no se corte al cambiar de pantalla
+## (CLAUDE.md §5). Menú y taller: «menu»; en la calle: «conduccion»; al caer: «muerte».
+var musica_actual := ""
+var _musica: AudioStreamPlayer
+const MUSICA_DB := {"menu": -12.0, "conduccion": -18.0, "muerte": -6.0} # la de la calle va −18 dB bajo los efectos
+const MUSICA_BAJA := 9.0 # dB que se baja mientras habla el domiciliario
 
 @onready var _pantallas: Node = $Pantallas
 
 
 func _ready() -> void:
 	progreso = PROGRESO.new(ruta_progreso)
+	_musica = AudioStreamPlayer.new()
+	_musica.name = "Musica"
+	add_child(_musica)
 	menu()
+
+
+func musica(nombre: String) -> void:
+	if nombre == musica_actual and _musica.playing:
+		return
+	musica_actual = nombre
+	_musica.stream = load("res://assets/musica/%s.wav" % nombre)
+	_musica.volume_db = MUSICA_DB[nombre]
+	_musica.play()
+
+
+## Mientras habla el domiciliario, la música de la calle se baja y luego vuelve.
+func bajar_musica(segundos: float) -> void:
+	if musica_actual != "conduccion":
+		return
+	var tw := create_tween()
+	tw.tween_property(_musica, "volume_db", MUSICA_DB.conduccion - MUSICA_BAJA, 0.15)
+	tw.tween_interval(maxf(segundos - 0.3, 0.0))
+	tw.tween_property(_musica, "volume_db", MUSICA_DB.conduccion, 0.4)
 
 
 func pantalla_actual() -> Node:
@@ -28,6 +56,7 @@ func pantalla_actual() -> Node:
 
 func menu() -> void:
 	var m := _mostrar(MENU)
+	musica("menu")
 	m.jugar.connect(reiniciar, CONNECT_DEFERRED)
 	m.taller.connect(taller, CONNECT_DEFERRED)
 	m.salir.connect(func(): get_tree().quit())
@@ -35,18 +64,24 @@ func menu() -> void:
 
 func taller() -> void:
 	var t := _mostrar(TALLER)
+	musica("menu")
 	t.volver.connect(menu, CONNECT_DEFERRED)
 
 
 func reiniciar() -> void:
 	var ride := _mostrar(RECORRIDO)
+	musica("conduccion")
 	ride.partida.pagado.connect(progreso.ganar)
+	ride.partida.terminada_por.connect(func(_m): musica("muerte"))
+	ride.hablo.connect(bajar_musica)
 	ride.terminado.connect(_al_terminar)
 	ride.reintentar.connect(reiniciar, CONNECT_DEFERRED)
 	ride.al_menu.connect(menu, CONNECT_DEFERRED)
 
 
 func _al_terminar(estado: String, mensaje: String) -> void:
+	if estado == "final":
+		musica("menu")
 	var ilustracion: Texture2D = pantalla_actual().get("ilustracion_final")
 	_mostrar_resultado.call_deferred(estado, mensaje, ilustracion)
 

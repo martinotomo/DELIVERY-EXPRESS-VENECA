@@ -62,7 +62,7 @@ func mostrar(estado: String, mensaje: String, ilustracion: Texture2D = null) -> 
 		move_child(fondo, 1) # encima del negro, debajo de la caja y los textos
 	var titulo := Label.new()
 	titulo.name = "Titulo"
-	titulo.text = {"estrellado": "R.I.P.", "entregado": "ENTREGADO", "sin_tiempo": "CANCELADO"}.get(estado, "")
+	titulo.text = {"estrellado": "R.I.P.", "entregado": "ENTREGADO", "sin_tiempo": "CANCELADO", "final": "FIN"}.get(estado, "")
 	titulo.position = Vector2(0, 70)
 	titulo.size = Vector2(640, 40)
 	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
