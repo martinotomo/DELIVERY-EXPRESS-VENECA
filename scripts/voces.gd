@@ -14,9 +14,15 @@ const FRASES := {
 		"Llegamos vivos, chamo. Eso ya es ganancia.",
 	],
 	"casi": [
+		"¡Na' guará, casi!",
+		"Fe, mi pana, pura fe.",
 		"¡Chamo, casi te matas, vale!",
 		"¡Épale, épale! Frena esa burra, mi pana.",
 		"¡Qué molleja, casi besas el andén!",
+	],
+	"golpe": [
+		"¡Epa, epa! Eso no pasó.",
+		"Tranquilo, mi pana, que el andén no se movió.",
 	],
 	"cancelado": [
 		"Chamo, el cliente canceló. Te tocó comértelo a ti.",

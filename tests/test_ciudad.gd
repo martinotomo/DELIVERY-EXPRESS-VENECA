@@ -17,12 +17,14 @@ func run(t) -> void:
 	var cortas := 0
 	var largas := 0
 	for l in c.largos:
-		if l < 60.0:
+		if l < 80.0:
 			cortas += 1
-		if l > 100.0:
+		if l > 125.0:
 			largas += 1
 	t.check(cortas >= 5 and largas >= 5, "hay cuadras cortas (%d) y largas (%d)" % [cortas, largas])
 	t.check(c.parques.size() > 0, "hay parques entre los edificios")
+	var todos: Array = c.anchos + c.largos
+	t.check(todos.min() >= 60.0 and todos.max() <= 160.0, "cuadras entre 0,6 y 1,6 veces 100 m (DISENO §6)")
 
 	# Misma semilla, misma ciudad; otra semilla, otra ciudad.
 	var c2 = CIUDAD.new(1234)

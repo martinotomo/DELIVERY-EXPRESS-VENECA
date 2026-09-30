@@ -31,12 +31,12 @@ func _init(semilla := 1) -> void:
 			alturas.append(rng.randf_range(6.0, 12.0) if rng.randf() < 0.6 else rng.randf_range(12.0, 45.0))
 
 
-## Mezcla de cuadras cortas, medianas y largas (en metros, enteros).
+## Mezcla de cuadras cortas, medianas y largas: 0,6 a 1,6 veces la cuadra normal de 100 m (DISENO §6).
 func _tamanos(rng: RandomNumberGenerator, n: int) -> Array[float]:
 	var r: Array[float] = []
 	for k in n:
 		var d := rng.randf()
-		var v := rng.randf_range(35.0, 60.0) if d < 0.35 else (rng.randf_range(60.0, 100.0) if d < 0.8 else rng.randf_range(100.0, 150.0))
+		var v := rng.randf_range(60.0, 85.0) if d < 0.35 else (rng.randf_range(85.0, 120.0) if d < 0.8 else rng.randf_range(120.0, 160.0))
 		r.append(float(roundi(v)))
 	return r
 

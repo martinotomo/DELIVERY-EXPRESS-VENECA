@@ -4,6 +4,7 @@ extends RefCounted
 
 signal estrellado(mensaje: String)
 signal casi(tipo: String)
+signal golpe # tocó el andén despacio: solo queja
 
 const MENSAJES := preload("res://scripts/mensajes.gd")
 
@@ -22,6 +23,7 @@ var vel := 0.0
 var derrapando := false
 var estado := RODANDO
 var _enfriar_casi := 0.0
+var _enfriar_golpe := 0.0
 
 
 func setup(p_moto: Dictionary, p_ciudad, p_pos: Vector2, p_rumbo: float) -> void:
@@ -33,6 +35,7 @@ func setup(p_moto: Dictionary, p_ciudad, p_pos: Vector2, p_rumbo: float) -> void
 	derrapando = false
 	estado = RODANDO
 	_enfriar_casi = 0.0
+	_enfriar_golpe = 0.0
 
 
 func direccion() -> Vector2:
@@ -69,6 +72,7 @@ func _paso(dt: float, acelerar: bool, frenar: bool, giro: float) -> void:
 		derrapando = true
 	rumbo += omega * dt
 
+	_enfriar_golpe = maxf(_enfriar_golpe - dt, 0.0)
 	var nueva := pos + direccion() * vel * dt
 	var d: float = ciudad.distancia_anden(nueva)
 	if d <= float(moto.radio):
@@ -77,6 +81,9 @@ func _paso(dt: float, acelerar: bool, frenar: bool, giro: float) -> void:
 			estado = ESTRELLADA
 			estrellado.emit(MENSAJES.muerte_curva(moto.nombre))
 		else:
+			if vel > 0.5 and _enfriar_golpe <= 0.0:
+				_enfriar_golpe = CASI_ENFRIAR
+				golpe.emit()
 			vel = 0.0 # topó el andén despacio: se queda ahí
 		return
 	pos = nueva
