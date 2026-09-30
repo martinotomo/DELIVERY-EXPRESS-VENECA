@@ -70,10 +70,33 @@ func run(t) -> void:
 	t.check_eq(p.dinero, 0, "la NKD se cobra")
 	t.check(not p.tiene_mejora("exosto"), "la moto nueva llega de fábrica")
 	t.check_eq(p.datos_moto().nombre, "NKD 125", "y se llama NKD 125")
-	t.check_eq(p.estado_moto("bws"), PROGRESO.ENTREGADA, "la Bwis se entregó al comprar la NKD")
+	t.check_eq(p.estado_moto("bws"), PROGRESO.TENIDA, "la Bwis no se entrega: se queda en el garaje (Tomás, 30/09)")
 	t.check_eq(p.estado_moto("nkd"), PROGRESO.EN_USO, "la NKD queda en uso")
 	var partida2 = PARTIDA.new(1, p.datos_moto())
 	t.check_eq(partida2.moto.moto.nombre, "NKD 125", "la partida sale con la moto comprada")
+	# Volver a una moto anterior: sale con sus mejoras de siempre.
+	t.check(p.datos_de("bws").vel_max > MOTOS.get_moto("bws").vel_max, "la Bwis del garaje conserva sus mejoras")
+	t.check(p.usar("bws"), "se puede volver a la Bwis")
+	t.check_eq(p.moto, "bws", "ahora se anda en la Bwis")
+	t.check(p.tiene_mejora("exosto") and p.tiene_mejora("motor"), "con el exosto y el motor que tenía")
+	t.check_eq(p.estado_moto("nkd"), PROGRESO.TENIDA, "la NKD queda en el garaje")
+	t.check(not p.usar("ninja"), "una moto que no se ha comprado no se puede usar")
+	t.check_eq(p.siguiente_moto(), "ninja", "andando en la Bwis, la que sigue por comprar es la Ninja")
+	t.check_eq(p.estado_moto("ninja"), PROGRESO.SIN_PLATA, "y la Ninja se puede comprar sin volver a la NKD (solo falta plata)")
+	var recargado = PROGRESO.new(RUTA)
+	t.check(recargado.moto == "bws" and recargado.tiene_mejora("motor") and recargado.estado_moto("nkd") == PROGRESO.TENIDA, "el garaje queda guardado en disco")
+	p.usar("nkd")
+	t.check(not p.tiene_mejora("exosto"), "cada moto tiene sus propias mejoras")
+	# Partidas guardadas antes de este cambio (moto + mejoras de la actual): las anteriores pasan a ser tuyas.
+	var viejo := ConfigFile.new()
+	viejo.set_value("progreso", "dinero", 7)
+	viejo.set_value("progreso", "moto", "ninja")
+	viejo.set_value("progreso", "mejoras", {"motor": true})
+	viejo.save(RUTA)
+	var migrado = PROGRESO.new(RUTA)
+	t.check(migrado.moto == "ninja" and migrado.tiene_mejora("motor"), "una partida vieja conserva la moto y sus mejoras")
+	t.check(migrado.estado_moto("bws") == PROGRESO.TENIDA and migrado.estado_moto("nkd") == PROGRESO.TENIDA, "y recupera las motos que antes se entregaban")
+	p = PROGRESO.new(RUTA)
 	p.moto = "ninja"
 	t.check_eq(p.siguiente_moto(), "", "después de la Ninja no hay más")
 	p.dinero = 9999999
@@ -82,8 +105,8 @@ func run(t) -> void:
 	# Plata de prueba (F10, solo en desarrollo): 5 toques alcanzan para las tres motos con todo.
 	var q = PROGRESO.new(RUTA)
 	q.dinero = 0
+	q.tenidas = {"bws": {}}
 	q.moto = "bws"
-	q.mejoras = {}
 	for k in 5:
 		q.plata_de_prueba()
 	t.check_eq(q.dinero, 5 * PROGRESO.PLATA_PRUEBA, "cada toque de F10 suma %s" % PROGRESO.pesos(PROGRESO.PLATA_PRUEBA))
