@@ -15,10 +15,8 @@ const ALTURA_OJOS := 1.35
 const ANDEN_ALTO := 0.2
 const SUBTITULO_S := 3.5
 
-const C_ASFALTO := Color("3a3a3c")
-const C_ANDEN := Color("8a8a86")
-const C_PARQUE := Color("46603f")
 const C_TEXTO := Color("e8e8e8")
+const C_ROJO := Color("e0301e")
 
 var partida = PARTIDA.new(20260929)
 var voces = VOCES.new(1)
@@ -65,23 +63,44 @@ func _process(delta: float) -> void:
 	_actualizar_vista(delta)
 
 
-# --- mundo 3D gris -----------------------------------------------------------------
+# --- mundo 3D con texturas pixeladas --------------------------------------------------
+
+const TEX := "res://assets/texturas/"
+## Tipos de fachada por altura: [nombre, altura máxima, metros que ocupa la textura (ancho, alto)].
+const FACHADAS := [["casa", 10.0], ["ladrillo", 20.0], ["concreto", 32.0], ["vidrio", 999.0]]
+const TINTES_CASA := [Color("9fc4a8"), Color("9db4d8"), Color("e6cf8a"), Color("e3a9a0"), Color("f2efe6"), Color("c9a6d6")]
+
+var _mats_luz: Array[StandardMaterial3D] = []
+var _mat_bombillos: StandardMaterial3D
+var _cielo: ProceduralSkyMaterial
+var _t_cielo := 99.0
+
 
 func _material(color: Color, por_instancia := false) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.vertex_color_use_as_albedo = por_instancia
-	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
 	return m
 
 
-func _cajas(nombre: String, n: int, material: Material) -> MultiMeshInstance3D:
+## Material con textura pegada al mundo (triplanar): se repite igual sin importar el tamaño de la caja.
+func _material_tex(nombre: String, metros: Vector3, por_instancia := false) -> StandardMaterial3D:
+	var m := _material(Color.WHITE, por_instancia)
+	m.albedo_texture = load(TEX + nombre + ".png")
+	m.uv1_triplanar = true
+	m.uv1_world_triplanar = true
+	m.uv1_scale = Vector3(1.0 / metros.x, 1.0 / metros.y, 1.0 / metros.z)
+	return m
+
+
+func _cajas(nombre: String, n: int, material: Material, malla: PrimitiveMesh = null) -> MultiMeshInstance3D:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
-	var caja := BoxMesh.new()
-	caja.material = material
-	mm.mesh = caja
+	var forma: PrimitiveMesh = malla if malla != null else BoxMesh.new()
+	forma.material = material
+	mm.mesh = forma
 	mm.instance_count = n
 	var mmi := MultiMeshInstance3D.new()
 	mmi.name = nombre
@@ -117,17 +136,22 @@ func _construir_mundo() -> void:
 	vista.add_child(_mundo)
 
 	_entorno = Environment.new()
-	_entorno.background_mode = Environment.BG_COLOR
+	_cielo = ProceduralSkyMaterial.new()
+	_cielo.sun_angle_max = 8.0
+	var sky := Sky.new()
+	sky.sky_material = _cielo
+	_entorno.background_mode = Environment.BG_SKY
+	_entorno.sky = sky
 	_entorno.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	_entorno.fog_enabled = true
-	_entorno.fog_density = 0.012
+	_entorno.fog_density = 0.007
+	_entorno.fog_sky_affect = 0.35
 	var we := WorldEnvironment.new()
 	we.environment = _entorno
 	_mundo.add_child(we)
 
 	_sol = DirectionalLight3D.new()
 	_sol.name = "Sol"
-	_sol.rotation = Vector3(deg_to_rad(-55), deg_to_rad(30), 0)
 	_mundo.add_child(_sol)
 
 	var c = partida.ciudad
@@ -135,38 +159,65 @@ func _construir_mundo() -> void:
 	var ciudad := Node3D.new()
 	ciudad.name = "Ciudad"
 	_mundo.add_child(ciudad)
-	_caja(ciudad, Vector3(tam.x, 0.1, tam.y), Vector3(tam.x / 2.0, -0.05, tam.y / 2.0), C_ASFALTO, "Asfalto")
+	var asfalto := _caja(ciudad, Vector3(tam.x, 0.1, tam.y), Vector3(tam.x / 2.0, -0.05, tam.y / 2.0), Color.WHITE, "Asfalto")
+	asfalto.mesh.material = _material_tex("asfalto", Vector3(5, 5, 5))
 
 	var n: int = c.N_ANCHO * c.N_LARGO
-	var andenes := _cajas("Andenes", n, _material(Color.WHITE, true))
-	var edificios := _cajas("Edificios", n - c.parques.size(), _material(Color.WHITE, true))
-	var parques := _cajas("Parques", c.parques.size(), _material(Color.WHITE, true))
+	var andenes := _cajas("Andenes", n, _material_tex("anden", Vector3(3, 3, 3), true))
+	var parques := _cajas("Parques", c.parques.size(), _material_tex("pasto", Vector3(4, 4, 4), true))
+	# Primero contar cuántos edificios hay de cada tipo.
+	var por_tipo := {}
+	for f in FACHADAS:
+		por_tipo[f[0]] = []
+	for j in c.N_LARGO:
+		for i in c.N_ANCHO:
+			if not c.es_parque(i, j):
+				por_tipo[_tipo_fachada(c.altura(i, j))].append(Vector2i(i, j))
+	var edificios := Node3D.new()
+	edificios.name = "Edificios"
+	ciudad.add_child(edificios)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
+	for f in FACHADAS:
+		var tipo: String = f[0]
+		var mat := _material_tex("fachada_" + tipo, Vector3(8, 6.4, 8), true)
+		mat.emission_enabled = true
+		mat.emission_texture = load(TEX + "fachada_%s_luz.png" % tipo)
+		mat.emission = Color.WHITE
+		mat.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
+		_mats_luz.append(mat)
+		var lista: Array = por_tipo[tipo]
+		var mmi := _cajas(tipo.capitalize(), lista.size(), mat)
+		for k in lista.size():
+			var ij: Vector2i = lista[k]
+			var r: Rect2 = c.cuadra(ij.x, ij.y)
+			var h: float = c.altura(ij.x, ij.y)
+			var dentro := Vector3(r.size.x - 2.0 * c.ANDEN, h, r.size.y - 2.0 * c.ANDEN)
+			var centro := Vector3(r.get_center().x, h / 2.0 + ANDEN_ALTO, r.get_center().y)
+			mmi.multimesh.set_instance_transform(k, Transform3D(Basis.from_scale(dentro), centro))
+			var tinte: Color = TINTES_CASA[rng.randi_range(0, TINTES_CASA.size() - 1)] if tipo == "casa" else Color.WHITE * rng.randf_range(0.8, 1.0)
+			tinte.a = 1.0
+			mmi.multimesh.set_instance_color(k, tinte)
+		edificios.add_child(mmi)
+
 	var k_a := 0
-	var k_e := 0
 	var k_p := 0
 	for j in c.N_LARGO:
 		for i in c.N_ANCHO:
 			var r: Rect2 = c.cuadra(i, j)
 			var centro := Vector3(r.get_center().x, 0.0, r.get_center().y)
 			andenes.multimesh.set_instance_transform(k_a, Transform3D(Basis.from_scale(Vector3(r.size.x, ANDEN_ALTO, r.size.y)), centro + Vector3(0, ANDEN_ALTO / 2.0, 0)))
-			andenes.multimesh.set_instance_color(k_a, C_ANDEN)
+			andenes.multimesh.set_instance_color(k_a, Color.WHITE)
 			k_a += 1
-			var dentro := Vector3(r.size.x - 2.0 * c.ANDEN, 0.0, r.size.y - 2.0 * c.ANDEN)
 			if c.es_parque(i, j):
-				parques.multimesh.set_instance_transform(k_p, Transform3D(Basis.from_scale(Vector3(dentro.x, 0.1, dentro.z)), centro + Vector3(0, ANDEN_ALTO + 0.05, 0)))
-				parques.multimesh.set_instance_color(k_p, C_PARQUE)
+				var dentro := Vector3(r.size.x - 2.0 * c.ANDEN, 0.1, r.size.y - 2.0 * c.ANDEN)
+				parques.multimesh.set_instance_transform(k_p, Transform3D(Basis.from_scale(dentro), centro + Vector3(0, ANDEN_ALTO + 0.05, 0)))
+				parques.multimesh.set_instance_color(k_p, Color.WHITE)
 				k_p += 1
-			else:
-				var h: float = c.altura(i, j)
-				edificios.multimesh.set_instance_transform(k_e, Transform3D(Basis.from_scale(Vector3(dentro.x, h, dentro.z)), centro + Vector3(0, h / 2.0, 0)))
-				var gris := rng.randf_range(0.35, 0.7)
-				edificios.multimesh.set_instance_color(k_e, Color(gris, gris, gris * rng.randf_range(0.95, 1.05)))
-				k_e += 1
 	ciudad.add_child(andenes)
-	ciudad.add_child(edificios)
 	ciudad.add_child(parques)
+	_construir_lineas(ciudad, c)
+	_construir_postes(ciudad, c)
 
 	# Faros de pedido: columnas altas que se ven por encima de los edificios.
 	_faro_rest = _caja(_mundo, Vector3(1.2, 60, 1.2), Vector3.ZERO, Color("ff8a2a"), "FaroRestaurante")
@@ -179,7 +230,7 @@ func _construir_mundo() -> void:
 	_camara.name = "Camara"
 	_camara.fov = 75.0
 	_camara.near = 0.1
-	_camara.far = 350.0
+	_camara.far = 450.0
 	_mundo.add_child(_camara)
 	_camara.current = true
 	_farola = SpotLight3D.new()
@@ -193,6 +244,64 @@ func _construir_mundo() -> void:
 	_moto_caida = _construir_moto_caida()
 	_moto_caida.visible = false
 	_mundo.add_child(_moto_caida)
+
+
+func _tipo_fachada(h: float) -> String:
+	for f in FACHADAS:
+		if h <= f[1]:
+			return f[0]
+	return "vidrio"
+
+
+## Línea amarilla a trazos por el centro de cada tramo de vía (entre cruce y cruce).
+func _construir_lineas(padre: Node3D, c) -> void:
+	var horizontales: Array[Transform3D] = []
+	var verticales: Array[Transform3D] = []
+	for j in c.N_LARGO + 1:
+		for i in c.N_ANCHO:
+			var y: float = c.cruce(0, j).y
+			var x0: float = c.inicio_x[i]
+			var largo: float = c.anchos[i]
+			horizontales.append(Transform3D(Basis.from_scale(Vector3(largo, 1, 0.25)), Vector3(x0 + largo / 2.0, 0.02, y)))
+	for i in c.N_ANCHO + 1:
+		for j in c.N_LARGO:
+			var x: float = c.cruce(i, 0).x
+			var y0: float = c.inicio_y[j]
+			var largo: float = c.largos[j]
+			verticales.append(Transform3D(Basis.from_scale(Vector3(0.25, 1, largo)), Vector3(x, 0.02, y0 + largo / 2.0)))
+	for par in [["LineasCalles", "linea_h", horizontales], ["LineasCarreras", "linea_v", verticales]]:
+		var mat := _material_tex(par[1], Vector3(4, 4, 4))
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		var plano := PlaneMesh.new()
+		plano.size = Vector2(1, 1)
+		var mmi := _cajas(par[0], par[2].size(), mat, plano)
+		for k in par[2].size():
+			mmi.multimesh.set_instance_transform(k, par[2][k])
+			mmi.multimesh.set_instance_color(k, Color.WHITE)
+		padre.add_child(mmi)
+
+
+## Postes de luz en las esquinas de cada cuadra; la bombilla brilla de noche.
+func _construir_postes(padre: Node3D, c) -> void:
+	var n: int = c.N_ANCHO * c.N_LARGO * 2
+	var postes := _cajas("Postes", n, _material(Color("3a3c40")))
+	_mat_bombillos = _material(Color("2a2a2a"))
+	_mat_bombillos.emission_enabled = true
+	_mat_bombillos.emission = Color("f0b046")
+	var bombillos := _cajas("Bombillos", n, _mat_bombillos)
+	var k := 0
+	for j in c.N_LARGO:
+		for i in c.N_ANCHO:
+			var r: Rect2 = c.cuadra(i, j)
+			for esquina in [r.position + Vector2(1.0, 1.0), r.end - Vector2(1.0, 1.0)]:
+				var base := Vector3(esquina.x, ANDEN_ALTO, esquina.y)
+				postes.multimesh.set_instance_transform(k, Transform3D(Basis.from_scale(Vector3(0.18, 7.0, 0.18)), base + Vector3(0, 3.5, 0)))
+				postes.multimesh.set_instance_color(k, Color.WHITE)
+				bombillos.multimesh.set_instance_transform(k, Transform3D(Basis.from_scale(Vector3(0.7, 0.25, 0.4)), base + Vector3(0, 7.1, 0)))
+				bombillos.multimesh.set_instance_color(k, Color.WHITE)
+				k += 1
+	padre.add_child(postes)
+	padre.add_child(bombillos)
 
 
 ## La BWS en bloques para la cinemática: se ve desde fuera solo cuando se cae.
@@ -211,7 +320,7 @@ func _construir_moto_caida() -> Node3D:
 	var piloto := Node3D.new()
 	piloto.name = "Piloto"
 	moto.add_child(piloto)
-	_caja(piloto, Vector3(1.0, 0.3, 0.45), Vector3(0, 0.15, 0), Color("6a6a6a"))     # cuerpo tendido
+	_caja(piloto, Vector3(1.0, 0.3, 0.45), Vector3(0, 0.15, 0), Color("aa3c1e"))     # cuerpo tendido, chaqueta
 	_caja(piloto, Vector3(0.35, 0.35, 0.35), Vector3(0.7, 0.18, 0), Color("eeeeee")) # casco
 	_caja(piloto, Vector3(0.5, 0.5, 0.5), Vector3(-0.3, 0.5, 0.35), Color("c8742c")) # caja del domicilio
 	_caja(piloto, Vector3(1.4, 0.02, 1.0), Vector3(0.3, 0.01, 0), Color("8c1010"), "Charco")
@@ -222,12 +331,13 @@ func _construir_moto_caida() -> Node3D:
 
 func _texto(pos: Vector2, tam: int, nombre: String, ancho := 0.0) -> Label:
 	var l := Label.new()
-	l.name = nombre
+	if nombre != "":
+		l.name = nombre
 	l.position = pos
 	l.add_theme_font_size_override("font_size", tam)
 	l.add_theme_color_override("font_color", C_TEXTO)
 	l.add_theme_color_override("font_outline_color", Color.BLACK)
-	l.add_theme_constant_override("outline_size", 3)
+	l.add_theme_constant_override("outline_size", 4)
 	if ancho > 0.0:
 		l.size = Vector2(ancho, tam + 6)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -246,34 +356,66 @@ func _construir_hud() -> void:
 	_manubrio.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_manubrio)
 
+	# Barra de estado abajo, a lo Doom: números grandes en rojo sobre fondo oscuro.
+	var barra := ColorRect.new()
+	barra.name = "Barra"
+	barra.color = Color("1c1c22")
+	barra.position = Vector2(0, 334)
+	barra.size = Vector2(640, 26)
+	hud.add_child(barra)
+	var filo := ColorRect.new()
+	filo.color = Color("5c5c64")
+	filo.size = Vector2(640, 2)
+	barra.add_child(filo)
+	_l_vel = _texto(Vector2(10, 339), 16, "Velocidad")
+	_l_vel.add_theme_color_override("font_color", C_ROJO)
+	_etiqueta(Vector2(84, 344), "KM/H")
+	_l_reloj = _texto(Vector2(248, 339), 16, "Reloj")
+	_l_reloj.add_theme_color_override("font_color", C_ROJO)
+	_etiqueta(Vector2(338, 344), "TIEMPO")
+	_l_cuenta = _texto(Vector2(452, 339), 16, "Cuenta")
+	_l_cuenta.add_theme_color_override("font_color", C_ROJO)
+	_etiqueta(Vector2(500, 344), "ENTREGAS")
+
 	var mini: Control = MINIMAPA.new()
 	mini.name = "Minimapa"
 	mini.partida = partida
-	mini.position = Vector2(500, 36)
+	mini.position = Vector2(502, 8)
 	mini.size = Vector2(130, 130)
 	hud.add_child(mini)
+	_l_hora = _texto(Vector2(502, 142), 8, "Hora")
 
-	_l_vel = _texto(Vector2(10, 6), 22, "Velocidad")
-	_l_pedido = _texto(Vector2(10, 36), 10, "Pedido")
-	_l_cuenta = _texto(Vector2(10, 52), 10, "Cuenta")
-	_l_reloj = _texto(Vector2(0, 6), 22, "Reloj", 640.0)
-	_l_hora = _texto(Vector2(500, 8), 14, "Hora")
-	_l_derrape = _texto(Vector2(0, 90), 18, "Derrape", 640.0)
-	_l_derrape.add_theme_color_override("font_color", Color("ff5050"))
+	_l_pedido = _texto(Vector2(8, 8), 8, "Pedido")
+	_l_pedido.add_theme_stylebox_override("normal", _fondo())
+	_l_derrape = _texto(Vector2(0, 150), 16, "Derrape", 640.0)
+	_l_derrape.add_theme_color_override("font_color", C_ROJO)
 
 	# Subtítulos con su propia franja de fondo, para que se lean sobre la calle en movimiento.
-	_subtitulo = _texto(Vector2(40, 196), 14, "Subtitulo", 560.0)
-	_subtitulo.size = Vector2(560, 24)
-	var fondo := StyleBoxFlat.new()
-	fondo.bg_color = Color(0, 0, 0, 0.7)
-	fondo.content_margin_left = 8
-	fondo.content_margin_right = 8
-	_subtitulo.add_theme_stylebox_override("normal", fondo)
+	_subtitulo = _texto(Vector2(40, 156), 8, "Subtitulo", 560.0)
+	_subtitulo.size = Vector2(560, 20)
+	_subtitulo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_subtitulo.add_theme_stylebox_override("normal", _fondo())
 	_subtitulo.visible = false
 
 	_voz = AudioStreamPlayer.new()
 	_voz.name = "Voz"
 	add_child(_voz)
+
+
+func _fondo() -> StyleBoxFlat:
+	var f := StyleBoxFlat.new()
+	f.bg_color = Color(0, 0, 0, 0.72)
+	f.content_margin_left = 6
+	f.content_margin_right = 6
+	f.content_margin_top = 4
+	f.content_margin_bottom = 4
+	return f
+
+
+func _etiqueta(pos: Vector2, texto: String) -> void:
+	var l := _texto(pos, 8, "")
+	l.text = texto
+	l.add_theme_color_override("font_color", Color("9a9aa2"))
 
 
 # --- dibujar la partida -------------------------------------------------------------
@@ -285,16 +427,7 @@ func _actualizar_vista(delta: float) -> void:
 		_camara.position = Vector3(m.pos.x, ALTURA_OJOS + cabeceo, m.pos.y)
 		_camara.rotation = Vector3(0.0, -m.rumbo - PI / 2.0, -_giro_visual * 0.07)
 
-	var ciclo = partida.reloj
-	var cielo: Color = ciclo.color_cielo()
-	var luz: float = ciclo.luz()
-	_entorno.background_color = cielo
-	_entorno.fog_light_color = cielo
-	_entorno.ambient_light_color = Color("5a6478").lerp(Color("b8b8b8"), luz)
-	_entorno.ambient_light_energy = lerpf(0.35, 0.8, luz)
-	_sol.light_energy = luz * 0.9
-	_farola.visible = ciclo.farola_encendida()
-	_farola.light_energy = 2.5
+	_actualizar_cielo(delta)
 
 	var p: Dictionary = partida.pedido
 	var recoger: bool = partida.fase == partida.RECOGER
@@ -305,20 +438,48 @@ func _actualizar_vista(delta: float) -> void:
 
 	_manubrio.giro = _giro_visual
 	_manubrio.vel_kmh = m.vel_kmh()
-	_l_vel.text = "%d km/h" % m.vel_kmh()
+	_l_vel.text = "%3d" % m.vel_kmh()
 	var s := int(ceil(maxf(partida.tiempo_restante, 0.0)))
 	_l_reloj.text = "%d:%02d" % [s / 60, s % 60]
-	_l_reloj.add_theme_color_override("font_color", Color("ff5050") if s <= 15 else C_TEXTO)
-	_l_hora.text = ("☀ " if luz > 0.25 else "☾ ") + ciclo.texto_hora()
+	_l_reloj.modulate.a = 0.35 if s <= 15 and int(Time.get_ticks_msec() / 250) % 2 == 0 else 1.0
+	_l_cuenta.text = "%d" % partida.entregados
+	_l_hora.text = ("DIA " if partida.reloj.luz() > 0.25 else "NOCHE ") + partida.reloj.texto_hora()
 	if recoger:
-		_l_pedido.text = "Recoge: %s (sigue la columna naranja)" % p.plato
+		_l_pedido.text = "RECOGE: %s\nSigue la columna naranja" % p.plato.to_upper()
 	else:
-		_l_pedido.text = "Entrega: %s en %s" % [p.plato, p.direccion]
-	_l_cuenta.text = "Entregados: %d   Cancelados: %d" % [partida.entregados, partida.cancelados]
+		_l_pedido.text = "ENTREGA: %s\n%s" % [p.plato.to_upper(), p.direccion]
 	_l_derrape.text = "¡SE VA DE LADO!" if m.derrapando and not partida.terminada else ""
 
 	_t_subtitulo = maxf(_t_subtitulo - delta, 0.0)
 	_subtitulo.visible = _t_subtitulo > 0.0
+
+
+## Cielo, sol, ventanas y postes según la hora. El cielo se recalcula cada medio segundo.
+func _actualizar_cielo(delta: float) -> void:
+	var ciclo = partida.reloj
+	var luz: float = ciclo.luz()
+	var cielo: Color = ciclo.color_cielo()
+	_t_cielo += delta
+	if _t_cielo >= 0.5 or delta == 0.0:
+		_t_cielo = 0.0
+		_cielo.sky_top_color = cielo.darkened(0.35)
+		_cielo.sky_horizon_color = cielo.lightened(0.12)
+		_cielo.ground_horizon_color = cielo.darkened(0.2)
+		_cielo.ground_bottom_color = cielo.darkened(0.6)
+		_entorno.fog_light_color = cielo.darkened(0.1)
+	var h: float = ciclo.hora()
+	_sol.rotation = Vector3(-deg_to_rad(sin(PI * (h - 5.0) / 14.0) * 70.0), deg_to_rad(90.0 - (h - 5.0) * 12.0), 0.0)
+	_sol.visible = luz > 0.0
+	_sol.light_energy = luz * 1.1
+	_sol.light_color = Color("ffd9a0").lerp(Color("fff6e6"), luz)
+	_entorno.ambient_light_color = Color("46507a").lerp(Color("c8c4bc"), luz)
+	_entorno.ambient_light_energy = lerpf(0.45, 0.75, luz)
+	var noche := clampf(1.0 - luz * 2.5, 0.0, 1.0)
+	for mat in _mats_luz:
+		mat.emission_energy_multiplier = noche * 1.3
+	_mat_bombillos.emission_energy_multiplier = noche * 4.0
+	_farola.visible = ciclo.farola_encendida()
+	_farola.light_energy = 2.5
 
 
 func _al_evento(nombre: String) -> void:
@@ -343,7 +504,7 @@ func _al_estrellarse(mensaje: String) -> void:
 	# Solo queda el subtítulo, abajo, para que no tape la escena.
 	for hijo in $HUD.get_children():
 		hijo.visible = hijo == _subtitulo and _subtitulo.visible
-	_subtitulo.position.y = 310
+	_subtitulo.position.y = 320
 	# Moto de lado en el andén y el piloto unos metros adelante.
 	_moto_caida.visible = true
 	_moto_caida.position = Vector3(m.pos.x, ANDEN_ALTO, m.pos.y)
@@ -353,12 +514,12 @@ func _al_estrellarse(mensaje: String) -> void:
 	var piloto: Node3D = _moto_caida.get_node("Piloto")
 	piloto.position = Vector3(3.0, 0.0, 0.8)
 	# Cámara a tercera persona, mirando la escena.
-	var desde: Vector2 = m.pos - dir * 3.5 + dir.orthogonal() * 2.5
+	var desde: Vector2 = m.pos - dir * 5.0
 	_camara.rotation.z = 0.0
 	var tw := create_tween()
-	tw.tween_property(_camara, "position", Vector3(desde.x, 1.8, desde.y), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_camara, "position", Vector3(desde.x, 2.6, desde.y), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_method(func(_x): _camara.look_at(Vector3(m.pos.x, 0.5, m.pos.y) + Vector3(dir.x, 0, dir.y) * 1.5), 0.0, 1.0, 0.5)
-	var final_msg := "%s\nEntregaste %d pedidos antes de irte." % [mensaje, partida.entregados]
+	var final_msg := "%s\n\nEntregaste %d pedidos antes de irte." % [mensaje, partida.entregados]
 	if retraso_resultado <= 0.0:
 		terminado.emit("estrellado", final_msg)
 		return

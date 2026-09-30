@@ -18,8 +18,8 @@ func _ready() -> void:
 	var caja := ColorRect.new()
 	caja.name = "Caja"
 	caja.color = Color("dddddd")
-	caja.position = Vector2(30, 170)
-	caja.size = Vector2(580, 136)
+	caja.position = Vector2(20, 140)
+	caja.size = Vector2(600, 164)
 	add_child(caja)
 	var interior := ColorRect.new()
 	interior.color = Color.BLACK
@@ -39,10 +39,10 @@ func _ready() -> void:
 	var pista := Label.new()
 	pista.name = "Pista"
 	pista.text = "Pulsa ENTER para continuar"
-	pista.position = Vector2(0, 318)
+	pista.position = Vector2(0, 322)
 	pista.size = Vector2(640, 20)
 	pista.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pista.add_theme_font_size_override("font_size", 12)
+	pista.add_theme_font_size_override("font_size", 8)
 	add_child(pista)
 
 
@@ -51,7 +51,7 @@ func mostrar(estado: String, mensaje: String) -> void:
 	var titulo := Label.new()
 	titulo.name = "Titulo"
 	titulo.text = {"estrellado": "R.I.P.", "entregado": "ENTREGADO", "sin_tiempo": "CANCELADO"}.get(estado, "")
-	titulo.position = Vector2(0, 80)
+	titulo.position = Vector2(0, 70)
 	titulo.size = Vector2(640, 40)
 	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	titulo.add_theme_font_size_override("font_size", 32)

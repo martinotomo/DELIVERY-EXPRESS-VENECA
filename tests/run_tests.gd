@@ -33,6 +33,11 @@ func _vigilante() -> void:
 
 
 func _correr() -> void:
+	# Sin importar, las texturas llegan nulas y el error no dice por qué (CLAUDE.md §4).
+	if load("res://assets/ui/manubrio.png") == null:
+		printerr("Faltan los assets importados: corre antes  godot --headless --path . --import")
+		quit(1)
+		return
 	var solo := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--solo="):
