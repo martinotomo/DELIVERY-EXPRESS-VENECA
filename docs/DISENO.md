@@ -19,7 +19,7 @@ agarre de tu {moto}»**.
 
 **El chiste central:** la prisa (propina, estrellas, tiempo prometido) contra el agarre real de una
 moto de bajo cilindraje. Mejorar de moto no te salva: solo te deja llegar más rápido a la misma
-esquina. Encima, el domiciliario lo comenta todo en voz alta con su acento venezolano.
+esquina.
 
 ---
 
@@ -72,10 +72,10 @@ Para que se pueda terminar:
 2. Las tres motos y sus mejoras se pueden conseguir, y cada moto se siente y se ve distinta
    (manubrio y tablero propios).
 3. Cada caída muestra la cinemática del meme con la moto correcta y su nombre.
-4. Las voces del domiciliario suenan al recoger, entregar, casi chocar y caerse.
-5. Menú, opciones que se recuerdan (volumen de voces, música y efectos, pantalla completa, idioma),
+4. ~~Las voces del domiciliario suenan al recoger, entregar, casi chocar y caerse.~~ Descartado (D28).
+5. Menú, opciones que se recuerdan (volumen de música y efectos, pantalla completa, idioma),
    créditos.
-6. Español e inglés (las voces solo en español, con subtítulos).
+6. Español e inglés.
 7. `.exe` de Windows probado en otro PC.
 8. `assets/LICENSES.md` y `assets/AI_DISCLOSURE.md` cubren todos los assets.
 
@@ -90,9 +90,9 @@ ciudades, clima dinámico complejo, policía que persigue, guardado de varias pa
 
 ```
  ┌─► 1. PEDIDO: la app ofrece un pedido (restaurante, cliente, tiempo prometido, pago)
- │   2. RECOGER: ir al restaurante marcado. Voz del domiciliario
+ │   2. RECOGER: ir al restaurante marcado
  │   3. ENTREGAR: cruzar la ciudad. Casi-choques dan propina extra y comentario
- │   4a. ENTREGA: pago + propina + estrellas. Voz del domiciliario ─► 5
+ │   4a. ENTREGA: pago + propina + estrellas ─► 5
  │   4b. CAÍDA: cinemática del meme ─► «Pulsa START» ─► reaparece en el restaurante
  │   5. GARAJE: gastar en mejoras (exosto, motor) o ahorrar para la siguiente moto
  └───────────────────────────────────────────────────────────────┘
@@ -157,7 +157,6 @@ más que el agarre, así que las esquinas hay que volver a aprenderlas.
 Pasar a menos de ~1 m de un carro, bus o peatón a buena velocidad cuenta como **casi-choque**:
 
 - suma a una racha de «fe» que da propina extra al entregar;
-- dispara una línea de voz del domiciliario (§8);
 - el HUD muestra la racha como un número que crece.
 
 Chocar de frente con un carro o bus también es caída (con su propia frase en la cinemática).
@@ -274,33 +273,11 @@ larga.
 
 ---
 
-## 8. Las voces del domiciliario
+## 8. ~~Las voces del domiciliario~~ (descartado, D28)
 
-El protagonista es un domiciliario venezolano que habla todo el tiempo. El humor está en la jerga,
-la actitud y la seguridad total en sí mismo (la «fe»), **con cariño y no para humillar**: nada de
-chistes sobre la migración, la pobreza o la nacionalidad como insulto. Es el pana que se cree el
-mejor piloto de la ciudad.
-
-| Momento | Ejemplos (borrador) |
-|---|---|
-| Aceptar pedido | «¡Epa, llegó la chamba!», «Dale, dale, ya voy saliendo, mi amor» |
-| Recoger | «¿Esto es lo del 302? Chévere, pana», «Burda de pesada esta vaina» |
-| Casi-choque | «¡Na' guará, casi!», «¡Ay, chamo! Ese bus me quería», «Fe, mi pana, pura fe» |
-| Racha larga | «¡Qué nivel! Nadie me para hoy» |
-| Golpe leve con el andén | «¡Epa, epa! Eso no pasó» |
-| Entregar | «Cinco estrellitas, ¿oíste?», «Llegó calientico, mi reina» |
-| Entrega tarde | «Es que había un trancón arrecho, se lo juro» |
-| Caída (antes de la cinemática) | Un grito corto que se corta |
-| Moto nueva | «¡Mírala! Ahora sí voy a llegar más rápido» (a la misma esquina) |
-
-- Cada momento tiene 4–6 variantes para que no se repitan; nunca dos voces seguidas en menos de
-  ~3 s.
-- **Cómo se graban:** las graba Tomás con Audacity. Se entregan como `.wav` con un nombre por
-  momento y variante (p. ej. `voz_casi_choque_03.wav`); un script las normaliza de volumen, corta
-  silencios y comprueba que no saturen.
-- La cinemática de muerte también se puede **narrar en voz**, leyendo el nombre de la moto, como
-  pidió Tomás.
-- Todas las voces llevan subtítulo (sirve también para la versión en inglés).
+Tomás quitó las voces del juego el 30/09/2026: no se graban, no se sintetizan y no quedan como
+pendiente. Solo Tomás puede volver a pedirlas. Los mensajes de texto en pantalla se mantienen como
+están.
 
 ---
 
@@ -348,8 +325,8 @@ Un único director (`main.gd`) cambia entre pantallas, como en los juegos anteri
 
 ## 11. Audio
 
-Efectos y música sintetizados por código y definidos con números antes de generarse. Las voces
-(§8) se graban o se sintetizan aparte.
+Efectos y música sintetizados por código y definidos con números antes de generarse. El juego no
+lleva voces (D28).
 
 | Sonido | Descripción | Requisito medible (borrador) |
 |---|---|---|
@@ -359,7 +336,7 @@ Efectos y música sintetizados por código y definidos con números antes de gen
 | Caída | Golpe + metal arrastrándose + silencio | ≤ 1,5 s, final en silencio |
 | Pito | Pito ridículo de moto pequeña | ≤ 0,5 s |
 | Ciudad | Ambiente de tráfico, pitos lejanos | Bucle sin clic, bajito |
-| Música de conducción | Ritmo latino en 8 bits (cumbia o salsa con sintetizador), bajito | −18 dB respecto a los efectos; se baja cuando habla el domiciliario |
+| Música de conducción | Ritmo latino en 8 bits (cumbia o salsa con sintetizador), bajito | −18 dB respecto a los efectos |
 | Música de muerte | **Épica y trágica, exagerada** (el contraste es el chiste) | Acordes menores, entra con la cinemática |
 
 ---
@@ -388,7 +365,7 @@ Es un proyecto de ocio, así que se usa software libre siempre que se pueda:
 | Godot 4.7.2 | MIT | PC y nube (headless) | Motor |
 | Python 3 + numpy, scipy, Pillow | Libres | Nube y PC | Generar arte y audio, medir |
 | Git + GitHub | GPL / servicio gratuito | Nube y PC | Código y versiones |
-| Audacity | GPL | PC | Grabar las voces y revisar el audio |
+| Audacity | GPL | PC | Revisar el audio generado |
 | OBS Studio | GPL | PC | Grabar partidas de prueba y tráiler |
 | LibreSprite / Krita | GPL | PC | Solo si hay que retocar sprites a mano |
 | Fuentes | SIL OFL | — | Interfaz |
@@ -409,7 +386,7 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | **F2** Dirección visual | Paleta, fuentes, maqueta del HUD, un manubrio y la cinemática de muerte | Tomás aprueba el look |
 | **F3** Ciudad | Generador de la ciudad de 40 × 80 cuadras irregulares con sus zonas, carga por trozos, minimapa con ruta, ciclo día/noche, tráfico y peatones | Se recorre de punta a punta sin errores ni tirones, y el minimapa lleva a cualquier dirección |
 | **F4** Arte y audio | Texturas, los tres manubrios, cinemática ilustrada, motores, efectos, música | Capturas y medidas de audio aprobadas |
-| **F5** Contenido | Pedidos, dinero acumulado, garaje con mejoras, casi-choques, voces (grabadas por Tomás), final | Se juega de principio a fin |
+| **F5** Contenido | Pedidos, dinero acumulado, garaje con mejoras, casi-choques, final | Se juega de principio a fin |
 | **F6** Menús | Menú de inicio, opciones, idiomas, créditos, advertencia | Lista de §3.1 casi completa |
 | **F7** Entrega | `.exe` y `.zip` | Probado en otro PC |
 
@@ -425,7 +402,7 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | D2 | Ciudad parecida a Bogotá, 40 calles × 80 carreras, con cuadras de distinto largo para que no se vea cuadriculada |
 | D3 | Minimapa que guía hasta el restaurante y el cliente |
 | D4 | Día y noche cambian cada 10 minutos con una animación continua |
-| D5 | Las voces del domiciliario las graba Tomás |
+| D5 | ~~Las voces del domiciliario las graba Tomás~~ Anulada por D28 |
 | D6 | Fases F0–F7 como en §14 |
 | D7 | Todo con herramientas de código abierto |
 | D8 (30/09) | Solo tres motos: Bwis 125 → NKD 125 → Ninja 300 |
@@ -435,6 +412,7 @@ Cada fase termina en algo que Tomás juega en su PC con Godot. Ninguna fase empi
 | D12 (30/09) | El aviso de derrape va abajo a la izquierda, más pequeño, y solo salta por encima del 75 % de la velocidad máxima |
 | D13 (30/09) | El juego se llama **Delivery Express** |
 | D14 (30/09) | La moto inicial se escribe **Bwis** (no «BWS») en todo el juego |
+| D28 (30/09) | Se quitan las voces del juego por completo. No quedan pendientes; solo Tomás puede volver a pedirlas |
 
 ### 15.2 Abiertas (con la recomendación que se sigue mientras tanto)
 
