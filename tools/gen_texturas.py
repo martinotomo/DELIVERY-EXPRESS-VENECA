@@ -175,6 +175,123 @@ def fachada_casa():
     guardar(emi, TEX / "fachada_casa_luz.png", fuerza=0)
 
 
+def cebras():
+    """Franjas blancas de la cebra, gastadas por las llantas: 32 px = 4 m, franjas de 0,5 m.
+    cebra_h para las cebras que cruzan calles (franjas a lo largo de x), cebra_v para las carreras."""
+    rng = np.random.default_rng(104)
+    img = lienzo(32, 32, "blanco")
+    img += ruido(rng, 32, 32)[..., None] * 10
+    a = np.zeros((32, 32), np.float32)
+    for f in range(32):
+        if (f // 4) % 2 == 0:
+            a[f, :] = 1.0
+    gasto = ruido(rng, 32, 32, 2)                 # pintura gastada: se ve el asfalto
+    a[gasto < -1.3] = 0.0
+    img[gasto < -0.6] = img[gasto < -0.6] * 0.8 + c("concreto") * 0.2
+    guardar(img, TEX / "cebra_h.png", alfa=a, fuerza=6)
+    guardar(img.transpose(1, 0, 2), TEX / "cebra_v.png", alfa=a.T, fuerza=6)
+
+
+# --- peatones: hoja de 4 cuadros (camina, camina, en el piso, gritando) × 3 ropas, 40×40 px ------
+
+ROPAS = [
+    {"piel": "piel", "pelo": "negro", "camisa": "azul_casa", "pantalon": "carbon"},
+    {"piel": "piel_clara", "pelo": "ladrillo_oscuro", "camisa": "verde_casa", "pantalon": "azul_casa", "melena": True, "bolso": "rojo"},
+    {"piel": "piel_oscura", "pelo": "carbon", "camisa": "amarillo_casa", "pantalon": "gris", "gorra": "rojo"},
+]
+
+
+def _oscuro(nombre, k=0.68):
+    return tuple(int(v * k) for v in P[nombre]) + (255,)
+
+
+def _peaton(d, ropa, cuadro):
+    """Un peatón de perfil mirando a la derecha, con los pies en y=39. Formas continuas, con sombra
+    en el lado de atrás para que tenga volumen."""
+    col = lambda n: P[n] + (255,)
+    piel, camisa, pantalon = ropa["piel"], ropa["camisa"], ropa["pantalon"]
+    if cuadro == 2:  # en el piso, boca arriba y con estrellitas de mareo (a lo caricatura)
+        d.line([(22, 35), (27, 29), (32, 33)], fill=col(pantalon), width=3)          # pierna levantada
+        d.line([(21, 37), (30, 37), (35, 36)], fill=_oscuro(pantalon), width=3)      # la otra, estirada
+        d.rectangle([32, 32, 33, 33], fill=col("negro"))                             # zapatos
+        d.rectangle([35, 35, 36, 36], fill=col("negro"))
+        d.polygon([(9, 33), (22, 32), (23, 38), (9, 38)], fill=col(camisa))          # torso
+        d.line([(9, 38), (22, 38)], fill=_oscuro(camisa), width=1)
+        d.line([(13, 33), (15, 27), (13, 24)], fill=col(camisa), width=2)            # brazo al aire
+        d.point((13, 23), fill=col(piel))
+        d.ellipse([2, 31, 9, 38], fill=col(ropa["pelo"]))                            # cabeza
+        d.ellipse([3, 30, 9, 36], fill=col(piel))
+        d.point((5, 33), fill=col("negro"))                                          # ojo en X
+        d.point((7, 33), fill=col("negro"))
+        for x, y in ((4, 25), (10, 22), (15, 26)):                                   # estrellitas
+            d.point((x, y), fill=col("amarillo_via"))
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                d.point((x + dx, y + dy), fill=col("ventana_luz"))
+        return
+    if cuadro == 0:    # paso largo
+        pierna_f, pierna_a = [(20, 22), (22, 30), (24, 37)], [(20, 22), (18, 30), (15, 37)]
+        mano_f, mano_a = (16, 21), (24, 20)
+    elif cuadro == 1:  # piernas juntas
+        pierna_f, pierna_a = [(20, 22), (21, 30), (21, 37)], [(20, 22), (19, 30), (19, 37)]
+        mano_f, mano_a = (21, 22), (19, 22)
+    else:              # gritando: firme, puño en alto
+        pierna_f, pierna_a = [(20, 22), (22, 30), (23, 37)], [(20, 22), (18, 30), (17, 37)]
+        mano_f, mano_a = (26, 2), (17, 20)
+    # Atrás (más oscuro): pierna y brazo del otro lado.
+    d.line(pierna_a, fill=_oscuro(pantalon), width=3, joint="curve")
+    d.rectangle([pierna_a[-1][0] - 1, 37, pierna_a[-1][0] + 2, 39], fill=col("negro"))
+    d.line([(20, 12), mano_a], fill=_oscuro(camisa), width=2)
+    d.point(mano_a, fill=_oscuro(piel))
+    if ropa.get("bolso"):
+        d.rectangle([15, 18, 18, 23], fill=col(ropa["bolso"]))
+    # Torso con la espalda en sombra.
+    d.polygon([(17, 11), (23, 11), (24, 23), (16, 23)], fill=col(camisa))
+    d.polygon([(17, 11), (18, 11), (17, 23), (16, 23)], fill=_oscuro(camisa))
+    d.line(pierna_f, fill=col(pantalon), width=3, joint="curve")
+    d.rectangle([pierna_f[-1][0] - 1, 37, pierna_f[-1][0] + 3, 39], fill=col("negro"))
+    if cuadro == 3:
+        d.line([(21, 12), (25, 7), mano_f], fill=col(camisa), width=2, joint="curve")
+        d.rectangle([mano_f[0] - 1, mano_f[1], mano_f[0] + 1, mano_f[1] + 2], fill=col(piel))  # puño
+        for x, y in ((29, 5), (31, 8)):                                                      # rabia
+            d.line([(x, y), (x + 2, y - 2)], fill=col("rojo"), width=1)
+    else:
+        d.line([(21, 12), mano_f], fill=col(camisa), width=2)
+        d.point(mano_f, fill=col(piel))
+    # Cabeza: pelo detrás, cara de perfil con nariz.
+    d.rectangle([19, 9, 21, 11], fill=col(piel))
+    if ropa.get("melena"):
+        d.polygon([(16, 4), (20, 3), (19, 16), (15, 15)], fill=col(ropa["pelo"]))
+    d.ellipse([16, 2, 23, 9], fill=col(ropa["pelo"]))
+    d.ellipse([18, 3, 24, 10], fill=col(piel))
+    d.point((24, 7), fill=col(piel))
+    d.point((22, 5), fill=col("negro"))
+    if cuadro == 3:
+        d.rectangle([22, 8, 23, 9], fill=col("negro"))  # boca abierta
+    if ropa.get("gorra"):
+        d.rectangle([17, 2, 23, 4], fill=col(ropa["gorra"]))
+        d.line([(23, 4), (26, 4)], fill=_oscuro(ropa["gorra"]), width=1)
+
+
+def peatones():
+    W = H = 40
+    rgb = np.zeros((H * len(ROPAS), W * 4, 3), np.float32)
+    alfa = np.zeros((H * len(ROPAS), W * 4), np.float32)
+    for r, ropa in enumerate(ROPAS):
+        for k in range(4):
+            cuadro = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            _peaton(ImageDraw.Draw(cuadro), ropa, k)
+            a = np.array(cuadro).astype(np.float32)
+            c_rgb, lleno = a[..., :3], a[..., 3] > 0
+            # Contorno oscuro de 1 px, como los sprites de Doom: se lee sobre cualquier fondo.
+            # Se calcula en cada cuadro con margen, para que no se cuele en el cuadro vecino.
+            m = np.pad(lleno, 1)
+            borde = (m[:-2, 1:-1] | m[2:, 1:-1] | m[1:-1, :-2] | m[1:-1, 2:]) & ~lleno
+            c_rgb[borde] = c("negro")
+            rgb[r * H:(r + 1) * H, k * W:(k + 1) * W] = c_rgb
+            alfa[r * H:(r + 1) * H, k * W:(k + 1) * W] = lleno | borde
+    guardar(rgb, TEX / "peatones.png", alfa=alfa, fuerza=4)
+
+
 # --- manubrio de la BWS, 320×90 px a 1× (se dibuja a 2× sobre la pantalla de 640×360) ---------
 
 def manubrio():
@@ -243,6 +360,6 @@ def manubrio():
 if __name__ == "__main__":
     TEX.mkdir(parents=True, exist_ok=True)
     UI.mkdir(parents=True, exist_ok=True)
-    for f in (asfalto, anden, pasto, lineas, fachada_ladrillo, fachada_concreto, fachada_vidrio, fachada_casa, manubrio):
+    for f in (asfalto, anden, pasto, lineas, cebras, fachada_ladrillo, fachada_concreto, fachada_vidrio, fachada_casa, manubrio, peatones):
         f()
         print("generado:", f.__name__)

@@ -16,6 +16,9 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | texturas/pasto.png | `tools/gen_texturas.py` |
 | texturas/linea_h.png | `tools/gen_texturas.py` |
 | texturas/linea_v.png | `tools/gen_texturas.py` |
+| texturas/cebra_h.png | `tools/gen_texturas.py` |
+| texturas/cebra_v.png | `tools/gen_texturas.py` |
+| texturas/peatones.png | `tools/gen_texturas.py` |
 | texturas/fachada_ladrillo.png | `tools/gen_texturas.py` |
 | texturas/fachada_ladrillo_luz.png | `tools/gen_texturas.py` |
 | texturas/fachada_concreto.png | `tools/gen_texturas.py` |
@@ -55,6 +58,7 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | sonidos/recogido.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/reparado.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/charco.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
+| sonidos/atropello.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 
 ## De terceros, sin IA
 

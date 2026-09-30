@@ -8,6 +8,8 @@ const C_PARQUE := Color("3d5a3a")
 const C_RUTA := Color("ffcc33")
 const C_RESTAURANTE := Color("ff8a2a")
 const C_CLIENTE := Color("4ade80")
+const C_PEATON := Color("ff7fb0")
+const PEATONES_CERCA := 60.0 # m: solo se marcan los peatones cercanos
 
 var partida
 
@@ -54,6 +56,9 @@ func _draw() -> void:
 		var dir := (o - centro).normalized()
 		o = centro + dir * (minf(size.x, size.y) / 2.0 - 7.0)
 	draw_circle(o, 4.0, color)
+	for q in partida.peatones.lista:
+		if q.pos.distance_to(p) < PEATONES_CERCA:
+			draw_rect(Rect2(_a_pantalla(q.pos) - Vector2(1.5, 1.5), Vector2(3, 3)), C_PEATON)
 	# La moto, en el centro mirando hacia arriba.
 	draw_colored_polygon(PackedVector2Array([centro + Vector2(0, -6), centro + Vector2(4, 4), centro + Vector2(-4, 4)]), Color.WHITE)
 	draw_rect(Rect2(Vector2.ZERO, size), Color("888888"), false, 1.0)

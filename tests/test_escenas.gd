@@ -266,6 +266,37 @@ func run(t) -> void:
 	r2._input(f9)
 	t.check(cl.lloviendo(), "en el .exe exportado F9 no hace nada")
 	cl.parar_lluvia()
+	# Cebras pintadas en todas las esquinas, y peatones dibujados donde van.
+	var c = r2.partida.ciudad
+	var n_cebras := 0
+	for j in c.N_LARGO + 1:
+		for i in c.N_ANCHO + 1:
+			n_cebras += c.cebras(i, j).size()
+	var n_dibujadas: int = r2.get_node("Vista/Mundo/Ciudad/CebrasCalles").multimesh.instance_count + r2.get_node("Vista/Mundo/Ciudad/CebrasCarreras").multimesh.instance_count
+	t.check(n_cebras > 10000 and n_dibujadas == n_cebras, "todas las esquinas tienen sus cebras pintadas (%d)" % n_dibujadas)
+	var pe = r2.partida.peatones
+	pe.lista.clear()
+	pe._t = 9999.0
+	var cb: Dictionary = c.cebras(20, 40)[0]
+	var peaton: Dictionary = pe.poner_en(cb)
+	peaton.pos = cb.centro
+	r2._actualizar_vista(0.0)
+	var sp: Sprite3D = r2.get_node("Vista/Mundo/Peatones/Peaton0")
+	t.check(sp.visible and Vector2(sp.position.x, sp.position.z).distance_to(cb.centro) < 0.01, "el peatón se dibuja en la cebra")
+	t.check(not r2.get_node("Vista/Mundo/Peatones/Peaton1").visible, "los sprites sobrantes no se ven")
+	t.check_eq(sp.billboard, BaseMaterial3D.BILLBOARD_FIXED_Y, "el peatón es un sprite plano a lo Doom")
+	t.check(sp.frame < 4 * pe.ROPAS and sp.frame % 4 < 2, "caminando usa los cuadros de caminar")
+	# Atropello en el recorrido: su sonido, su frase y el pedido sin propina a la vista.
+	r2._audio.ultimo_efecto = ""
+	r2.partida.moto.pos = peaton.pos
+	r2.partida.moto.vel = 10.0
+	r2.partida._revisar_atropello()
+	r2._actualizar_vista(0.0)
+	t.check_eq(r2._audio.ultimo_efecto, "atropello", "atropellar suena a atropello")
+	var sub_a: Label = r2.get_node("HUD/Subtitulo")
+	t.check(sub_a.visible and r2.voces.FRASES.atropello.has(sub_a.text), "sale una frase de atropello (%s)" % sub_a.text)
+	t.check(r2.get_node("HUD/Pedido").text.contains("SIN PROPINA"), "el pedido avisa que se quedó sin propina")
+	t.check_eq(sp.frame % 4, 2, "el atropellado se ve en el piso")
 	main.menu()
 	await t.process_frame
 	t.check_eq(main.pantalla_actual().name, "Menu", "se puede volver al menú")

@@ -13,6 +13,7 @@ const SUITES := {
 	"progreso": "res://tests/test_progreso.gd",
 	"ciclo": "res://tests/test_ciclo.gd",
 	"clima": "res://tests/test_clima.gd",
+	"peatones": "res://tests/test_peatones.gd",
 	"sonido": "res://tests/test_sonido.gd",
 	"voces": "res://tests/test_voces.gd",
 	"mensajes": "res://tests/test_mensajes.gd",

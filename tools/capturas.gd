@@ -128,6 +128,36 @@ func _correr() -> void:
 	r._lluvia.set_process(true)
 	await create_timer(0.3).timeout
 	await _foto("8_lluvia")
+	r.partida.clima.parar_lluvia()
+	r.partida.clima.intensidad = 0.0
+	r.partida.clima.humedad = 0.0
+	r.partida.clima.charcos.clear()
+	r.partida.clima.version += 1
+	r._t_subtitulo = 0.0
+
+	# Peatones cruzando por la cebra de la esquina, de día y de noche, y uno atropellado.
+	var pe = r.partida.peatones
+	pe._t = 9999.0
+	for foto in [["9_peatones_dia", 120.0], ["10_peatones_noche", 470.0]]:
+		pe.lista.clear()
+		var esquina: Vector2 = c.cruce(21, 40)
+		for cb in c.cebras(21, 40):
+			if cb.cruza == Vector2(0, 1):
+				var q: Dictionary = pe.poner_en(cb, cb.centro.x < esquina.x)
+				q.pos = cb.centro + cb.cruza * (-2.5 if cb.centro.x < esquina.x else 1.5)
+				q.tramo = 2
+				q.andado = 0.5 if cb.centro.x < esquina.x else 0.0
+		await _colocar(esquina + Vector2(-19, -2), 0.0, 6.0, foto[1])
+		await _foto(foto[0])
+	pe.lista.clear()
+	var cb2: Dictionary = c.cebras(21, 40)[0] # la del oriente del cruce, atravesando la calle
+	var caido: Dictionary = pe.poner_en(cb2)
+	caido.pos = cb2.centro + Vector2(0, 1.0)
+	r.partida.moto.pos = caido.pos
+	r.partida.moto.vel = 10.0
+	r.partida._revisar_atropello()
+	await _colocar(cb2.centro - Vector2(6.5, 0), 0.0, 0.0, 200.0)
+	await _foto("11_atropello")
 
 	_hoja()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
@@ -137,7 +167,7 @@ func _correr() -> void:
 func _hoja() -> void:
 	var w := 640
 	var h := 360
-	var hoja := Image.create(w * 2, h * 5, false, Image.FORMAT_RGBA8)
+	var hoja := Image.create(w * 2, h * ((_fotos.size() + 1) / 2), false, Image.FORMAT_RGBA8)
 	for i in _fotos.size():
 		var f := _fotos[i]
 		f.convert(Image.FORMAT_RGBA8)

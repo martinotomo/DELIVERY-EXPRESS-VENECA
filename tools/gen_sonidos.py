@@ -35,6 +35,8 @@ SPEC = {
     "recogido":  {"dur": (0.25, 0.5), "rms": (0.05, 0.30), "graves": 0.05, "cola": True},
     "reparado":  {"dur": (0.5, 0.9), "rms": (0.04, 0.30), "graves": 0.05, "cola": True},
     "charco":    {"dur": (0.4, 0.8), "rms": (0.05, 0.35), "graves": 0.05, "cola": True},
+    # atropello: chillido corto de llanta, golpe blando (no metálico) y la caja del domicilio rodando
+    "atropello": {"dur": (0.8, 1.3), "rms": (0.06, 0.35), "graves": 0.08, "cola": True},
 }
 
 # Motores (Tomás, 30/09: «suena a nave espacial»). Ahora cada explosión es un golpe de presión
@@ -323,6 +325,26 @@ def charco():
     return efecto(y, 0.75)
 
 
+def atropello():
+    """Atropello de caricatura: chillido de llanta, «pum» blando contra la persona y la caja rodando."""
+    rng = np.random.default_rng(58)
+    t = t_de(1.1)
+    y = np.zeros(len(t))
+    tf = t_de(0.3)  # frenazo: ruido de llanta con temblor, no un tono puro
+    frenazo = banda(rng.standard_normal(len(tf)), 1800, 4200) * envolvente(tf, 0.01, 0.12)
+    frenazo *= 0.7 + 0.3 * np.sin(2 * np.pi * 31 * tf)
+    poner(y, 0.45 * frenazo, 0.0)
+    tg = t_de(0.35)  # golpe blando: grave que cae rápido + cuerpo de ruido apagado
+    pum = np.sin(2 * np.pi * (170 - 90 * tg) * tg) * envolvente(tg, 0.003, 0.06)
+    pum += 0.6 * banda(rng.standard_normal(len(tg)), 200, 1200) * envolvente(tg, 0.002, 0.05)
+    poner(y, 1.2 * pum, 0.22)
+    for k in range(5):  # la caja del domicilio rebota y rueda, cada vez más suave
+        tc = t_de(0.05)
+        caja = banda(rng.standard_normal(len(tc)), 400, 2500) * envolvente(tc, 0.001, 0.012)
+        poner(y, caja * 0.55 * (1.0 - k / 6), 0.42 + k * 0.1 + rng.uniform(0, 0.03))
+    return efecto(y, 0.8)
+
+
 def main():
     for id_moto, m in MOTORES.items():
         for rpm in m["rpm"]:
@@ -331,7 +353,7 @@ def main():
     guardar("ambiente_noche", trafico(True))
     guardar("viento", viento())
     guardar("lluvia", lluvia())
-    for fn in (choque, golpe, casi, fundido, entregado, recogido, reparado, charco):
+    for fn in (choque, golpe, casi, fundido, entregado, recogido, reparado, charco, atropello):
         guardar(fn.__name__, fn())
 
 

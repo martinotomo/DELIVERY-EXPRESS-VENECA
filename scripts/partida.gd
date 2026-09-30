@@ -1,7 +1,7 @@
 extends RefCounted
 ## Una jornada de domiciliario: recoger, entregar, otro pedido... hasta que la fe supere al agarre.
 
-signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado, fundido, reparado, charco, lluvia, escampo
+signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado, fundido, reparado, charco, lluvia, escampo, atropello, grito
 signal terminada_por(mensaje: String)
 signal pagado(pesos: int)           # al entregar: tarifa más propina por el tiempo que sobró
 
@@ -10,6 +10,7 @@ const MOTO := preload("res://scripts/moto_logic.gd")
 const MOTOS := preload("res://scripts/motos.gd")
 const CICLO := preload("res://scripts/ciclo_dia.gd")
 const CLIMA := preload("res://scripts/clima.gd")
+const PEATONES := preload("res://scripts/peatones.gd")
 
 const RECOGER := "recoger"
 const ENTREGAR := "entregar"
@@ -28,6 +29,8 @@ var ciudad
 var moto
 var reloj
 var clima
+var peatones
+var multado := false     # atropelló a alguien en este pedido: se queda sin propina
 var _charco := -1            # el charco que se está pisando (frena una sola vez al entrar)
 var pedido := {}
 var fase := RECOGER
@@ -46,6 +49,8 @@ func _init(semilla := 1, datos_moto: Dictionary = {}) -> void:
 	clima = CLIMA.new(semilla, ciudad)
 	clima.empezo_lluvia.connect(func(): evento.emit("lluvia"))
 	clima.paro_lluvia.connect(func(): evento.emit("escampo"))
+	peatones = PEATONES.new(semilla, ciudad)
+	peatones.levantado.connect(func(): evento.emit("grito"))
 	moto = MOTO.new()
 	var datos := datos_moto if not datos_moto.is_empty() else MOTOS.get_moto(MOTOS.MOTO_INICIAL)
 	moto.setup(datos, ciudad, ciudad.cruce(20, 40), 0.0)
@@ -66,6 +71,8 @@ func advance(delta: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	reloj.advance(delta)
 	clima.advance(delta, moto.pos)
 	_revisar_charco()
+	peatones.advance(delta, moto.pos, moto.direccion())
+	_revisar_atropello()
 	tiempo_restante -= delta
 	_revisar_llegada()
 	if tiempo_restante <= 0.0:
@@ -90,7 +97,7 @@ func _revisar_llegada() -> void:
 		evento.emit("recogido")
 	else:
 		entregados += 1
-		var pago := pago_por(tiempo_restante, clima.lloviendo())
+		var pago := pago_por(0.0 if multado else tiempo_restante, clima.lloviendo())
 		ganado += pago
 		evento.emit("entregado")
 		pagado.emit(pago)
@@ -102,6 +109,15 @@ func _revisar_llegada() -> void:
 static func pago_por(segundos_sobrantes: float, lluvia := false) -> int:
 	var base := TARIFA + int(round(maxf(segundos_sobrantes, 0.0) * PROPINA_POR_S / 100.0)) * 100
 	return int(round(base * (1.0 + CLIMA.BONO) / 100.0)) * 100 if lluvia else base
+
+
+## Atropellar a un peatón: frenazo en seco y el pedido se queda sin propina (solo la tarifa).
+func _revisar_atropello() -> void:
+	if peatones.atropellar(moto.pos, moto.vel) == -1:
+		return
+	moto.vel = 0.0
+	multado = true
+	evento.emit("atropello")
 
 
 ## Pisar un charco frena un poco, una vez por charco.
@@ -135,6 +151,7 @@ func _nuevo_pedido() -> void:
 		"direccion": ciudad.direccion(cli),
 	}
 	fase = RECOGER
+	multado = false
 	var recorrido := _manhattan(moto.pos, rest) + _manhattan(rest, cli)
 	tiempo_restante = recorrido / VEL_PROMEDIO + TIEMPO_EXTRA
 

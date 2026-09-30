@@ -52,6 +52,7 @@ var _l_bono: Label
 var _audio: Node
 var _lluvia: Control
 var _charcos: MultiMeshInstance3D
+var _peatones: Array[Sprite3D] = [] # uno por cada peatón que puede haber a la vez
 var _version_charcos := -1
 var _mat_asfalto: StandardMaterial3D
 var _acelerando := false
@@ -271,7 +272,9 @@ func _construir_mundo() -> void:
 	ciudad.add_child(andenes)
 	ciudad.add_child(parques)
 	_construir_lineas(ciudad, c)
+	_construir_cebras(ciudad, c)
 	_construir_postes(ciudad, c)
+	_construir_peatones()
 
 	# Faros de pedido: columnas altas que se ven por encima de los edificios.
 	_faro_rest = _caja(_mundo, Vector3(1.2, 60, 1.2), Vector3.ZERO, Color("ff8a2a"), "FaroRestaurante")
@@ -315,14 +318,14 @@ func _construir_lineas(padre: Node3D, c) -> void:
 		for i in c.N_ANCHO:
 			var y: float = c.cruce(0, j).y
 			var x0: float = c.inicio_x[i]
-			var largo: float = c.anchos[i]
-			horizontales.append(Transform3D(Basis.from_scale(Vector3(largo, 1, 0.25)), Vector3(x0 + largo / 2.0, 0.02, y)))
+			var largo: float = c.anchos[i] - 2.0 * (c.CEBRA + 1.0) # la línea para antes de la cebra
+			horizontales.append(Transform3D(Basis.from_scale(Vector3(largo, 1, 0.25)), Vector3(x0 + c.anchos[i] / 2.0, 0.02, y)))
 	for i in c.N_ANCHO + 1:
 		for j in c.N_LARGO:
 			var x: float = c.cruce(i, 0).x
 			var y0: float = c.inicio_y[j]
-			var largo: float = c.largos[j]
-			verticales.append(Transform3D(Basis.from_scale(Vector3(0.25, 1, largo)), Vector3(x, 0.02, y0 + largo / 2.0)))
+			var largo: float = c.largos[j] - 2.0 * (c.CEBRA + 1.0)
+			verticales.append(Transform3D(Basis.from_scale(Vector3(0.25, 1, largo)), Vector3(x, 0.02, y0 + c.largos[j] / 2.0)))
 	for par in [["LineasCalles", "linea_h", horizontales], ["LineasCarreras", "linea_v", verticales]]:
 		var mat := _material_tex(par[1], Vector3(4, 4, 4))
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
@@ -333,6 +336,84 @@ func _construir_lineas(padre: Node3D, c) -> void:
 			mmi.multimesh.set_instance_transform(k, par[2][k])
 			mmi.multimesh.set_instance_color(k, Color.WHITE)
 		padre.add_child(mmi)
+
+
+## Cebras en todas las esquinas: franjas blancas gastadas, un poco por encima de la línea amarilla.
+func _construir_cebras(padre: Node3D, c) -> void:
+	var calles: Array[Transform3D] = []   # cebras que atraviesan calles (franjas a lo largo de x)
+	var carreras: Array[Transform3D] = []
+	for j in c.N_LARGO + 1:
+		for i in c.N_ANCHO + 1:
+			for cb in c.cebras(i, j):
+				var r: Rect2 = c.rect_cebra(cb)
+				var t := Transform3D(Basis.from_scale(Vector3(r.size.x, 1, r.size.y)), Vector3(r.get_center().x, 0.025, r.get_center().y))
+				(calles if cb.cruza.y != 0.0 else carreras).append(t)
+	for par in [["CebrasCalles", "cebra_h", calles], ["CebrasCarreras", "cebra_v", carreras]]:
+		var mat := _material_tex(par[1], Vector3(4, 4, 4))
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		var plano := PlaneMesh.new()
+		plano.size = Vector2(1, 1)
+		var mmi := _cajas(par[0], par[2].size(), mat, plano)
+		for k in par[2].size():
+			mmi.multimesh.set_instance_transform(k, par[2][k])
+			mmi.multimesh.set_instance_color(k, Color.WHITE)
+		padre.add_child(mmi)
+
+
+## Peatones a lo Doom: sprites planos que siempre miran a la cámara (solo giran en el eje vertical).
+const PEATON_PX := 40.0      # tamaño del cuadro en la hoja
+const PEATON_ALTO := 1.75    # m que mide una persona (36 px de los 40 del cuadro)
+
+
+func _construir_peatones() -> void:
+	var nodo := Node3D.new()
+	nodo.name = "Peatones"
+	_mundo.add_child(nodo)
+	var hoja: Texture2D = load(TEX + "peatones.png")
+	for k in partida.peatones.MAX:
+		var sp := Sprite3D.new()
+		sp.name = "Peaton%d" % k
+		sp.texture = hoja
+		sp.hframes = 4
+		sp.vframes = partida.peatones.ROPAS
+		sp.pixel_size = PEATON_ALTO / 36.0
+		sp.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+		sp.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		sp.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		sp.shaded = false # la luz se le pone a mano (abajo), como en Doom: se ven igual de lejos que de cerca
+		sp.double_sided = true
+		sp.visible = false
+		nodo.add_child(sp)
+		_peatones.append(sp)
+
+
+## Cada fotograma: pone cada sprite donde va su peatón, con el cuadro de su estado.
+func _actualizar_peatones() -> void:
+	var gente: Array = partida.peatones.lista
+	var derecha := _camara.global_transform.basis.x
+	var luz: float = lerpf(0.35, 1.0, partida.reloj.luz())
+	for k in _peatones.size():
+		var sp := _peatones[k]
+		sp.visible = k < gente.size()
+		if not sp.visible:
+			continue
+		var p: Dictionary = gente[k]
+		var suelo := ANDEN_ALTO if partida.ciudad.en_anden(p.pos, 0.0) else 0.0
+		sp.position = Vector3(p.pos.x, suelo + PEATON_PX * sp.pixel_size / 2.0, p.pos.y)
+		var cuadro := 0
+		if p.estado == partida.peatones.CAIDO:
+			cuadro = 2
+		elif p.estado == partida.peatones.GRITA:
+			cuadro = 3
+		else:
+			cuadro = int(p.andado / 0.45) % 2 # un paso cada 45 cm
+		sp.frame = p.ropa * 4 + cuadro
+		var brillo := luz
+		if _farola.visible: # de noche, la farola de la moto los alumbra de cerca
+			brillo = maxf(brillo, 0.95 * clampf(1.0 - p.pos.distance_to(partida.moto.pos) / 35.0, 0.0, 1.0))
+		sp.modulate = Color(brillo, brillo, brillo)
+		# El dibujo mira a la derecha: si camina hacia la izquierda de la pantalla, se voltea.
+		sp.flip_h = Vector3(p.dir.x, 0.0, p.dir.y).dot(derecha) < 0.0
 
 
 ## Postes de luz en las esquinas de cada cuadra; la bombilla brilla de noche.
@@ -585,6 +666,10 @@ func _actualizar_vista(delta: float) -> void:
 			var ch: Dictionary = clima.charcos[k]
 			mm.set_instance_transform(k, Transform3D(Basis.from_scale(Vector3(ch.radio, 1.0, ch.radio * 0.8)), Vector3(ch.pos.x, 0.012, ch.pos.y)))
 			mm.set_instance_color(k, Color.WHITE)
+
+	_actualizar_peatones()
+	if partida.multado:
+		_l_pedido.text += "\nSIN PROPINA: atropellaste a alguien"
 
 	_t_subtitulo = maxf(_t_subtitulo - delta, 0.0)
 	_subtitulo.visible = _t_subtitulo > 0.0
