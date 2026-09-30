@@ -1,9 +1,9 @@
 extends Control
 ## Minimapa que gira con la moto (siempre mirando hacia arriba) y marca la ruta al pedido.
 
+const MAPA := preload("res://scripts/mapa.gd")
 const ESCALA := 0.55 # px por metro
 const C_FONDO := Color(0.08, 0.08, 0.1, 0.85)
-const C_CUADRA := Color("4a4a4a")
 const C_PARQUE := Color("3d5a3a")
 const C_RUTA := Color("ffcc33")
 const C_RESTAURANTE := Color("ff8a2a")
@@ -40,7 +40,8 @@ func _draw() -> void:
 			var r: Rect2 = c.cuadra(i, j)
 			var pts := PackedVector2Array([_a_pantalla(r.position), _a_pantalla(Vector2(r.end.x, r.position.y)),
 				_a_pantalla(r.end), _a_pantalla(Vector2(r.position.x, r.end.y))])
-			draw_colored_polygon(pts, C_PARQUE if c.es_parque(i, j) else C_CUADRA)
+			# El mismo color de zona del mapa completo (Tab), un poco más oscuro para que la ruta resalte.
+			draw_colored_polygon(pts, C_PARQUE if c.es_parque(i, j) else MAPA.C_ZONA[c.zona(i, j)].darkened(0.25))
 	var ruta: PackedVector2Array = partida.ruta()
 	var en_pantalla := PackedVector2Array()
 	for q in ruta:
