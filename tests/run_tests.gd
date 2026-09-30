@@ -8,6 +8,7 @@ const SUITES := {
 	"motos": "res://tests/test_motos.gd",
 	"ciudad": "res://tests/test_ciudad.gd",
 	"moto": "res://tests/test_moto.gd",
+	"motor": "res://tests/test_motor.gd",
 	"partida": "res://tests/test_partida.gd",
 	"progreso": "res://tests/test_progreso.gd",
 	"ciclo": "res://tests/test_ciclo.gd",

@@ -5,7 +5,7 @@ const VOCES := preload("res://scripts/voces.gd")
 
 
 func run(t) -> void:
-	for e in ["recogido", "entregado", "casi", "golpe", "cancelado", "estrellado"]:
+	for e in ["recogido", "entregado", "casi", "golpe", "cancelado", "estrellado", "fundido", "reparado"]:
 		t.check(VOCES.FRASES.has(e) and VOCES.FRASES[e].size() >= 2, "hay al menos 2 frases para «%s»" % e)
 	var v = VOCES.new(7)
 	var a: String = v.frase("casi")

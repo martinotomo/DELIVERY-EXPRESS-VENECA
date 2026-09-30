@@ -1,7 +1,7 @@
 extends RefCounted
 ## Una jornada de domiciliario: recoger, entregar, otro pedido... hasta que la fe supere al agarre.
 
-signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado
+signal evento(nombre: String)       # recogido, entregado, cancelado, casi, golpe, estrellado, fundido, reparado
 signal terminada_por(mensaje: String)
 signal pagado(pesos: int)           # al entregar: tarifa más propina por el tiempo que sobró
 
@@ -45,6 +45,8 @@ func _init(semilla := 1, datos_moto: Dictionary = {}) -> void:
 	moto.estrellado.connect(_al_estrellarse)
 	moto.casi.connect(func(_tipo): evento.emit("casi"))
 	moto.golpe.connect(func(): evento.emit("golpe"))
+	moto.fundido.connect(func(): evento.emit("fundido"))
+	moto.reparado.connect(func(): evento.emit("reparado"))
 	_nuevo_pedido()
 
 

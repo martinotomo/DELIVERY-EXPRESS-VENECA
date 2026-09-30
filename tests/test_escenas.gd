@@ -204,6 +204,22 @@ func run(t) -> void:
 	t.check(aviso.visible, "derrapando sale el aviso")
 	t.check(aviso.position.x < 100 and aviso.position.y > 280, "el aviso va abajo a la izquierda, no en el centro")
 	t.check(aviso.get_theme_font_size("font_size") <= 8, "el aviso es pequeño")
+	# El aviso del motor: abajo a la izquierda, con la cuenta, y la espera si se funde.
+	var l_motor: Label = r2.get_node("HUD/Motor")
+	t.check(not l_motor.visible, "con el motor frío no hay aviso")
+	r2.partida.moto.calor = 7.2
+	r2._actualizar_vista(0.0)
+	t.check(l_motor.visible and l_motor.text.contains("FUNDIR") and l_motor.text.ends_with("3"), "a fondo sale «vas a fundir el motor» con la cuenta (%s)" % l_motor.text)
+	t.check(l_motor.position.x < 100 and l_motor.position.y > 280, "el aviso del motor va abajo, no tapa la calle")
+	var r_motor := Rect2(l_motor.position, l_motor.get_minimum_size())
+	var r_sub2 := Rect2(r2.get_node("HUD/Subtitulo").position, r2.get_node("HUD/Subtitulo").size)
+	t.check(not r_motor.intersects(r_sub2) and not r_motor.intersects(Rect2(aviso.position, aviso.get_minimum_size())), "no se pisa con el subtítulo ni con el derrape")
+	r2.partida.moto.motor_fundido = true
+	r2.partida.moto._t_reparar = 2.5
+	r2._actualizar_vista(0.0)
+	t.check(l_motor.text.contains("FUNDIDO") and l_motor.text.ends_with("3"), "fundido muestra la espera (%s)" % l_motor.text)
+	r2.partida.moto.motor_fundido = false
+	r2.partida.moto.calor = 0.0
 	main.menu()
 	await t.process_frame
 	t.check_eq(main.pantalla_actual().name, "Menu", "se puede volver al menú")

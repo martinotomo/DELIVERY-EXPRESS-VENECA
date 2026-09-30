@@ -27,6 +27,7 @@ func _colocar(pos: Vector2, rumbo: float, vel: float, reloj_t: float, giro := 0.
 	m.rumbo = rumbo
 	m.vel = vel
 	m.derrapando = false
+	m.calor = 0.0
 	r.partida.reloj.t = reloj_t
 	r._giro_visual = giro
 	r._actualizar_vista(0.0)
@@ -78,8 +79,12 @@ func _correr() -> void:
 	await process_frame
 	await _foto("2_mediodia_derrape")
 	# Atardecer.
-	await _colocar(c.cruce(22, 44) + Vector2(-50, 0), 0.0, 20.0, 290.0)
-	await _foto("3_atardecer")
+	await _colocar(c.cruce(22, 44) + Vector2(-50, 0), 0.0, 24.0, 290.0)
+	_ride().partida.moto.calor = 7.2 # a fondo: sale la cuenta para fundir el motor
+	_ride()._actualizar_vista(0.0)
+	await process_frame
+	await _foto("3_atardecer_motor")
+	_ride().partida.moto.calor = 0.0
 	# Noche con la farola.
 	await _colocar(c.cruce(20, 42) + Vector2(-40, 0), 0.0, 10.0, 450.0)
 	_ride()._al_evento("casi")
