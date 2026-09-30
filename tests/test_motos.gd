@@ -9,7 +9,7 @@ func run(t) -> void:
 	t.check(not bws.is_empty(), "existe la BWS")
 	t.check_eq(MOTOS.MOTO_INICIAL, "bws", "la moto inicial es la BWS")
 	t.check_eq(bws.get("nombre"), "BWS", "la BWS se llama BWS en los mensajes")
-	for campo in ["vel_max", "acel", "freno", "roce", "agarre", "giro_max", "radio", "vel_choque"]:
+	for campo in ["vel_max", "acel", "freno", "roce", "giro_lento", "giro_rapido", "curva_giro", "vel_derrape", "radio", "vel_choque"]:
 		t.check(float(bws.get(campo, 0.0)) > 0.0, "la BWS tiene %s positivo" % campo)
 	# Una BWS 125 no pasa de unos 90-95 km/h, y la gracia es que se note.
 	var kmh := float(bws.vel_max) * 3.6

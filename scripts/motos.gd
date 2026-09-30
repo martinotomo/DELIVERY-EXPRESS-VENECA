@@ -12,8 +12,12 @@ const MOTOS := {
 		"acel": 3.2,        # empuje a baja velocidad; se apaga al acercarse al tope
 		"freno": 7.0,
 		"roce": 0.8,        # lo que pierde sin acelerar ni frenar
-		"agarre": 6.0,      # aceleración lateral máxima antes de irse de lado
-		"giro_max": 1.4,    # rad/s con el manubrio a tope, a baja velocidad
+		# Maniobrabilidad: rad/s con el manubrio a tope. Despacio gira mucho y se pierde de forma
+		# progresiva al acelerar; a tope queda igual que en la primera versión (6 m/s² / 25 m/s).
+		"giro_lento": 2.4,  # casi parado
+		"giro_rapido": 0.24, # a velocidad máxima
+		"curva_giro": 0.6,  # <1: se pierde pronto al arrancar y más suave cerca del tope
+		"vel_derrape": 12.0, # por encima (43 km/h), girar a tope la hace irse de lado
 		"radio": 0.5,       # medio ancho de la moto para chocar con el andén
 		"vel_choque": 3.0,  # contra el andén por encima de esto (11 km/h), se mata
 	},
