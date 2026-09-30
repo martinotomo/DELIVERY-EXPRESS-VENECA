@@ -24,6 +24,20 @@ const BASE := {
 
 ## El remate de la caída en la curva (D9): el chiste central, con el nombre de cada moto.
 const REMATE := "Has muerto al entrar demasiado rápido en la curva, tu fe era más grande que el agarre de tu %s."
+## Las demás caídas (DISENO §5.5, D27), con el mismo formato del meme. %s = el nombre de la moto.
+const REMATES := {
+	"curva": REMATE,
+	"hueco": "Has muerto al caer en un hueco a toda velocidad, el hueco llevaba ahí más tiempo que tu %s.",
+	"perro": "Has muerto al atropellar un perro con tu %s, el perro sobrevivió. El pedido no.",
+	"lluvia": "Has muerto al entrar demasiado rápido en la curva mojada con tu %s, tu fe era impermeable. Tus llantas no.",
+	"bus": "Has muerto al meterle tu %s de frente a un bus, el bus también tenía fe.",
+	"contravia": "Has muerto al ir en contravía con tu %s, la contravía era un atajo. Para el más allá.",
+}
+const CAUSAS := ["curva", "hueco", "perro", "lluvia", "bus", "contravia"]
+
+
+static func remate(causa: String, nombre: String) -> String:
+	return str(REMATES.get(causa, REMATE)) % nombre
 
 const MOTOS := {
 	"bws": {

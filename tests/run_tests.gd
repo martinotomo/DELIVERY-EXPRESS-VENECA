@@ -19,6 +19,7 @@ const SUITES := {
 	"mensajes": "res://tests/test_mensajes.gd",
 	"transito": "res://tests/test_transito.gd",
 	"pedidos": "res://tests/test_pedidos.gd",
+	"peligros": "res://tests/test_peligros.gd",
 	"trafico": "res://tests/test_trafico.gd",
 	"transeuntes": "res://tests/test_transeuntes.gd",
 	"escenas": "res://tests/test_escenas.gd",

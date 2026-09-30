@@ -68,7 +68,7 @@ def cargar(ruta):
 
 def main():
     h = Hoja()
-    h.d.text((24, h.y), "DELIVERY EXPRESS - DIRECCION VISUAL (F2)", font=h.f24, fill=TEXTO)
+    h.d.text((24, h.y), "DELIVERY EXPRESS - DIRECCION VISUAL (F2 a F4)", font=h.f24, fill=TEXTO)
     h.d.text((24, h.y + 36), "Tomás Ardila Marín  ·  Escuela Colombiana de Ingeniería Julio Garavito  ·  todo generado por código (tools/)",
              font=h.f8, fill=GRIS)
     h.y += 60
@@ -104,6 +104,15 @@ def main():
     h.titulo("CAIDA DIBUJADA (cinematica)", "tools/gen_cinematica.py: una por moto, 320x180 a 2x")
     h.fila([cargar(A / "ui" / f"cinematica_{m}.png") for m in ("bws", "nkd", "ninja")], escala=2, sep=8,
            rotulos=["Bwis", "NKD 125", "Ninja 300"])
+
+    variantes = sorted(p for p in (A / "ui").glob("cinematica_*_*.png"))
+    if variantes:
+        h.titulo("LAS OTRAS CAIDAS (D27)", "hueco, perro, lluvia, bus y contravia, una por moto, a 1x")
+        h.fila([cargar(p) for p in variantes], sep=8, rotulos=[p.stem.replace("cinematica_", "") for p in variantes])
+
+    h.titulo("CALLE (F4, D27)", "tools/gen_avisos.py y tools/gen_marcas_hueco.py: avisos (y su luz de noche), vallas, hueco, aceite, marcas y perros, a 2x")
+    h.fila([cargar(A / "texturas" / "avisos.png"), cargar(A / "texturas" / "avisos_luz.png"), cargar(A / "texturas" / "vallas.png")], escala=2, fondo=PALETA["gris"])
+    h.fila([cargar(A / "texturas" / f) for f in ("hueco.png", "aceite.png", "marcas_hueco.png", "perros.png")], escala=3, fondo=PALETA["gris"])
 
     h.titulo("TRAFICO", "tools/gen_vehiculos.py: 8 direcciones por vehiculo (0 = de frente), 14 px/m, a 2x")
     h.fila([cargar(A / "texturas" / "vehiculos.png")], escala=2, fondo=PALETA["gris"])

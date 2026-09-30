@@ -242,6 +242,83 @@ func _correr() -> void:
 		await _foto("12_manubrio_" + id)
 	_main.progreso.moto = "bws"
 
+	# F4: huecos, aceite, perro y avisos de negocios, de día y de noche.
+	_main.reiniciar()
+	await process_frame
+	await process_frame
+	r = _ride()
+	var hueco: Dictionary = {}
+	for h in r.partida.peligros.lista:
+		if h.tipo == "hueco" and h.eje == Vector2.RIGHT and c.distancia_anden(h.pos) > 3.0 and h.marca == 0 and h.pos.distance_to(c.cruce(20, 40)) < 900.0:
+			hueco = h
+			break
+	var ante: Vector2 = hueco.pos - Vector2(22, 0)
+	ante.y = hueco.pos.y
+	r.partida.perros.lista.clear()
+	r.partida.perros.poner(hueco.pos - Vector2(10, -2.0), Vector2.RIGHT, -1.0)
+	for foto in [["20_hueco_aceite_perro", 140.0], ["20b_hueco_noche", 470.0]]:
+		r._detalles._t_peligros = 99.0
+		await _colocar(ante, 0.0, 6.0, foto[1])
+		await _foto(foto[0])
+	# Avisos en las fachadas (mirando de lado hacia las cuadras) y una valla en una avenida.
+	await _colocar(c.cruce(20, 40) + Vector2(-20, 3), -0.35, 0.0, 150.0)
+	await _foto("21_avisos")
+	await _colocar(c.cruce(20, 40) + Vector2(-20, 3), -0.35, 0.0, 470.0)
+	await _foto("21b_avisos_noche")
+	var valla: Node3D = null
+	for cru in [Vector2i(18, 36), Vector2i(24, 42), Vector2i(12, 48), Vector2i(30, 30), Vector2i(18, 54)]:
+		await _colocar(c.cruce(cru.x, cru.y) + Vector2(1, 1), 0.0, 0.0, 150.0)
+		for v in r._detalles._vallas:
+			if v.visible and v.position.distance_to(Vector3(c.cruce(cru.x, cru.y).x, v.position.y, c.cruce(cru.x, cru.y).y)) < 30.0:
+				valla = v
+				break
+		if valla != null:
+			var cr: Vector2 = c.cruce(cru.x, cru.y)
+			var hacia := (Vector2(valla.position.x, valla.position.z) - cr).normalized()
+			await _colocar(cr - hacia * 30.0, hacia.angle(), 0.0, 150.0)
+			r._camara.rotation.x = 0.18 # mirar hacia arriba, a la terraza
+			await process_frame
+			await _foto("22_valla")
+			break
+
+	# F5: el pedido con su tipo, el estado de la sopa, la racha de fe y la calificación.
+	r.partida.fase = r.partida.ENTREGAR
+	r.partida.pedido.tipo = "sopa"
+	r.partida.pedido.plato = "Ajiaco"
+	r.partida.pedido.nombre_cliente = "Doña Gloria"
+	r.partida.estado_pedido = 0.72
+	r.partida.racha = 4
+	r._al_calificar(4, "Rápido y completo. Le faltó el saludo.")
+	await _colocar(c.cruce(20, 40) + Vector2(-30, 0), 0.0, 14.0, 140.0)
+	await _foto("23_pedido_racha_estrellas")
+
+	# Las otras caídas (DISENO §5.5): cada una con su dibujo y su remate.
+	for causa in ["hueco", "perro", "lluvia", "bus", "contravia"]:
+		_main.reiniciar()
+		await process_frame
+		await process_frame
+		r = _ride()
+		r.retraso_resultado = 3.0
+		await _colocar(c.cruce(20, 40) + Vector2(-30, 0), 0.0, 20.0, 140.0)
+		r.set_process(true)
+		r.partida._morir(causa)
+		await create_timer(2.2).timeout
+		await _foto("24_caida_" + causa)
+		await create_timer(1.2).timeout
+		await process_frame
+		await _foto("24b_remate_" + causa)
+
+	# El final: la mamá en la loma.
+	_main.reiniciar()
+	await process_frame
+	await process_frame
+	r = _ride()
+	r.retraso_resultado = 0.0
+	r.partida.final_logrado.emit(r.partida.MENSAJE_FINAL)
+	await process_frame
+	await process_frame
+	await _foto("25_final")
+
 	_hoja()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(ruta))
 	quit(0)

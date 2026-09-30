@@ -131,8 +131,10 @@ def ladrillos(img, x0, x1, y0, y1, rng, oscuro=1.0):
             img[y, x] = col
 
 
-def fondo(rng, noche=False):
-    """noche=True: la misma calle de noche y bajo el aguacero (variante «lluvia»)."""
+def fondo(rng, noche=False, z_borde=Z_BORDE):
+    """noche=True: la misma calle de noche y bajo el aguacero (variante «lluvia»). z_borde: hasta
+    dónde llega el andén (más grande = andén más angosto y más calle a la vista)."""
+    y_borde = HOR + F * CAM_H / z_borde
     img = np.zeros((H, W, 3), np.float32)
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
 
@@ -150,7 +152,7 @@ def fondo(rng, noche=False):
     X = (xx - VPX) * z / F
     suelo = yy > HOR + 0.5
     x_bordillo_esq = 1.64                                   # sardinel de la calle de la esquina
-    anden = suelo & (z >= Z_BORDE) & (X < x_bordillo_esq)
+    anden = suelo & (z >= z_borde) & (X < x_bordillo_esq)
     via = suelo & ~anden
 
     # asfalto: grano fino, más oscuro abajo y con parches reparados
@@ -166,18 +168,18 @@ def fondo(rng, noche=False):
         img[banda & gasta] = c("amarillo_via", 0.85)[None, :] * (1 + 0.04 * g[banda & gasta, None])
     # andén: baldosas de 0,6 m (juntas que fugan al punto de la derecha) y manchas
     bx = np.mod(X, 0.6) < 0.035 * z / 3
-    bz = np.mod(z - Z_BORDE, 0.6) < 0.02 * z
+    bz = np.mod(z - z_borde, 0.6) < 0.02 * z
     mancha = ruido(rng, (H, W), 3.0)
     base = c("concreto")[None, None, :] * (1.0 + 0.035 * g[..., None] - 0.05 * (mancha[..., None] > 1.1))
     base = np.where((bx | bz)[..., None], c("gris")[None, None, :], base)
     img[anden] = base[anden]
     # sardinel: arista de arriba clara, cara de concreto en sombra y la cuneta oscura
-    for y in range(int(Y_BORDE), int(Y_BORDE) + 7):
-        k = y - int(Y_BORDE)
+    for y in range(int(y_borde), int(y_borde) + 7):
+        k = y - int(y_borde)
         col = c("concreto_claro") if k < 2 else c("gris") if k < 6 else c("asfalto_oscuro")
         img[y, :] = col * (1 + 0.03 * g[y, :, None])
     for x in range(0, W, 23):                              # juntas del sardinel
-        img[int(Y_BORDE):int(Y_BORDE) + 6, x] = c("asfalto")
+        img[int(y_borde):int(y_borde) + 6, x] = c("asfalto")
 
     # --- fachadas ---
     y_m = int(round(Y_MURO))
@@ -571,9 +573,9 @@ def escena(clave):
     return pegar_capa(q, L)
 
 
-def poste(img):
+def poste(img, y_borde=Y_BORDE):
     """El poste de la luz de sodio (sube hasta salir del cuadro), con su cartel de papel."""
-    yb = int(Y_BORDE) - 4
+    yb = int(y_borde) - 4
     for x in range(X_POSTE - 4, X_POSTE + 5):
         t = (x - X_POSTE) / 4.0
         img[0:yb, x] = c("cromo_oscuro") * (1.25 - 0.55 * (t + 1) / 2)
@@ -612,7 +614,7 @@ def pegar_capa(q, L, noche=False):
 #   lluvia: el mismo choque de noche y bajo el aguacero: asfalto mojado que refleja el sodio,
 #           charcos, gotas y el agua que levantó la moto al deslizarse.
 
-CAUSAS = ("hueco", "perro", "lluvia")
+CAUSAS = ("hueco", "perro", "lluvia", "bus", "contravia")
 # centro de cada rueda en el cuadro de 128×96 del taller (volteado): trasera y delantera
 RUEDAS = {"bws": ((32, 66), (98, 75)), "nkd": ((24, 72), (105, 75)), "ninja": ((17, 70), (106, 73))}
 
@@ -654,8 +656,12 @@ def capa(*dibujos, dx=0.0, dy=0.0, espejo=None):
 
 
 def pegar_sprite(q, spr, x0, y0):
+    """Pega un sprite RGBA sobre q (lo que se sale del cuadro se recorta)."""
     mh, mw = spr.shape[:2]
-    reg = q[y0:y0 + mh, x0:x0 + mw]
+    sx0, sy0 = max(0, -x0), max(0, -y0)
+    sx1, sy1 = min(mw, W - x0), min(mh, H - y0)
+    spr = spr[sy0:sy1, sx0:sx1]
+    reg = q[y0 + sy0:y0 + sy1, x0 + sx0:x0 + sx1]
     m = spr[..., 3] > 0
     reg[m] = spr[..., :3][m]
 
@@ -668,8 +674,8 @@ def gotas(L, pts, col="hueso"):
 
 # --- hueco -----------------------------------------------------------------------------------
 
-HUECO = (212.0, 141.0, 27.0, 6.5)       # centro, radio en x y en y (en perspectiva)
-Y_AGUA = HUECO[1] - 1.5                  # nivel del agua dentro del hueco
+HUECO = (184.0, 144.0, 40.0, 10.0)       # centro, radio en x y en y (en perspectiva)
+Y_AGUA = HUECO[1] + 0.5                  # nivel del agua dentro del hueco
 
 
 def hueco_masks():
@@ -690,17 +696,24 @@ def pintar_hueco(img, rng):
     # asfalto hundido y cuarteado alrededor (más oscuro cerca del borde)
     anillo = (d >= 1.0) & (d < 1.45)
     img[anillo] *= (0.72 + 0.28 * np.clip((d[anillo] - 1.0) / 0.45, 0, 1))[:, None]
+    # el borde roto: un filo claro de asfalto levantado todo alrededor (con mellas)
+    mella = ruido(rng, (H, W), 0.8) > -0.9
+    filo = (d >= 1.0) & (d < 1.13) & mella
+    img[filo] = c("concreto", 0.9)
     # pared de atrás: la cara cortada mira a la cámara (arriba asfalto, abajo tierra húmeda)
     pared = dentro & (yy < Y_AGUA)
     y_top = cy - ry
     t = np.clip((yy - y_top) / (Y_AGUA - y_top), 0, 1)
-    col = c("asfalto")[None, None] * (1 - t[..., None]) + c("guante_oscuro", 0.8)[None, None] * t[..., None]
-    col = np.where((np.abs(yy - (y_top + 1.6)) < 0.6)[..., None], c("asfalto_oscuro")[None, None], col)
+    col = c("asfalto_oscuro")[None, None] * (1 - t[..., None]) + c("guante_oscuro", 0.45)[None, None] * t[..., None]
     img[pared] = col[pared]
+    # el filo de atrás: el borde roto del asfalto coge luz
+    filo = (d >= 0.86) & (d < 1.04) & (yy < cy - ry * 0.35)
+    img[filo] = c("concreto", 0.95)
     # agua: refleja el cielo oscuro, con ondas y la mancha tibia del sodio
     agua = dentro & (yy >= Y_AGUA)
     ond = np.sin(xx * 0.9 + yy * 2.1) * 0.5 + 0.5
-    ref = c("vidrio_oscuro")[None, None] * (1 - 0.35 * ond[..., None]) + c("vidrio")[None, None] * 0.35 * ond[..., None]
+    ref = c("vidrio")[None, None] * (1 - 0.6 * ond[..., None]) + c("vidrio_brillo")[None, None] * 0.6 * ond[..., None]
+    ref = ref * np.clip(0.9 + 0.3 * (yy - Y_AGUA) / ry, 0.8, 1.2)[..., None]
     mancha = np.exp(-(((xx - (cx - 12)) / 7) ** 2 + ((yy - (cy + 1)) / 2.5) ** 2))
     ref = ref * (1 - 0.6 * mancha[..., None]) + c("sodio", 0.8)[None, None] * 0.6 * mancha[..., None]
     img[agua] = ref[agua]
@@ -727,7 +740,7 @@ def pintar_hueco(img, rng):
 def cono_hundido(L):
     """Cono de tránsito medio hundido y ladeado en el agua (alguien lo puso de aviso)."""
     base = Y_AGUA + 1.2
-    cx = HUECO[0] + 15
+    cx = HUECO[0] - 24
     p = lambda pts: L.poly(pts)  # noqa: E731
     cuerpo = p([(cx - 6, base), (cx + 5, base), (cx + 7.5, base - 13), (cx + 5.5, base - 15.5), (cx + 3.5, base - 14.5)])
     L.pieza(cuerpo, c("naranja"), bisel=2.5, luz=0.8, grad=0.25, brillo=0.2)
@@ -744,18 +757,17 @@ def escena_hueco(clave):
     img, anden, via = fondo(rng)
     pintar_hueco(img, rng)
     d = MOTOS[clave]
-    moto, (trasera, delantera) = moto_girada(clave, 57, d["escala"] * 0.92, espejo=True,
+    moto, (trasera, delantera) = moto_girada(clave, 40, d["escala"] * 0.9, espejo=True,
                                              puntos=[(128 - x, y) for (x, y) in RUEDAS[clave]])
     mh, mw = moto.shape[:2]
     # la rueda de adelante (abajo a la izquierda) se clava en el agua hasta el eje
-    x0 = int(round(HUECO[0] - 6 - delantera[0]))
+    x0 = int(round(HUECO[0] + 22 - delantera[0]))
     y0 = int(round(Y_AGUA + 1 - delantera[1]))
     sombra(img, 104, 116, 62, 13, 0.5)
     sombra(img, 180, 104, 18, 5, 0.4)
     sombra(img, x0 + mw * 0.55, Y_BORDE + 5, mw * 0.5, 4, 0.45)
     poste(img)
     # una raya corta de frenazo que muere en el hueco
-    img = marcas_derrape(img, rng, dx=0, k=0.0)
     lienzo = Image.new("L", (W * 4, H * 4), 0)
     dd = ImageDraw.Draw(lienzo)
     dd.line([(318 * 4, 168 * 4), (270 * 4, 152 * 4), (HUECO[0] * 4 + 60, (HUECO[1] + 3) * 4)], fill=255, width=14, joint="curve")
@@ -890,24 +902,24 @@ def escena_perro(clave):
     mh, mw = moto.shape[:2]
     bx, piso = 56, 126
     x0, y0 = bx - mw // 2, piso - mh
-    PX, PY = 132, 126                            # dónde se sienta el perro
-    ESP = 318                                   # el domiciliario, volteado: cayó hacia la derecha
+    PX, PY = 118, 127                            # dónde se sienta el perro
+    ESP = 332                                   # el domiciliario, volteado: cayó hacia la derecha
     sombra(img, bx, piso - 3, mw * 0.55, 7, 0.6)
     sombra(img, ESP - 104, 116, 62, 13, 0.5)
-    sombra(img, PX + 3, PY - 1, 17, 3.5, 0.55)
+    sombra(img, PX + 4, PY - 1, 22, 4, 0.55)
     poste(img)
     q = cuantizar(img, 7.0)
     pegar_sprite(q, moto, x0, y0)
 
-    L = capa(caja_termica, dx=-80)              # la maleta cayó contra la pared, detrás del perro
+    L = capa(caja_termica, dx=-28)              # la maleta cayó contra la pared, detrás del perro
     L.sobre(capa(domiciliario, lambda L_: estrellas(L_, 67, 92), espejo=ESP))
-    L.sobre(capa(lambda L_: tenis_volado(L_, 238, 90)))
+    L.sobre(capa(lambda L_: tenis_volado(L_, 250, 90)))
     comida_perro(L)
     piezas_perro(L, clave)
     polvo(L, x0 + 6, x0 + mw - 6, piso - 2)
     rx, ry, rr = MOTOS[clave]["rueda"]
     rayas_rueda(L, x0 + mw - rx, y0 + ry, rr)
-    perro(L, PX, PY)
+    perro(Escala(L, PX, PY, 1.3), PX, PY)
     return pegar_capa(q, L)
 
 
@@ -1032,7 +1044,298 @@ def escena_lluvia(clave):
     return lluvia(q, rng)
 
 
-ESCENAS = {"hueco": escena_hueco, "perro": escena_perro, "lluvia": escena_lluvia}
+# --- piezas comunes de las variantes nuevas ----------------------------------------------------
+
+class Escala:
+    """Envuelve una capa para pintar una figura agrandada k veces alrededor de (ox, oy): las
+    formas escalan sus coordenadas y tamaños; el resto (pieza, plano, cromo) pasa derecho."""
+
+    def __init__(self, L, ox, oy, k):
+        self.L, self.ox, self.oy, self.k = L, ox, oy, k
+
+    def _p(self, x, y):
+        return self.ox + (x - self.ox) * self.k, self.oy + (y - self.oy) * self.k
+
+    def poly(self, pts):
+        return self.L.poly([self._p(x, y) for x, y in pts])
+
+    def elipse(self, cx, cy, rx, ry):
+        return self.L.elipse(*self._p(cx, cy), rx * self.k, ry * self.k)
+
+    def caja(self, x0, y0, x1, y1, r=0):
+        (a, b), (cc, d) = self._p(x0, y0), self._p(x1, y1)
+        return self.L.caja(a, b, cc, d, r * self.k)
+
+    def tubo(self, pts, ancho):
+        return self.L.tubo([self._p(x, y) for x, y in pts], ancho * self.k)
+
+    def estrella(self, cx, cy, r):
+        return self.L.estrella(*self._p(cx, cy), r * self.k)
+
+    def __getattr__(self, n):
+        return getattr(self.L, n)
+
+
+def aplastar(spr, fx=1.0, fy=1.0):
+    """Encoge un sprite (la moto hecha acordeón contra lo que chocó) tomando píxeles enteros."""
+    h, w = spr.shape[:2]
+    nh, nw = max(1, int(h * fy)), max(1, int(w * fx))
+    ys = ((np.arange(nh) + 0.5) * h / nh).astype(int)
+    xs = ((np.arange(nw) + 0.5) * w / nw).astype(int)
+    return spr[ys][:, xs].copy()
+
+
+def raya_llanta(img, pts, ancho=2.2, k=0.55):
+    """Raya negra de llanta (a 1×, con bordes suaves)."""
+    lienzo = Image.new("L", (W * 4, H * 4), 0)
+    ImageDraw.Draw(lienzo).line([(x * 4, y * 4) for x, y in pts], fill=255, width=int(ancho * 4), joint="curve")
+    m = np.array(lienzo.resize((W, H), Image.BILINEAR), np.float32) / 255.0
+    img *= (1 - k * m)[..., None]
+
+
+def estallido(L, cx, cy, r, puntas=9, giro=0.2):
+    """Estallido de choque de historieta (sin letras): estrella irregular amarilla con un halo."""
+    for (rr, col, k) in ((r, "ventana_luz", 1.0), (r * 0.62, "blanco", 0.95)):
+        pts = []
+        for i in range(puntas * 2):
+            a = giro + i * np.pi / puntas
+            f = rr * (1.0 if i % 2 == 0 else 0.5) * (1 + 0.18 * np.sin(i * 2.7))
+            pts.append((cx + np.cos(a) * f, cy + np.sin(a) * f * 0.8))
+        L.pieza(L.poly(pts), c(col, k), bisel=1.5, luz=0.5, grad=0.2, linea=(col != "blanco"))
+
+
+def vehiculo(modelo, yaw, ppm, fw, fh, elev):
+    """Render de un vehículo de tools/gen_vehiculos.py a la escala de la escena (recortado)."""
+    import gen_vehiculos as GV
+    antes = GV.PPM
+    GV.PPM = ppm
+    try:
+        spr = GV.render(modelo, fw, fh, yaw, elev)
+    finally:
+        GV.PPM = antes
+    ys, xs = np.nonzero(spr[..., 3])
+    return spr[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+
+
+def domiciliario_estampado(L, cx, cy):
+    """El domiciliario pegado al parabrisas como calcomanía, de espaldas y a lo estrella de mar:
+    brazos y piernas abiertos, manos abiertas contra el vidrio, un tenis puesto y el otro no."""
+    chaq, chaq_o = c("chaqueta"), c("chaqueta_oscura")
+    jean, jean_o = c("azul_casa", 0.95), c("azul_casa", 0.72)
+    for sx in (-1, 1):
+        # piernas abiertas hacia abajo
+        L.pieza(L.tubo([(cx + sx * 3.5, cy + 5), (cx + sx * 9, cy + 12), (cx + sx * 12, cy + 19)], 5.2),
+                jean if sx < 0 else jean_o * 1.1, bisel=2.2, luz=0.8, grad=0.25)
+        # brazos abiertos hacia arriba
+        L.pieza(L.tubo([(cx + sx * 6, cy - 5), (cx + sx * 12, cy - 9), (cx + sx * 15, cy - 16)], 4.4),
+                chaq, bisel=1.8, luz=0.8, grad=0.2)
+        L.plano(L.tubo([(cx + sx * 11, cy - 8.5), (cx + sx * 12.5, cy - 10.5)], 1.8), c("hueso", 0.9))
+        # mano abierta, dedos estirados contra el vidrio
+        L.pieza(L.elipse(cx + sx * 15.8, cy - 18.5, 2.7, 2.4), c("guante"), bisel=1, luz=0.7)
+        for a in (-0.9, -0.35, 0.2, 0.75):
+            ang = -np.pi / 2 + sx * a
+            L.pieza(L.tubo([(cx + sx * 15.8 + np.cos(ang) * 2, cy - 18.5 + np.sin(ang) * 2),
+                            (cx + sx * 15.8 + np.cos(ang) * 4.6, cy - 18.5 + np.sin(ang) * 4.6)], 1.1),
+                    c("guante"), bisel=0.4, luz=0.5, linea=False)
+    # tenis (izquierda) y media blanca (derecha)
+    L.pieza(L.caja(cx - 15.5, cy + 18, cx - 8.5, cy + 23, r=2), c("blanco"), bisel=1.2, luz=0.6)
+    L.plano(L.caja(cx - 15, cy + 21.8, cx - 9, cy + 23), c("gris"))
+    L.pieza(L.elipse(cx + 12.5, cy + 20.5, 2.6, 2.3), c("hueso"), bisel=1, luz=0.6)
+    # espalda de la chaqueta con la franja reflectiva y el pantalón
+    L.pieza(L.caja(cx - 5.5, cy + 1, cx + 5.5, cy + 8, r=2.5), jean, bisel=2, luz=0.8, grad=0.3)
+    L.pieza(L.poly([(cx - 8, cy - 7), (cx + 8, cy - 7), (cx + 7, cy + 3), (cx + 5, cy + 5), (cx - 5, cy + 5), (cx - 7, cy + 3)]),
+            chaq, bisel=3, luz=0.85, grad=0.3, brillo=0.1)
+    L.plano(L.caja(cx - 7.4, cy - 2.2, cx + 7.4, cy - 0.4), c("hueso"))
+    L.plano(L.tubo([(cx, cy - 6.5), (cx, cy + 4)], 0.7), chaq_o)
+    # casco por detrás, con su franja
+    casco = L.elipse(cx, cy - 11, 6.2, 5.6)
+    L.pieza(casco, c("carbon"), bisel=3, luz=0.95, grad=0.3, brillo=0.3)
+    L.pieza(L.tubo([(cx, cy - 16.5), (cx, cy - 5.5)], 2.4) & casco, c("chaqueta_clara"), bisel=0.8, luz=0.4, linea=False)
+    L.plano(L.elipse(cx - 3, cy - 13.5, 1.5, 0.9), c("blanco"))
+
+
+def domiciliario_volando(L, cx, cy):
+    """El domiciliario volando de lado por encima del capó, hacia la derecha: brazos al frente,
+    piernas atrás abiertas y un tenis que se le sale."""
+    chaq, chaq_c = c("chaqueta"), c("chaqueta_clara")
+    jean, jean_o = c("azul_casa", 0.95), c("azul_casa", 0.72)
+    # rayas de velocidad detrás
+    for (dy, x0, x1) in ((-6, -44, -30), (0, -48, -34), (6, -42, -31)):
+        L.plano(L.tubo([(cx + x0, cy + dy), (cx + x1, cy + dy)], 0.9), c("hueso"))
+    # pierna de atrás (más oscura) y brazo de atrás
+    L.pieza(L.tubo([(cx - 9, cy + 1), (cx - 18, cy - 5), (cx - 27, cy - 9)], 5.5), jean_o, bisel=2, luz=0.7, grad=0.2)
+    L.pieza(L.elipse(cx - 29.5, cy - 9.5, 2.6, 2.2), c("hueso"), bisel=1, luz=0.6)          # media
+    L.pieza(L.tubo([(cx + 5, cy - 3), (cx + 12, cy - 11), (cx + 17, cy - 17)], 4.2), chaq * 0.9, bisel=1.6, luz=0.7)
+    L.pieza(L.elipse(cx + 18.5, cy - 18.5, 2.6, 2.2), c("guante"), bisel=1, luz=0.7)
+    # cuerpo estirado
+    L.pieza(L.elipse(cx - 7, cy + 1.5, 6.5, 5), jean, bisel=2.5, luz=0.85, grad=0.3)
+    L.pieza(L.tubo([(cx - 9, cy + 3), (cx - 18, cy + 7), (cx - 27, cy + 5)], 5.5), jean, bisel=2.2, luz=0.85, grad=0.25)
+    L.pieza(L.caja(cx - 33, cy + 1.5, cx - 25.5, cy + 7.5, r=2.4), c("blanco"), bisel=1.2, luz=0.6)
+    L.plano(L.caja(cx - 33, cy + 6, cx - 25.5, cy + 7.5), c("gris"))
+    torso = L.poly([(cx - 5, cy - 4.5), (cx + 7, cy - 6.5), (cx + 11, cy - 2), (cx + 9, cy + 4.5), (cx - 4, cy + 5.5)])
+    L.pieza(torso, chaq, bisel=3, luz=0.85, grad=0.3, brillo=0.1)
+    L.plano(L.poly([(cx + 1.5, cy - 6), (cx + 3.5, cy - 6.4), (cx + 4.5, cy + 5), (cx + 2.5, cy + 5.2)]) & torso, c("hueso"))
+    # brazo de adelante estirado hacia el frente
+    L.pieza(L.tubo([(cx + 7, cy + 1), (cx + 15, cy + 3), (cx + 22, cy + 1)], 4.4), chaq, bisel=1.8, luz=0.85, grad=0.2)
+    L.plano(L.tubo([(cx + 13, cy + 2.6), (cx + 15.5, cy + 3)], 1.8), chaq_c)
+    L.pieza(L.elipse(cx + 24, cy + 0.5, 2.8, 2.3), c("guante"), bisel=1, luz=0.75)
+    # casco mirando a la derecha, con la visera
+    L.pieza(L.elipse(cx + 15, cy - 6, 6.2, 5.6), c("carbon"), bisel=3, luz=0.95, grad=0.3, brillo=0.3)
+    L.pieza(L.poly([(cx + 16, cy - 8), (cx + 21, cy - 7), (cx + 21, cy - 3), (cx + 17, cy - 3.5)]), c("vidrio_oscuro"), bisel=1, luz=0.9, brillo=0.3)
+    L.plano(L.tubo([(cx + 11, cy - 11), (cx + 13, cy - 1)], 1.4) & L.elipse(cx + 15, cy - 6, 5.8, 5.2), chaq_c)
+    L.plano(L.elipse(cx + 12.5, cy - 9, 1.3, 0.8), c("blanco"))
+
+
+def reguero(L, x, y, n=7, abre=1.0, semilla=0):
+    """Papitas regadas alrededor de (x, y)."""
+    r = np.random.default_rng(semilla)
+    for _ in range(n):
+        px, py, a = x + r.uniform(-12, 12) * abre, y + r.uniform(-4, 4), r.uniform(-1.2, 1.2)
+        dx, dy = np.cos(a) * 2.6, np.sin(a) * 2.6
+        L.pieza(L.tubo([(px - dx, py - dy), (px + dx, py + dy)], 2.3), c("ventana_luz"), bisel=1.0, luz=0.7, linea=False)
+
+
+# --- bus -------------------------------------------------------------------------------------
+
+def escena_bus(clave):
+    """El bus salió de la esquina: la moto quedó hecha acordeón contra la trompa y el domiciliario
+    rebotó y quedó pegado en el parabrisas."""
+    import gen_vehiculos as GV
+    rng = np.random.default_rng(20260933)
+    img, anden, via = fondo(rng)
+    bus = vehiculo(GV.Bus().modelo(), 335.0, 27.0, 400, 116, 3.0)
+    bh, bw = bus.shape[:2]
+    bx0, by0 = 172, 142 - bh
+    sombra(img, bx0 + 95, 140, 110, 5, 0.6)
+    raya_llanta(img, [(2, 170), (60, 160), (110, 148), (140, 140)], 2.4)
+    raya_llanta(img, [(0, 177), (58, 166), (108, 153), (136, 143)], 2.0)
+    poste(img)
+    q = cuantizar(img, 7.0)
+    pegar_sprite(q, bus, bx0, by0)
+
+    # parabrisas: el vidrio de la cara de adelante (azules del cielo) con grietas en telaraña
+    reg = q[by0:by0 + bh, bx0:bx0 + bw].astype(int)
+    vidrio = np.zeros((H, W), bool)
+    es_vid = np.zeros(reg.shape[:2], bool)
+    for n in ("vidrio_oscuro", "vidrio", "vidrio_brillo", "cielo_noche", "cromo_oscuro", "azul_casa", "gris", "asfalto", "asfalto_oscuro", "carbon", "cromo"):
+        es_vid |= (reg == np.array(P[n])).all(-1)
+    vidrio[by0:by0 + bh, bx0:bx0 + bw] = es_vid
+    vidrio[:, :bx0] = False
+    vidrio[:, bx0 + 65:] = False
+    vidrio[:by0 + 27] = False
+    vidrio[by0 + 76:] = False
+    CX, CY = bx0 + 31, by0 + 51                   # centro del golpe en el parabrisas
+    grieta = Image.new("L", (W, H), 0)
+    dg = ImageDraw.Draw(grieta)
+    r2 = np.random.default_rng(7)
+    for k in range(11):
+        a = k / 11 * 2 * np.pi + r2.uniform(-0.2, 0.2)
+        pts, x, y = [(CX, CY)], CX, CY
+        for paso in range(5):
+            a += r2.uniform(-0.3, 0.3)
+            x, y = x + np.cos(a) * 8, y + np.sin(a) * 8
+            pts.append((x, y))
+        dg.line(pts, fill=255, width=1)
+    for rr in (9, 17, 26):
+        dg.ellipse([CX - rr, CY - rr * 0.8, CX + rr, CY + rr * 0.8], outline=255, width=1)
+    g = (np.array(grieta) > 0) & vidrio
+    q[g] = P["vidrio_brillo"]
+
+    # la moto: de perfil hacia la derecha, hecha acordeón contra la trompa, con la cola alzada
+    d = MOTOS[clave]
+    moto = aplastar(moto_girada(clave, -9, d["escala"] * 0.95), fx=0.62)
+    mh, mw = moto.shape[:2]
+    mx0, my0 = bx0 + 12 - mw, 143 - mh
+    L = Capa2()
+    estallido(L, bx0 + 6, 118, 17)
+    q = pegar_capa(q, L)
+    pegar_sprite(q, moto, mx0, my0)
+
+    L = Capa2()
+    domiciliario_estampado(L, CX, CY)
+    estrellas(Escala(L, CX, CY - 12, 0.75), CX, CY - 24)
+    polvo(L, mx0 + 2, bx0 + 16, 141)
+    # la maleta cayó al andén y el pedido quedó regado; una papa se quedó pegada al vidrio
+    L2 = capa(caja_termica, dx=-98, dy=6)
+    L2.sobre(L)
+    L = L2
+    reguero(L, 100, 122, n=8, semilla=3)
+    L.pieza(L.tubo([(CX + 20, CY - 16), (CX + 24, CY - 13)], 2.3), c("ventana_luz"), bisel=1, luz=0.7, linea=False)
+    L.pieza(L.caja(52, 126, 63, 132.5, r=3), c("rojo"), bisel=2, luz=0.8, grad=0.3, brillo=0.28)   # gaseosa
+    L.cromo(L.elipse(52, 129.25, 1.8, 3.2))
+    col = c(d["panel"])
+    for (x, y) in ((150, 132), (140, 136), (132, 128), (118, 138)):
+        L.pieza(L.poly([(x, y), (x + 3, y - 1.4), (x + 3.5, y + 1)]), col * 0.9, bisel=0.6, luz=0.5)
+    return pegar_capa(q, L)
+
+
+# --- contravía -------------------------------------------------------------------------------
+
+Z_BORDE_CONTRA = 4.1          # andén más angosto: se ve más calle (y la flecha pintada)
+
+
+def flecha_via(img, rng, x_cola, x_punta, yc, alto, sesgo=-1.0):
+    """Flecha blanca pintada en el carril apuntando a la izquierda (el sentido del carril: la
+    moto venía al revés). Se dibuja en la pantalla con un sesgo suave hacia el punto de fuga (la
+    perspectiva de verdad la estiraría tanto que no se leería) y gastada, como la pintura bogotana."""
+    xh = x_punta + (x_cola - x_punta) * 0.36
+    a, b = alto * 0.3, alto * 0.5
+    pts = [(x_cola, yc - a), (xh, yc - a), (xh, yc - b), (x_punta, yc), (xh, yc + b), (xh, yc + a), (x_cola, yc + a)]
+    pts = [(x + (y - yc) * sesgo, y) for x, y in pts]
+    lienzo = Image.new("L", (W * 4, H * 4), 0)
+    ImageDraw.Draw(lienzo).polygon([(x * 4, y * 4) for x, y in pts], fill=255)
+    m = np.array(lienzo.resize((W, H), Image.BILINEAR), np.float32) / 255.0
+    m *= ruido(rng, (H, W), 0.8) > -1.4
+    img[:] = img * (1 - m[..., None]) + c("hueso", 0.92)[None, None] * m[..., None]
+
+
+def escena_contravia(clave):
+    """En contravía: la moto se estrelló de frente contra un taxi que venía por su carril (la
+    flecha pintada dice para dónde era) y el domiciliario sale volando por encima del capó."""
+    import gen_vehiculos as GV
+    rng = np.random.default_rng(20260934)
+    img, anden, via = fondo(rng, z_borde=Z_BORDE_CONTRA)
+    yb = HOR + F * CAM_H / Z_BORDE_CONTRA
+    flecha_via(img, rng, 124, 16, 131.5, 15.0)
+    taxi = vehiculo(GV.Carro(color="amarillo_taxi", tipo="hatch", taxi=True, franja=True, largo=4.0, ejes=(1.2, -1.22)).modelo(),
+                    270.0, 30.0, 160, 70, 8.0)
+    th, tw = taxi.shape[:2]
+    tx0, ty0 = 172, 145 - th
+    sombra(img, tx0 + tw / 2, 143, tw * 0.55, 4, 0.6)
+    raya_llanta(img, [(0, 150), (60, 147), (120, 145), (170, 143)], 2.2)
+    poste(img, yb)
+    q = cuantizar(img, 7.0)
+    pegar_sprite(q, taxi, tx0, ty0)
+
+    d = MOTOS[clave]
+    moto = aplastar(moto_girada(clave, -13, d["escala"] * 0.9), fx=0.8)
+    mh, mw = moto.shape[:2]
+    mx0, my0 = tx0 + 10 - mw, 146 - mh
+    L = Capa2()
+    estallido(L, tx0 + 4, 124, 16)
+    q = pegar_capa(q, L)
+    pegar_sprite(q, moto, mx0, my0)
+
+    L = Capa2()
+    domiciliario_volando(L, 234, 74)
+    # la maleta y el pedido vuelan detrás de él, soltando papas
+    caja = Capa2()
+    caja_termica(caja)
+    caja.mover(-30, -36)
+    caja.sobre(L)
+    L = caja
+    for (x, y, a) in ((174, 62, 0.4), (184, 58, -0.7), (194, 64, 1.2), (180, 68, -0.2), (200, 57, 0.3)):
+        dx, dy = np.cos(a) * 2.6, np.sin(a) * 2.6
+        L.pieza(L.tubo([(x - dx, y - dy), (x + dx, y + dy)], 2.3), c("ventana_luz"), bisel=1.0, luz=0.7, linea=False)
+    col = c(d["panel"])
+    for (x, y) in ((160, 110), (152, 104), (166, 100), (146, 115)):
+        L.pieza(L.poly([(x, y), (x + 3, y - 1.4), (x + 3.5, y + 1)]), col * 0.9, bisel=0.6, luz=0.5)
+    polvo(L, mx0 + 4, tx0 + 14, 144)
+    return pegar_capa(q, L)
+
+
+ESCENAS = {"hueco": escena_hueco, "perro": escena_perro, "lluvia": escena_lluvia,
+           "bus": escena_bus, "contravia": escena_contravia}
 
 
 def main():

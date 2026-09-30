@@ -41,6 +41,10 @@ def medir(nombre, spec, carpeta=SALIDA):
         fallas.append(f"RMS {rms:.3f} fuera de {spec['rms']}")
     if graves > spec["graves"]:
         fallas.append(f"{graves:.1%} de energía bajo 80 Hz (máx. {spec['graves']:.0%})")
+    if spec.get("agudos"):
+        agudos = X[f > 1000].sum() / X.sum()
+        if agudos < spec["agudos"]:
+            fallas.append(f"poco agudo: {agudos:.0%} de energía sobre 1 kHz (mín. {spec['agudos']:.0%})")
     if spec.get("cola"):
         cola = np.sqrt(np.mean(x[-int(0.02 * sr):] ** 2))
         if cola > 0.01:
