@@ -31,7 +31,7 @@ func run(t) -> void:
 	t.check(menu.get_node("Titulo").text == str(ProjectSettings.get_setting("application/config/name")).to_upper(), "el título sale de project.godot")
 	t.check_eq(ProjectSettings.get_setting("application/config/name"), "Delivery Express", "el juego se llama Delivery Express (D14)")
 	t.check_eq(menu.get_node("Titulo").text, "DELIVERY EXPRESS", "el menú muestra el nombre nuevo")
-	t.check(menu.get_node("Estado").text.contains("BWS"), "el menú dice qué moto se tiene")
+	t.check(menu.get_node("Estado").text.contains("Bwis"), "el menú dice qué moto se tiene")
 
 	# Taller: con plata se compra; sin plata los botones están apagados.
 	menu.find_child("Taller", true, false).pressed.emit()
@@ -168,7 +168,7 @@ func run(t) -> void:
 	t.check_eq(_pantallas(main).size(), 1, "tras estrellarse sigue habiendo una sola pantalla")
 	var res: Node = main.pantalla_actual()
 	t.check_eq(res.name, "Resultado", "tras estrellarse sale el resultado")
-	t.check(res.get_node("Caja/Texto").text.contains("agarre de tu BWS"), "el resultado muestra el remate")
+	t.check(res.get_node("Caja/Texto").text.contains("agarre de tu Bwis"), "el resultado muestra el remate")
 
 	main.reiniciar()
 	await t.process_frame

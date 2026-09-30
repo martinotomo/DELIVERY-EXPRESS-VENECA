@@ -51,7 +51,7 @@ func run(t) -> void:
 	p.moto.vel = 18.0
 	p.advance(8.0, true, false, 0.0)
 	t.check(p.terminada, "estrellarse acaba la jornada")
-	t.check(fines.size() == 1 and fines[0].contains("agarre de tu BWS"), "con el remate de la BWS")
+	t.check(fines.size() == 1 and fines[0].contains("agarre de tu Bwis"), "con el remate de la Bwis")
 	var t0: float = p.reloj.t
 	p.advance(5.0, true, false, 0.0)
 	t.check_eq(p.reloj.t, t0, "terminada, el reloj del día no sigue")

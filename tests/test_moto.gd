@@ -81,7 +81,7 @@ func run(t) -> void:
 		m.advance(PASO, true, false, 0.0)
 	t.check_eq(m.estado, MOTO.ESTRELLADA, "al andén a 54 km/h se estrella")
 	t.check_eq(msgs.size(), 1, "la señal estrellado sale una vez")
-	t.check(msgs.size() == 1 and msgs[0].contains("agarre de tu BWS"), "el remate nombra la BWS")
+	t.check(msgs.size() == 1 and msgs[0].contains("agarre de tu Bwis"), "el remate nombra la Bwis")
 	var p: Vector2 = m.pos
 	m.advance(2.0, true, false, 0.0)
 	t.check_eq(m.pos, p, "estrellada ya no se mueve")

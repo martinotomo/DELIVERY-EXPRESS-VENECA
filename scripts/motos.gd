@@ -23,7 +23,7 @@ const BASE := {
 
 const MOTOS := {
 	"bws": {
-		"nombre": "BWS",
+		"nombre": "Bwis", # así la llama Tomás (30/09); el id interno sigue siendo "bws"
 		"precio": 0,
 		"vel_max": 25.0,    # 90 km/h, y porque va bajando
 		"acel": 3.2,        # empuje a baja velocidad; se apaga al acercarse al tope
