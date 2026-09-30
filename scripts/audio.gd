@@ -8,6 +8,7 @@ const RUTA := "res://assets/sonidos/%s.wav"
 const EFECTOS := {
 	"estrellado": "choque", "golpe": "golpe", "casi": "casi", "fundido": "fundido",
 	"entregado": "entregado", "recogido": "recogido", "reparado": "reparado", "charco": "charco",
+	"atropello": "atropello",
 }
 const SILENCIO := -60.0
 

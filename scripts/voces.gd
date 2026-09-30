@@ -45,6 +45,19 @@ const FRASES := {
 		"Escampó, vale. Se acabó el bono.",
 		"Ya paró de llover. Ahora a secarse con el viento.",
 	],
+	"atropello": [
+		"¡Épale! ¡Perdón, señor! Es que el pedido se enfría.",
+		"¡Na' guará, chamo, la cebra es pa' ellos, no pa' uno!",
+		"Tranquila, señora, que eso no fue nada... ¿verdad?",
+		"¡Ay, vale! Se me atravesó... bueno, yo me le atravesé.",
+		"Chamo, la propina de este pedido se fue con ese señor.",
+	],
+	"grito": [
+		"Peatón: ¡Mire por dónde anda, domiciliario!",
+		"Peatón: ¡Le voy a poner una estrella, desgraciado!",
+		"Peatón: ¡Esto va pa' las redes, sonría!",
+		"Peatón: ¡Uy, no, qué pecado! ¡Casi me mata!",
+	],
 	"estrellado": [
 		"Ay, no, chamo... se nos fue el pana.",
 		"Otro más pa' la estadística, vale.",

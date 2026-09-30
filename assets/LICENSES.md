@@ -9,6 +9,9 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | texturas/pasto.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/linea_h.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/linea_v.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/cebra_h.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/cebra_v.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/peatones.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_ladrillo.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_ladrillo_luz.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_concreto.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
@@ -48,5 +51,6 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | sonidos/recogido.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/reparado.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/charco.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
+| sonidos/atropello.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | fuentes/PressStart2P-Regular.ttf | Google Fonts | CodeMan38 (The Press Start 2P Project Authors) | SIL OFL 1.1 | https://fonts.google.com/specimen/Press+Start+2P | 30/09/2026 |
 | fuentes/OFL.txt | Licencia de la fuente anterior | SIL | SIL OFL 1.1 | https://openfontlicense.org | 30/09/2026 |

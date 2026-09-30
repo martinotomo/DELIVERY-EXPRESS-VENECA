@@ -155,3 +155,57 @@ func direccion(p: Vector2) -> String:
 	var r := cuadra(i, 0)
 	var placa := clampi(int((p.x - r.position.x) / r.size.x * 100.0), 1, 99)
 	return "Calle %d # %d-%02d" % [j + 1, i + 1, placa]
+
+
+# --- cebras (Tomás, 30/09: los peatones cruzan por las cebras de las esquinas) --------------
+
+const CEBRA := 3.0 # ancho de la cebra: el mismo del andén, que la cebra continúa por la calzada
+const _LADOS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+
+
+## Las cebras de la esquina (i, j): una por cada tramo de vía que sale del cruce con andén a los dos
+## lados. Cada una: {centro, cruza (hacia dónde la atraviesa el peatón), largo (el ancho de la calle)}.
+func cebras(i: int, j: int) -> Array[Dictionary]:
+	var r: Array[Dictionary] = []
+	var c := cruce(i, j)
+	for lado in _LADOS:
+		# Las dos cuadras que quedan a lado y lado de la cebra.
+		var a: Vector2i
+		var b: Vector2i
+		if lado.x != 0:
+			var ci := i if lado.x > 0 else i - 1
+			a = Vector2i(ci, j - 1)
+			b = Vector2i(ci, j)
+		else:
+			var cj := j if lado.y > 0 else j - 1
+			a = Vector2i(i - 1, cj)
+			b = Vector2i(i, cj)
+		if not (_existe(a) and _existe(b)):
+			continue
+		r.append({
+			"centro": c + Vector2(lado) * (CALLE / 2.0 + CEBRA / 2.0),
+			"cruza": Vector2(absf(lado.y), absf(lado.x)),
+			"largo": CALLE,
+		})
+	return r
+
+
+func _existe(q: Vector2i) -> bool:
+	return q.x >= 0 and q.y >= 0 and q.x < N_ANCHO and q.y < N_LARGO
+
+
+## El rectángulo que pinta una cebra en el piso.
+static func rect_cebra(cb: Dictionary) -> Rect2:
+	var cruza: Vector2 = cb.cruza
+	var tam: Vector2 = cruza * float(cb.largo) + Vector2(cruza.y, cruza.x) * CEBRA
+	return Rect2(cb.centro - tam / 2.0, tam)
+
+
+## ¿El punto p está sobre una cebra?
+func en_cebra(p: Vector2) -> bool:
+	var i := _via_cercana(inicio_x, anchos, p.x)
+	var j := _via_cercana(inicio_y, largos, p.y)
+	for cb in cebras(i, j):
+		if rect_cebra(cb).grow(0.01).has_point(p):
+			return true
+	return false

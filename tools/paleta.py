@@ -48,6 +48,10 @@ PALETA = {
     "guante_claro": (148, 110, 72),
     "chaqueta": (170, 60, 30),
     "chaqueta_oscura": (110, 36, 18),
+    # peatones
+    "piel_clara": (214, 166, 128),
+    "piel": (168, 114, 78),
+    "piel_oscura": (112, 72, 48),
 }
 
 LISTA = list(PALETA.values())
