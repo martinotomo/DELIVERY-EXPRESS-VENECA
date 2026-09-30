@@ -33,3 +33,14 @@ func _draw() -> void:
 	var c := origen + CENTRO_AGUJA * ESCALA
 	draw_line(c, c + Vector2(cos(ang), sin(ang)) * 20.0, Color("c41e18"), 2.0)
 	draw_rect(Rect2(c - Vector2(3, 3), Vector2(6, 6)), Color("1c1c22"))
+
+
+## Rectángulo que ocupa el sprite en la pantalla de 640×360 con un giro dado (lo usan las pruebas).
+func rect_en_pantalla(con_giro: float) -> Rect2:
+	var origen := Vector2(-PIVOTE.x, ARRIBA - PIVOTE.y)
+	var tam := SPRITE.get_size() * ESCALA
+	var xf := Transform2D(con_giro * 0.06, PIVOTE)
+	var r := Rect2(xf * origen, Vector2.ZERO)
+	for esquina in [origen + Vector2(tam.x, 0), origen + Vector2(0, tam.y), origen + tam]:
+		r = r.expand(xf * esquina)
+	return r

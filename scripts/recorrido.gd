@@ -21,6 +21,7 @@ const C_ROJO := Color("e0301e")
 var partida = PARTIDA.new(20260929)
 var voces = VOCES.new(1)
 var retraso_resultado := 2.2
+var duracion_encuadre := 0.5  # las pruebas lo ponen en 0 para medir el cuadro final
 
 var _mundo: SubViewport
 var _camara: Camera3D
@@ -305,26 +306,65 @@ func _construir_postes(padre: Node3D, c) -> void:
 
 
 ## La BWS en bloques para la cinemática: se ve desde fuera solo cuando se cae.
+## Eje +X local = hacia delante. Colores genéricos, sin logos (CLAUDE.md §7).
 func _construir_moto_caida() -> Node3D:
 	var moto := Node3D.new()
 	moto.name = "MotoCaida"
 	var cuerpo := Node3D.new()
 	cuerpo.name = "Cuerpo"
 	moto.add_child(cuerpo)
-	_caja(cuerpo, Vector3(0.5, 0.5, 0.25), Vector3(-0.6, 0.25, 0), Color("2b2b2b"))  # llanta trasera gorda
-	_caja(cuerpo, Vector3(0.5, 0.5, 0.25), Vector3(0.65, 0.25, 0), Color("2b2b2b"))  # llanta delantera
-	_caja(cuerpo, Vector3(1.4, 0.25, 0.5), Vector3(0, 0.45, 0), Color("c8c8c8"))     # piso
-	_caja(cuerpo, Vector3(0.6, 0.4, 0.5), Vector3(-0.45, 0.75, 0), Color("c8c8c8"))  # cola y sillín
-	_caja(cuerpo, Vector3(0.25, 0.7, 0.55), Vector3(0.6, 0.8, 0), Color("c8c8c8"))  # escudo
-	_caja(cuerpo, Vector3(0.1, 0.1, 0.9), Vector3(0.55, 1.2, 0), Color("8c8c8c"))    # manubrio
+	var llanta := Color("1a1a1e")
+	var rin := Color("b4b4be")
+	var carroceria := Color("2456b0")
+	var blanco := Color("e8e8e0")
+	for x in [-0.62, 0.66]:  # llantas gordas de BWS con su rin
+		_caja(cuerpo, Vector3(0.56, 0.56, 0.3), Vector3(x, 0.28, 0), llanta)
+		_caja(cuerpo, Vector3(0.26, 0.26, 0.32), Vector3(x, 0.28, 0), rin)
+	_caja(cuerpo, Vector3(1.2, 0.18, 0.46), Vector3(0.0, 0.5, 0), Color("303038"))    # piso
+	_caja(cuerpo, Vector3(0.75, 0.38, 0.52), Vector3(-0.48, 0.78, 0), carroceria)     # cola
+	_caja(cuerpo, Vector3(0.7, 0.12, 0.4), Vector3(-0.42, 1.02, 0), Color("141418"))  # sillín
+	_caja(cuerpo, Vector3(0.12, 0.12, 0.3), Vector3(-0.88, 0.82, 0), Color("d01c1c")) # stop
+	_caja(cuerpo, Vector3(0.3, 0.8, 0.6), Vector3(0.52, 0.85, 0), carroceria)         # escudo
+	_caja(cuerpo, Vector3(0.1, 0.34, 0.62), Vector3(0.7, 0.95, 0), blanco)            # careta
+	_caja(cuerpo, Vector3(0.08, 0.14, 0.14), Vector3(0.76, 1.0, 0.16), Color("ffe680"))  # farola izq.
+	_caja(cuerpo, Vector3(0.08, 0.14, 0.14), Vector3(0.76, 1.0, -0.16), Color("ffe680")) # farola der.
+	_caja(cuerpo, Vector3(0.44, 0.22, 0.4), Vector3(0.66, 0.56, 0), blanco)           # guardabarros
+	_caja(cuerpo, Vector3(0.1, 0.1, 0.9), Vector3(0.45, 1.32, 0), Color("8c8c96"))    # manubrio
+	_caja(cuerpo, Vector3(0.6, 0.5, 0.5), Vector3(-0.55, 1.35, 0), Color("e07818"))  # caja del domicilio
 	var piloto := Node3D.new()
 	piloto.name = "Piloto"
 	moto.add_child(piloto)
-	_caja(piloto, Vector3(1.0, 0.3, 0.45), Vector3(0, 0.15, 0), Color("aa3c1e"))     # cuerpo tendido, chaqueta
-	_caja(piloto, Vector3(0.35, 0.35, 0.35), Vector3(0.7, 0.18, 0), Color("eeeeee")) # casco
-	_caja(piloto, Vector3(0.5, 0.5, 0.5), Vector3(-0.3, 0.5, 0.35), Color("c8742c")) # caja del domicilio
-	_caja(piloto, Vector3(1.4, 0.02, 1.0), Vector3(0.3, 0.01, 0), Color("8c1010"), "Charco")
+	_caja(piloto, Vector3(0.9, 0.3, 0.5), Vector3(0, 0.15, 0), Color("aa3c1e"))       # chaqueta
+	_caja(piloto, Vector3(0.8, 0.22, 0.4), Vector3(-0.8, 0.11, 0.05), Color("2c3450")) # jean
+	_caja(piloto, Vector3(0.36, 0.36, 0.36), Vector3(0.62, 0.2, 0), Color("f0f0f0"))  # casco
+	_caja(piloto, Vector3(1.6, 0.02, 1.1), Vector3(0.1, 0.01, 0), Color("8c1010"), "Charco")
+	# Luz propia: de noche la escena se ve igual.
+	var luz := OmniLight3D.new()
+	luz.name = "Luz"
+	luz.position = Vector3(-1.5, 2.2, 0)
+	luz.omni_range = 7.0
+	luz.light_energy = 1.4
+	luz.light_color = Color("ffd8a8")
+	moto.add_child(luz)
 	return moto
+
+
+## Dónde va la cámara de la cinemática: detrás y a un lado de la moto (tres cuartos), baja,
+## para que la moto se vea de perfil y llene el cuadro. Se elige el lado que queda sobre la calle.
+func encuadre_caida() -> Array:
+	var m = partida.moto
+	var dir: Vector2 = m.direccion()
+	var mejor := Vector2.ZERO
+	var mejor_d := -1.0
+	for lado in [1.0, -1.0]:
+		var p: Vector2 = m.pos - dir.rotated(lado * deg_to_rad(80.0)) * 3.4
+		var d: float = partida.ciudad.distancia_anden(p)
+		if d > mejor_d:
+			mejor_d = d
+			mejor = p
+	var ojo := Vector3(mejor.x, 3.0, mejor.y)
+	var mira := Vector3(m.pos.x, 0.2, m.pos.y) + Vector3(dir.x, 0.0, dir.y) * 0.9
+	return [ojo, mira]
 
 
 # --- HUD --------------------------------------------------------------------------
@@ -500,7 +540,6 @@ func _al_evento(nombre: String) -> void:
 func _al_estrellarse(mensaje: String) -> void:
 	_cinematica = true
 	var m = partida.moto
-	var dir: Vector2 = m.direccion()
 	# Solo queda el subtítulo, abajo, para que no tape la escena.
 	for hijo in $HUD.get_children():
 		hijo.visible = hijo == _subtitulo and _subtitulo.visible
@@ -509,16 +548,26 @@ func _al_estrellarse(mensaje: String) -> void:
 	_moto_caida.visible = true
 	_moto_caida.position = Vector3(m.pos.x, ANDEN_ALTO, m.pos.y)
 	_moto_caida.rotation = Vector3(0.0, -m.rumbo, 0.0)
+	_moto_caida.scale = Vector3.ONE * 1.3  # un poco más grande que la real, para que se lea en 320×180
 	var cuerpo: Node3D = _moto_caida.get_node("Cuerpo")
-	cuerpo.rotation = Vector3(deg_to_rad(80), 0, 0)
+	cuerpo.rotation = Vector3(deg_to_rad(88), 0, 0)
 	var piloto: Node3D = _moto_caida.get_node("Piloto")
-	piloto.position = Vector3(3.0, 0.0, 0.8)
+	piloto.position = Vector3(2.3, 0.0, -0.9)
 	# Cámara a tercera persona, mirando la escena.
-	var desde: Vector2 = m.pos - dir * 5.0
+	var encuadre := encuadre_caida()
+	var ojo: Vector3 = encuadre[0]
+	var mira: Vector3 = encuadre[1]
 	_camara.rotation.z = 0.0
-	var tw := create_tween()
-	tw.tween_property(_camara, "position", Vector3(desde.x, 2.6, desde.y), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_method(func(_x): _camara.look_at(Vector3(m.pos.x, 0.5, m.pos.y) + Vector3(dir.x, 0, dir.y) * 1.5), 0.0, 1.0, 0.5)
+	if duracion_encuadre <= 0.0:
+		_camara.position = ojo
+		_camara.look_at(mira)
+	else:
+		var desde_pos := _camara.position
+		var mover := func(k: float) -> void:
+			_camara.position = desde_pos.lerp(ojo, k)
+			_camara.look_at(mira)
+		var tw := create_tween()
+		tw.tween_method(mover, 0.0, 1.0, duracion_encuadre).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	var final_msg := "%s\n\nEntregaste %d pedidos antes de irte." % [mensaje, partida.entregados]
 	if retraso_resultado <= 0.0:
 		terminado.emit("estrellado", final_msg)
