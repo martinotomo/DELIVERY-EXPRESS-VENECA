@@ -9,7 +9,8 @@ const SPRITES := {
 	"ninja": preload("res://assets/ui/manubrio_ninja.png"),
 }
 const ESCALA := 2.0
-const ARRIBA := 142.0        # y en pantalla donde empieza el sprite (termina en la barra de estado)
+const ARRIBA := 166.0        # y en pantalla donde empieza el sprite; lo de abajo queda tras la barra de
+                             # estado, para que se vea la calle de enfrente (Tomás, 30/09)
 ## Tablero de cada moto, en píxeles del sprite (tienen que coincidir con tools/gen_manubrios.py):
 ## aguja = centro y largo de la aguja; marca "vel" (velocímetro) o "rpm" (tacómetro);
 ## lcd = pantalla donde se escribe la velocidad (y el cambio, si la moto tiene).
