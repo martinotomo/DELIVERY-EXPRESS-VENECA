@@ -78,6 +78,18 @@ func _correr() -> void:
 	await process_frame
 	await _foto("6_remate")
 
+	# Otra caída, de noche y entrando en diagonal: la moto tiene que verse igual.
+	_main.reiniciar()
+	await process_frame
+	await process_frame
+	r = _ride()
+	r.retraso_resultado = 5.0
+	await _colocar(c.punto_frente_a(21, 43) + Vector2(-6, 0), PI / 2.0 - 0.6, 16.0, 460.0)
+	r.set_process(true)
+	r.partida.advance(1.0, true, false, 0.0)
+	await create_timer(0.8).timeout
+	await _foto("7_caida_noche")
+
 	_hoja()
 	quit(0)
 
@@ -85,7 +97,7 @@ func _correr() -> void:
 func _hoja() -> void:
 	var w := 640
 	var h := 360
-	var hoja := Image.create(w * 2, h * 3, false, Image.FORMAT_RGBA8)
+	var hoja := Image.create(w * 2, h * 4, false, Image.FORMAT_RGBA8)
 	for i in _fotos.size():
 		var f := _fotos[i]
 		f.convert(Image.FORMAT_RGBA8)
