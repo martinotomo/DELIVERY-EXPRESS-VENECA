@@ -55,6 +55,8 @@ var _charcos: MultiMeshInstance3D
 var _version_charcos := -1
 var _mat_asfalto: StandardMaterial3D
 var _acelerando := false
+## Teclas de prueba (F9 = lluvia): solo en versiones de desarrollo, nunca en el .exe exportado.
+var trucos := OS.is_debug_build()
 var _subtitulo: Label
 var _voz: AudioStreamPlayer
 var _t_subtitulo := 0.0
@@ -74,6 +76,13 @@ func _ready() -> void:
 	partida.evento.connect(_al_evento)
 	partida.terminada_por.connect(_al_estrellarse)
 	_actualizar_vista(0.0)
+
+
+func _input(event: InputEvent) -> void:
+	var tecla := event as InputEventKey
+	if trucos and tecla != null and tecla.pressed and not tecla.echo and tecla.keycode == KEY_F9:
+		partida.clima.alternar_lluvia()
+		get_viewport().set_input_as_handled()
 
 
 func _process(delta: float) -> void:

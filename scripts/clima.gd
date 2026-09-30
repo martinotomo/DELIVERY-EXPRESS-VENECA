@@ -48,13 +48,25 @@ func empezar_lluvia(duracion := -1.0) -> void:
 	empezo_lluvia.emit()
 
 
+func parar_lluvia() -> void:
+	_lloviendo = false
+	_t = _rng.randf_range(ENTRE.x, ENTRE.y)
+	paro_lluvia.emit()
+
+
+## Para probar sin esperar (tecla F9 en versiones de desarrollo): prende o apaga la lluvia.
+func alternar_lluvia() -> void:
+	if _lloviendo:
+		parar_lluvia()
+	else:
+		empezar_lluvia()
+
+
 func advance(delta: float, centro: Vector2) -> void:
 	_t -= delta
 	if _t <= 0.0:
 		if _lloviendo:
-			_lloviendo = false
-			_t = _rng.randf_range(ENTRE.x, ENTRE.y)
-			paro_lluvia.emit()
+			parar_lluvia()
 		else:
 			empezar_lluvia()
 	var meta := 1.0 if _lloviendo else 0.0

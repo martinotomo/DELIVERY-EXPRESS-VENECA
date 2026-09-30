@@ -235,6 +235,21 @@ func run(t) -> void:
 	t.check(r2.has_node("Audio/Motor") and r2.get_node("Audio/Motor").playing, "el motor suena")
 	r2._process(0.1)
 	t.check(r2.get_node("Audio/Lluvia").volume_db > -20.0, "la lluvia se oye mientras llueve")
+	# F9 prende y apaga la lluvia, solo en versiones de desarrollo.
+	var f9 := InputEventKey.new()
+	f9.keycode = KEY_F9
+	f9.pressed = true
+	var cl = r2.partida.clima
+	t.check(r2.trucos == OS.is_debug_build(), "las teclas de prueba solo existen en desarrollo")
+	r2.trucos = true
+	r2._input(f9)
+	t.check(not cl.lloviendo(), "F9 con lluvia la quita")
+	r2._input(f9)
+	t.check(cl.lloviendo(), "F9 sin lluvia la pone")
+	r2.trucos = false
+	r2._input(f9)
+	t.check(cl.lloviendo(), "en el .exe exportado F9 no hace nada")
+	cl.parar_lluvia()
 	main.menu()
 	await t.process_frame
 	t.check_eq(main.pantalla_actual().name, "Menu", "se puede volver al menú")
