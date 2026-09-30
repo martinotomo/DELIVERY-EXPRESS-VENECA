@@ -65,6 +65,15 @@ func run(t) -> void:
 	t.check(m.derrapando, "sostener el giro a tope a 83 km/h sí avisa")
 	m.advance(PASO, true, false, 0.5)
 	t.check(not m.derrapando, "al soltar el manubrio se quita")
+	# Más agarre en las motos caras (D22): el mismo giro sostenido tarda más en írseles de lado.
+	var ninja = MOTO.new()
+	ninja.setup(MOTOS.get_moto("ninja"), ciudad, ciudad.cruce(4, 6), 0.0)
+	ninja.vel = 0.92 * float(ninja.moto.vel_max)
+	var bwis = _nueva()
+	bwis.vel = 23.0
+	for x in [ninja, bwis]:
+		x.advance(0.45, true, false, 1.0)
+	t.check(bwis.derrapando and not ninja.derrapando, "a la Ninja le cuesta más irse de lado que a la Bwis")
 	m = _nueva()
 	m.vel = 23.0
 	m.advance(1.0, true, false, 0.6)

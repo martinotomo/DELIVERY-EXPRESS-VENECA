@@ -9,7 +9,7 @@ const ORDEN := ["bws", "nkd", "ninja"]
 const MEJORAS := ["exosto", "motor"]
 const NOMBRE_MEJORA := {"exosto": "Exosto", "motor": "Motor"}
 
-## Lo que comparten todas: la curva de giro de D12 y el choque contra el andén.
+## Lo que comparten todas; cada moto puede cambiar lo suyo (el giro y el agarre, D22).
 const BASE := {
 	"roce": 0.8,        # lo que pierde sin acelerar ni frenar
 	# Maniobrabilidad: rad/s con el manubrio a tope. Despacio gira mucho y se pierde de forma
@@ -19,6 +19,7 @@ const BASE := {
 	"curva_giro": 0.6,  # <1: se pierde pronto al arrancar y más suave cerca del tope
 	"radio": 0.5,       # medio ancho de la moto para chocar con el andén
 	"vel_choque": 3.0,  # contra el andén por encima de esto (11 km/h), se mata
+	"agarre": 1.0,      # cuánto aguanta el giro a tope antes de irse de lado (multiplica DERRAPE_SOSTENIDO)
 }
 
 const MOTOS := {
@@ -28,6 +29,7 @@ const MOTOS := {
 		"vel_max": 25.0,    # 90 km/h, y porque va bajando
 		"acel": 3.2,        # empuje a baja velocidad; se apaga al acercarse al tope
 		"freno": 7.0,
+		# Manejo (D12): la de BASE, como la ajustó Tomás. A tope, curva de ~104 m de radio.
 		# Sonido: automática (CVT), gira alto y parejo. Hay un bucle por cada rpm de rpm_muestras
 		# (assets/sonidos/motor_<id>_<rpm>.wav, de tools/gen_sonidos.py: mismas cifras allá).
 		"cambios": 0, "rpm_ralenti": 1700.0, "rpm_max": 8500.0,
@@ -43,6 +45,8 @@ const MOTOS := {
 		"vel_max": 30.5,    # 110 km/h
 		"acel": 4.2,
 		"freno": 8.0,
+		# Manejo (D22): gira mejor que la Bwis a cualquier velocidad y cierra más a fondo (~88 m).
+		"giro_lento": 3.0, "giro_rapido": 0.35, "agarre": 1.3, "vel_choque": 3.5,
 		"cambios": 4, "rpm_ralenti": 1500.0, "rpm_max": 9500.0,
 		"rpm_muestras": [1500, 2170, 3140, 4540, 6570, 9500],
 		"mejoras": {
@@ -56,6 +60,8 @@ const MOTOS := {
 		"vel_max": 40.0,    # 144 km/h
 		"acel": 6.0,
 		"freno": 9.0,
+		# Manejo (D22): la mejor; a 144 km/h cierra la curva más que las otras a su tope (~76 m).
+		"giro_lento": 3.3, "giro_rapido": 0.53, "agarre": 1.6, "vel_choque": 4.0,
 		"cambios": 6, "rpm_ralenti": 1800.0, "rpm_max": 13000.0,
 		"rpm_muestras": [1800, 2670, 3970, 5890, 8750, 13000],
 		"mejoras": {

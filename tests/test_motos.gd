@@ -39,3 +39,42 @@ func run(t) -> void:
 	# Una BWS 125 no pasa de unos 90-95 km/h, y la gracia es que se note.
 	var kmh := float(bws.vel_max) * 3.6
 	t.check(kmh >= 75.0 and kmh <= 100.0, "velocidad máxima de BWS creíble (%.0f km/h)" % kmh)
+
+	# Manejo por moto (Tomás, 30/09): la más cara gira mejor que la más barata a la misma velocidad,
+	# y también a su propia velocidad máxima (curva más cerrada), sin perder la curva de D12.
+	var MOTO := load("res://scripts/moto_logic.gd")
+	var logicas := {}
+	for id in MOTOS.ORDEN + ["bws_toda", "nkd_toda"]:
+		var l = MOTO.new()
+		var base_id: String = id.trim_suffix("_toda")
+		l.moto = MOTOS.con_mejoras(base_id, {"exosto": true, "motor": true}) if id.ends_with("_toda") else MOTOS.get_moto(base_id)
+		logicas[id] = l
+	var orden_ok := true
+	var mejorada_ok := true
+	for v10 in range(30, 400, 5):
+		var v := v10 / 10.0
+		var w_b: float = logicas.bws.giro_max_a(v)
+		var w_n: float = logicas.nkd.giro_max_a(v)
+		var w_j: float = logicas.ninja.giro_max_a(v)
+		if v <= 25.0 and not (w_n > w_b):
+			orden_ok = false
+		if v <= 30.5 and not (w_j > w_n):
+			orden_ok = false
+		if v <= 28.0 and not (logicas.bws_toda.giro_max_a(v) < w_n):
+			mejorada_ok = false
+		if v <= 34.0 and not (logicas.nkd_toda.giro_max_a(v) < w_j):
+			mejorada_ok = false
+	t.check(orden_ok, "a la misma velocidad la NKD gira más que la Bwis y la Ninja más que la NKD")
+	t.check(mejorada_ok, "las mejoras no dan el giro de la moto siguiente")
+	var radios := []
+	for id in MOTOS.ORDEN:
+		var m: Dictionary = MOTOS.get_moto(id)
+		radios.append(float(m.vel_max) / logicas[id].giro_max_a(float(m.vel_max)))
+	t.check(radios[0] > radios[1] and radios[1] > radios[2], "a fondo, la curva más cerrada es la de la Ninja (radios %d, %d, %d m)" % radios)
+	t.check_eq(float(bws.giro_rapido), 0.24, "la Bwis sigue girando como la dejó Tomás a tope")
+	t.check_eq(float(bws.giro_lento), 2.7, "y despacio")
+	for k in 2:
+		var a: Dictionary = MOTOS.get_moto(MOTOS.ORDEN[k])
+		var b: Dictionary = MOTOS.get_moto(MOTOS.ORDEN[k + 1])
+		t.check(float(b.agarre) > float(a.agarre), "la %s tiene más agarre que la %s" % [b.id, a.id])
+		t.check(float(b.vel_choque) > float(a.vel_choque), "la %s aguanta un toque más fuerte al andén que la %s" % [b.id, a.id])

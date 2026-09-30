@@ -134,7 +134,7 @@ func _paso(dt: float, acelerar: bool, frenar: bool, giro: float) -> void:
 		_t_derrape += dt
 	else:
 		_t_derrape = 0.0
-	derrapando = _t_derrape >= DERRAPE_SOSTENIDO
+	derrapando = _t_derrape >= DERRAPE_SOSTENIDO * float(moto.get("agarre", 1.0)) # más agarre, aguanta más (D22)
 
 	_enfriar_golpe = maxf(_enfriar_golpe - dt, 0.0)
 	var nueva := pos + direccion() * vel * dt
