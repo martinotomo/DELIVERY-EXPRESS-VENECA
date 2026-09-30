@@ -2,7 +2,8 @@
 
 ## Generado con IA generativa
 
-Nada por ahora.
+Nada hecho por el proyecto con IA generativa. Ojo: `ui/motos_taller.png` sale de capturas de memes de
+terceros (ver `LICENSES.md`, D21) cuyo origen no se conoce; pueden estar hechas con IA generativa.
 
 ## Generado por scripts deterministas (por transparencia)
 
@@ -30,7 +31,7 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | ui/manubrio.png | `tools/gen_texturas.py` |
 | ui/manubrio_nkd.png | `tools/gen_texturas.py` |
 | ui/manubrio_ninja.png | `tools/gen_texturas.py` |
-| ui/motos_taller.png | `tools/gen_texturas.py` |
+| ui/motos_taller.png | `tools/recortar_motos.py` (recorte y pixelado de imágenes de terceros, ver arriba) |
 | sonidos/motor_bws_1700.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/motor_bws_2350.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/motor_bws_3240.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |

@@ -10,11 +10,11 @@ const MOTOS := preload("res://scripts/motos.gd")
 const PROGRESO := preload("res://scripts/progreso.gd")
 const HOJA := preload("res://assets/ui/motos_taller.png")
 
-const MOTO_TAM := Vector2(120, 72)     # cada moto en la hoja
+const MOTO_TAM := Vector2(128, 96)     # cada moto en la hoja (tools/recortar_motos.py)
 const PISO := Vector2(320, 176)        # dónde pisa la moto escogida
 const SEPARACION := 200.0              # px entre una moto y la siguiente en la fila
-const ESCALA_GRANDE := 1.9
-const ESCALA_CHICA := 0.95
+const ESCALA_GRANDE := 1.5
+const ESCALA_CHICA := 0.8
 const VEL_CARRUSEL := 8.0
 # Barras de datos: el tope es la mejor moto con todo (así se ve cuánto le falta a cada una).
 const BARRA := Rect2(16, 244, 206, 6)

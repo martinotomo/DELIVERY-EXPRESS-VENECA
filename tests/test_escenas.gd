@@ -97,14 +97,14 @@ func run(t) -> void:
 		var suma := Color(0, 0, 0)
 		var n := 0
 		for y in hoja.get_height():
-			for x in range(k * 120, (k + 1) * 120):
+			for x in range(k * 128, (k + 1) * 128):
 				var px := hoja.get_pixel(x, y)
 				if px.a > 0.5 and px.s > 0.25:
 					suma += px
 					n += 1
 		colores.append(suma / maxf(n, 1.0))
 	t.check(colores[0].b > colores[0].g and colores[2].g > colores[2].r * 1.3, "la Bwis es azulada y la Ninja verde")
-	t.check(hoja.get_width() == 360 and hoja.get_height() == 72, "tres motos de 120×72")
+	t.check(hoja.get_width() == 384 and hoja.get_height() == 96, "tres motos de 128×96")
 	# Deja el progreso como venía (Bwis con exosto) para el resto de la prueba.
 	main.progreso.moto = "bws"
 	main.progreso.mejoras = {"exosto": true}
