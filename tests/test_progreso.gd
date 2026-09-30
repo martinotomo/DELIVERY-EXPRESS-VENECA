@@ -79,6 +79,26 @@ func run(t) -> void:
 	p.dinero = 9999999
 	t.check(not p.comprar_moto(), "con la Ninja no se compra otra")
 
+	# Plata de prueba (F10, solo en desarrollo): 5 toques alcanzan para las tres motos con todo.
+	var q = PROGRESO.new(RUTA)
+	q.dinero = 0
+	q.moto = "bws"
+	q.mejoras = {}
+	for k in 5:
+		q.plata_de_prueba()
+	t.check_eq(q.dinero, 5 * PROGRESO.PLATA_PRUEBA, "cada toque de F10 suma %s" % PROGRESO.pesos(PROGRESO.PLATA_PRUEBA))
+	var todo_ok := true
+	while true:
+		for mej in MOTOS.MEJORAS:
+			if not q.tiene_mejora(mej) and not q.comprar_mejora(mej):
+				todo_ok = false
+		if q.siguiente_moto() == "":
+			break
+		if not q.comprar_moto():
+			todo_ok = false
+			break
+	t.check(todo_ok and q.moto == "ninja" and q.tiene_mejora("exosto") and q.tiene_mejora("motor"), "con 5 toques se compra todo (sobran %s)" % PROGRESO.pesos(q.dinero))
+
 	# Un archivo roto no tumba el juego.
 	var f := FileAccess.open(RUTA, FileAccess.WRITE)
 	f.store_string("esto no es un cfg [[[")
