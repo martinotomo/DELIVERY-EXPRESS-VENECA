@@ -461,6 +461,28 @@ func run(t) -> void:
 	t.check(sub_a.visible and r2.voces.FRASES.atropello.has(sub_a.text), "sale una frase de atropello (%s)" % sub_a.text)
 	t.check(r2.get_node("HUD/Pedido").text.contains("SIN PROPINA"), "el pedido avisa que se quedó sin propina")
 	t.check_eq(sp.frame % 4, 2, "el atropellado se ve en el piso")
+	# Ciudad con más movimiento (Tomás, 30/09): gente en los andenes, semáforos y señales.
+	r2.partida.transeuntes.advance(0.1, r2.partida.moto.pos)
+	r2._actualizar_vista(0.0)
+	var n_gente := 0
+	var en_anden_ok := true
+	for tr_sp in r2.get_node("Vista/Mundo/Transeuntes").get_children():
+		if tr_sp.visible:
+			n_gente += 1
+			if c.distancia_anden(Vector2(tr_sp.position.x, tr_sp.position.z)) > 0.0 or tr_sp.position.y < r2.ANDEN_ALTO:
+				en_anden_ok = false
+	t.check_eq(n_gente, r2.partida.transeuntes.MAX, "se dibuja la gente de los andenes")
+	t.check(en_anden_ok, "parada sobre el andén")
+	var sem_n: int = r2.get_node("Vista/Mundo/Ciudad/Transito/PostesSemaforo").multimesh.instance_count
+	t.check_eq(sem_n, r2.partida.transito.semaforos().size(), "cada semáforo tiene su poste")
+	t.check(r2.get_node("Vista/Mundo/Ciudad/Transito/Senal_pare").multimesh.instance_count > 100, "hay señales de PARE")
+	r2.partida.transito.t = 0.0
+	r2._actualizar_vista(0.0)
+	t.check(r2._mats_semaforo.x_verde.emission_energy_multiplier > 0.0 and r2._mats_semaforo.x_rojo.emission_energy_multiplier == 0.0, "con verde para las calles, se prende la luz verde")
+	t.check(r2._mats_semaforo.y_rojo.emission_energy_multiplier > 0.0, "y las carreras ven rojo")
+	r2.partida.transito.t = 12.0
+	r2._actualizar_vista(0.0)
+	t.check(r2._mats_semaforo.x_rojo.emission_energy_multiplier > 0.0 and r2._mats_semaforo.y_verde.emission_energy_multiplier > 0.0, "los semáforos cambian")
 	main.menu()
 	await t.process_frame
 	t.check_eq(main.pantalla_actual().name, "Menu", "se puede volver al menú")

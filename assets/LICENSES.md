@@ -12,6 +12,9 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | texturas/cebra_h.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/cebra_v.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/peatones.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/senal_pare.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/senal_peatones.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
+| texturas/senal_velocidad.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_ladrillo.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_ladrillo_luz.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/fachada_concreto.png | `tools/gen_texturas.py` | proyecto | propia | — | 30/09/2026 |

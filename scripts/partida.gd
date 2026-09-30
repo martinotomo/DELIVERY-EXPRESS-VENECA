@@ -11,6 +11,8 @@ const MOTOS := preload("res://scripts/motos.gd")
 const CICLO := preload("res://scripts/ciclo_dia.gd")
 const CLIMA := preload("res://scripts/clima.gd")
 const PEATONES := preload("res://scripts/peatones.gd")
+const TRANSITO := preload("res://scripts/transito.gd")
+const TRANSEUNTES := preload("res://scripts/transeuntes.gd")
 
 const RECOGER := "recoger"
 const ENTREGAR := "entregar"
@@ -30,6 +32,8 @@ var moto
 var reloj
 var clima
 var peatones
+var transito     # semáforos (de ambiente: pasarse el rojo no tiene castigo)
+var transeuntes  # gente caminando por los andenes (de ambiente)
 var multado := false     # atropelló a alguien en este pedido: se queda sin propina
 var _charco := -1            # el charco que se está pisando (frena una sola vez al entrar)
 var pedido := {}
@@ -51,6 +55,8 @@ func _init(semilla := 1, datos_moto: Dictionary = {}) -> void:
 	clima.paro_lluvia.connect(func(): evento.emit("escampo"))
 	peatones = PEATONES.new(semilla, ciudad)
 	peatones.levantado.connect(func(): evento.emit("grito"))
+	transito = TRANSITO.new(ciudad)
+	transeuntes = TRANSEUNTES.new(semilla, ciudad)
 	moto = MOTO.new()
 	var datos := datos_moto if not datos_moto.is_empty() else MOTOS.get_moto(MOTOS.MOTO_INICIAL)
 	moto.setup(datos, ciudad, ciudad.cruce(20, 40), 0.0)
@@ -73,6 +79,8 @@ func advance(delta: float, acelerar: bool, frenar: bool, giro: float) -> void:
 	_revisar_charco()
 	peatones.advance(delta, moto.pos, moto.direccion())
 	_revisar_atropello()
+	transito.advance(delta)
+	transeuntes.advance(delta, moto.pos, moto.direccion())
 	tiempo_restante -= delta
 	_revisar_llegada()
 	if tiempo_restante <= 0.0:
