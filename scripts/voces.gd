@@ -28,6 +28,15 @@ const FRASES := {
 		"Chamo, el cliente canceló. Te tocó comértelo a ti.",
 		"Se enfrió la vaina, mi pana. Cancelado.",
 	],
+	"fundido": [
+		"¡Se fundió el motor, chamo! Huele a pollo quemado.",
+		"¡Na' guará! Le diste tan duro que se murió la burra.",
+	],
+	"reparado": [
+		"Listo, le eché agua de la botella y un rezo. ¡Dale!",
+		"Reparado con cinta, un chicle y fe, mi pana.",
+		"Le soplé al motor como a un cartucho viejo. ¡Arrancó!",
+	],
 	"estrellado": [
 		"Ay, no, chamo... se nos fue el pana.",
 		"Otro más pa' la estadística, vale.",

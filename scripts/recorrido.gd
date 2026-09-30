@@ -45,6 +45,7 @@ var _l_hora: Label
 var _l_pedido: Label
 var _l_cuenta: Label
 var _l_derrape: Label
+var _l_motor: Label
 var _subtitulo: Label
 var _voz: AudioStreamPlayer
 var _t_subtitulo := 0.0
@@ -448,6 +449,11 @@ func _construir_hud() -> void:
 	_l_derrape.add_theme_color_override("font_color", C_ROJO)
 	_l_derrape.add_theme_stylebox_override("normal", _fondo())
 	_l_derrape.visible = false
+	# Aviso del motor, encima del de derrape: cuenta regresiva y luego la espera de la reparación.
+	_l_motor = _texto(Vector2(8, 290), 8, "Motor")
+	_l_motor.add_theme_color_override("font_color", Color("f0c040"))
+	_l_motor.add_theme_stylebox_override("normal", _fondo())
+	_l_motor.visible = false
 
 	# Subtítulos con su propia franja de fondo, para que se lean sobre la calle en movimiento.
 	# Abajo, justo encima de la barra: puede tapar el velocímetro, nunca la calle (Tomás, 30/09).
@@ -509,6 +515,12 @@ func _actualizar_vista(delta: float) -> void:
 	else:
 		_l_pedido.text = "ENTREGA: %s\n%s" % [p.plato.to_upper(), p.direccion]
 	_l_derrape.visible = m.derrapando and not partida.terminada
+	var cuenta: float = m.cuenta_motor()
+	if m.motor_fundido:
+		_l_motor.text = "MOTOR FUNDIDO: espera %d" % ceili(maxf(m.espera_reparacion(), 0.0))
+	elif cuenta >= 0.0:
+		_l_motor.text = "¡VAS A FUNDIR EL MOTOR! %d" % ceili(cuenta)
+	_l_motor.visible = (m.motor_fundido or cuenta >= 0.0) and not partida.terminada
 
 	_t_subtitulo = maxf(_t_subtitulo - delta, 0.0)
 	_subtitulo.visible = _t_subtitulo > 0.0
