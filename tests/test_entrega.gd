@@ -27,8 +27,8 @@ func run(t) -> void:
 	for carpeta in ["tests/", "tools/", "docs/", "capturas/"]:
 		t.check(fuera.contains(carpeta), "el .exe no lleva %s" % carpeta)
 	# Las teclas de prueba (F9 lluvia, F10 plata) solo existen en las versiones de desarrollo.
-	# El .exe firmado (D31) corre el juego con el binario oficial de Godot, que es de desarrollo:
-	# ahí las apaga la marca «entrega» que lleva el .pck exportado.
+	# Además de la plantilla de entrega, las apaga la marca «entrega» del .pck exportado (por si
+	# alguna vez se corre con un binario de desarrollo).
 	t.check(str(cfg.get_value(win, "custom_features", "")).contains("entrega"), "el .pck exportado lleva la marca «entrega»")
 	for pantalla in ["recorrido", "taller"]:
 		var codigo := FileAccess.get_file_as_string("res://scripts/%s.gd" % pantalla)
@@ -37,7 +37,7 @@ func run(t) -> void:
 	t.check(leeme.contains("Tomás Ardila Marín"), "el LEEME del zip nombra al autor")
 	t.check(leeme.contains("SOLO PARA USO PRIVADO"), "y avisa que las motos de los memes son solo para uso privado (D21)")
 	t.check(leeme.contains(version), "y dice la versión")
-	# Zip firmado (D31): el Godot oficial es MIT; su licencia y los avisos de terceros van al lado.
-	t.check(leeme.contains("Control inteligente de aplicaciones"), "el LEEME explica el zip firmado")
+	# El .exe lleva Godot dentro (MIT): su licencia y los avisos de terceros van en el zip.
+	t.check(leeme.contains("Control inteligente de aplicaciones"), "el LEEME avisa que Windows puede bloquear el .exe sin firma (D31)")
 	for f in ["GODOT_LICENSE.txt", "GODOT_COPYRIGHT.txt"]:
 		t.check(FileAccess.get_file_as_string("res://docs/entrega/" + f).contains("Godot Engine"), "va %s" % f)
