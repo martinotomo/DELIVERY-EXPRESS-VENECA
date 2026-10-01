@@ -27,6 +27,9 @@ revisar_log() {
 }
 
 echo "== Importar assets"
+# En una copia nueva la primera importación avisa que no carga la letra: los scripts que la
+# precargan se leen antes de que esté importada. Por eso se importa dos veces y se revisa la segunda.
+"$GODOT" --headless --path . --import >"$LOG_DIR/importar_primera.log" 2>&1
 "$GODOT" --headless --path . --import >"$LOG_DIR/importar.log" 2>&1
 codigo=$?
 cat "$LOG_DIR/importar.log"
