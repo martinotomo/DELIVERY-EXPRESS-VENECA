@@ -3,3 +3,4 @@ build/
 __pycache__/
 .claude/settings.local.json
 ci_logs/
+capturas/

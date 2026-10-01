@@ -1,0 +1,45 @@
+DELIVERY EXPRESS 1.0.0
+Un juego de Tomás Ardila Marín
+Escuela Colombiana de Ingeniería Julio Garavito
+
+Domicilios en moto por una ciudad tipo Bogotá, en primera persona y con humor negro.
+
+
+CÓMO JUGAR
+- Descomprimir el .zip en cualquier carpeta (mejor fuera de OneDrive) y abrir DeliveryExpress.exe.
+- Windows puede avisar «Windows protegió su PC» porque el juego no está firmado:
+  «Más información» -> «Ejecutar de todas formas». (O antes de extraer: clic derecho en el .zip ->
+  Propiedades -> marcar «Desbloquear».)
+- Necesita Windows 10 u 11 de 64 bits y una tarjeta gráfica con OpenGL 3.3.
+
+SI WINDOWS LO BLOQUEA SIN DEJAR EJECUTARLO
+Con el «Control inteligente de aplicaciones» de Windows 11 prendido, Windows no deja abrir
+programas sin firma digital, y este no la tiene (una firma cuesta plata y este es un juego de ocio).
+La otra opción es jugarlo en el navegador (abajo).
+Apagarlo o no es decisión de quien juega: Seguridad de Windows -> Control de aplicaciones y
+navegador -> Control inteligente de aplicaciones. Ojo: una vez apagado, Windows no deja volver a
+prenderlo sin reinstalar.
+
+TECLAS (se pueden cambiar en Opciones)
+- W o flecha arriba: acelerar          - S, flecha abajo o espacio: frenar
+- A / D o flechas: girar               - H: pito (no sirve para nada)
+- Tab: mapa completo                   - Esc: pausa
+- Enter: otra jornada (tras caerse)
+
+DÓNDE SE GUARDA
+La plata, las motos y las opciones quedan en
+  %APPDATA%\Godot\app_userdata\Delivery Express\
+(progreso.cfg y opciones.cfg). Borrar esa carpeta empieza de cero.
+
+
+CÓDIGO ABIERTO
+El código está en https://github.com/martinotomo/juego-motos-2d para quien quiera seguirlo.
+Versión para jugar en el navegador: https://martinotomo.github.io/juego-motos-2d/
+
+LICENCIAS
+- Hecho con Godot Engine 4.7.2 (licencia MIT, godotengine.org/license): GODOT_LICENSE.txt y
+  GODOT_COPYRIGHT.txt, que la licencia pide incluir al repartir el programa.
+- Letra Press Start 2P de CodeMan38, SIL Open Font License 1.1 (ver OFL.txt).
+- Código con licencia MIT; arte, sonido y música propios (salen de scripts de Python del
+  proyecto) con licencia CC BY 4.0.
+- LICENSES.md: una fila por archivo. AI_DISCLOSURE.md: qué se hizo con ayuda de IA.
