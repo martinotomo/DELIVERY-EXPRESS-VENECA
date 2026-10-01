@@ -1,0 +1,53 @@
+keys,es,en
+JUGAR,JUGAR,PLAY
+OPCIONES,OPCIONES,OPTIONS
+CRÉDITOS,CRÉDITOS,CREDITS
+SALIR,SALIR,QUIT
+Domicilios a toda. La fe no frena.,Domicilios a toda. La fe no frena.,Deliveries at full throttle. Faith has no brakes.
+"Moto: %s    Plata: %s","Moto: %s    Plata: %s","Bike: %s    Cash: %s"
+SONIDO,SONIDO,SOUND
+GENERAL,GENERAL,MASTER
+MÚSICA,MÚSICA,MUSIC
+EFECTOS,EFECTOS,EFFECTS
+PANTALLA,PANTALLA,DISPLAY
+PANTALLA COMPLETA,PANTALLA COMPLETA,FULLSCREEN
+IDIOMA,IDIOMA,LANGUAGE
+TECLAS,TECLAS,CONTROLS
+ACELERAR,ACELERAR,THROTTLE
+FRENAR,FRENAR,BRAKE
+IZQUIERDA,IZQUIERDA,LEFT
+DERECHA,DERECHA,RIGHT
+PITO,PITO,HORN
+MAPA,MAPA,MAP
+Las flechas y el espacio siempre funcionan.,Las flechas y el espacio siempre funcionan.,Arrow keys and space always work.
+RESTABLECER TECLAS,RESTABLECER TECLAS,RESET CONTROLS
+PULSA UNA TECLA...,PULSA UNA TECLA...,PRESS A KEY...
+Esa tecla ya está en uso o no se puede cambiar.,Esa tecla ya está en uso o no se puede cambiar.,That key is already in use or can't be changed.
+VOLVER,VOLVER,BACK
+PAUSA,PAUSA,PAUSED
+CONTINUAR,CONTINUAR,RESUME
+VOLVER AL MENÚ INICIAL,VOLVER AL MENÚ INICIAL,BACK TO MAIN MENU
+El pedido espera: el reloj está quieto.,El pedido espera: el reloj está quieto.,The order can wait: the clock is stopped.
+ADVERTENCIA,ADVERTENCIA,WARNING
+"Este juego tiene humor negro: caídas, choques y atropellos de caricatura, sin sangre. Nada de esto se hace en la vida real: en la calle, maneje con cuidado.","Este juego tiene humor negro: caídas, choques y atropellos de caricatura, sin sangre. Nada de esto se hace en la vida real: en la calle, maneje con cuidado.","This game has dark humor: cartoon crashes, wipeouts and run-over pedestrians, no blood. Don't try any of this in real life: out on the street, ride carefully."
+PULSA UNA TECLA PARA SEGUIR,PULSA UNA TECLA PARA SEGUIR,PRESS ANY KEY TO CONTINUE
+ESPACIO: SALTAR,ESPACIO: SALTAR,SPACE: SKIP
+UN JUEGO DE,UN JUEGO DE,A GAME BY
+Estudiante de ingeniería mecánica,Estudiante de ingeniería mecánica,Mechanical engineering student
+"PROGRAMACIÓN, ARTE Y SONIDO","PROGRAMACIÓN, ARTE Y SONIDO","PROGRAMMING, ART AND SOUND"
+Tomás Ardila Marín con Claude Code (Anthropic),Tomás Ardila Marín con Claude Code (Anthropic),Tomás Ardila Marín with Claude Code (Anthropic)
+Todo el arte y el sonido salen de scripts de Python (tools/).,Todo el arte y el sonido salen de scripts de Python (tools/).,All the art and sound come from Python scripts (tools/).
+HERRAMIENTAS LIBRES,HERRAMIENTAS LIBRES,FREE AND OPEN SOURCE TOOLS
+Godot Engine 4.7 (licencia MIT),Godot Engine 4.7 (licencia MIT),Godot Engine 4.7 (MIT license)
+"Python, NumPy, SciPy y Pillow (licencias BSD y HPND)","Python, NumPy, SciPy y Pillow (licencias BSD y HPND)","Python, NumPy, SciPy and Pillow (BSD and HPND licenses)"
+Audacity y OBS Studio para escuchar y grabar (GPL),Audacity y OBS Studio para escuchar y grabar (GPL),Audacity and OBS Studio for listening and recording (GPL)
+LETRA,LETRA,FONT
+"Press Start 2P, de CodeMan38 (SIL Open Font License 1.1)","Press Start 2P, de CodeMan38 (SIL Open Font License 1.1)","Press Start 2P, by CodeMan38 (SIL Open Font License 1.1)"
+LICENCIAS,LICENCIAS,LICENSES
+Cada archivo tiene su fila en assets/LICENSES.md,Cada archivo tiene su fila en assets/LICENSES.md,Every file has its row in assets/LICENSES.md
+y lo hecho con IA está en assets/AI_DISCLOSURE.md,y lo hecho con IA está en assets/AI_DISCLOSURE.md,and AI-made content is listed in assets/AI_DISCLOSURE.md
+Ningún domiciliario salió herido haciendo este juego.,Ningún domiciliario salió herido haciendo este juego.,No delivery riders were harmed in the making of this game.
+GRACIAS POR JUGAR,GRACIAS POR JUGAR,THANKS FOR PLAYING
+"Código: MIT. Arte, sonido y música: CC BY 4.0.","Código: MIT. Arte, sonido y música: CC BY 4.0.","Code: MIT. Art, sound and music: CC BY 4.0."
+CÓDIGO ABIERTO,CÓDIGO ABIERTO,OPEN SOURCE
+github.com/martinotomo/juego-motos-2d,github.com/martinotomo/juego-motos-2d,github.com/martinotomo/juego-motos-2d
