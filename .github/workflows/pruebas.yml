@@ -1,0 +1,65 @@
+# Pruebas automáticas en cada PR: importa el proyecto con Godot 4.7.2 (Linux, sin ventana),
+# corre tests/run_tests.gd y el chequeo de licencias. Todo con herramientas libres.
+name: Pruebas
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2
+  # SHA-512 de Godot_v4.7.2-stable_linux.x86_64.zip, copiado de SHA512-SUMS.txt de la release oficial.
+  GODOT_SHA512: 9aa00f7a605200940bce3027a567b782f49bd8e940dd06ae9e987bd65aee1b1467edd56ed84fcdcbdd44354bf613bdbb4e5d2913e925850368e150c59ed54c65
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias de Python (si las hay)
+        run: |
+          if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
+
+      - name: Caché de Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-linux-x86_64
+
+      - name: Descargar Godot ${{ env.GODOT_VERSION }}
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot && cd ~/godot
+          zip="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          curl -sSfL -o "$zip" "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/$zip"
+          echo "${GODOT_SHA512}  $zip" | sha512sum -c -
+          unzip -q "$zip" && rm "$zip"
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot
+          chmod +x godot
+
+      - name: Versión de Godot
+        run: ~/godot/godot --version
+
+      - name: Importar, probar y revisar licencias
+        run: GODOT=~/godot/godot .github/scripts/pruebas_ci.sh
+
+      - name: Guardar los registros si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registros-pruebas
+          path: ci_logs/
+          if-no-files-found: ignore
