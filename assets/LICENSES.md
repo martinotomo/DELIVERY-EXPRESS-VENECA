@@ -26,7 +26,7 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | ui/manubrio.png | `tools/gen_manubrios.py` | proyecto | propia | — | 30/09/2026 |
 | ui/manubrio_nkd.png | `tools/gen_manubrios.py` | proyecto | propia | — | 30/09/2026 |
 | ui/manubrio_ninja.png | `tools/gen_manubrios.py` | proyecto | propia | — | 30/09/2026 |
-| ui/motos_taller.png | `tools/recortar_motos.py` sobre `docs/referencias/moto_*.png`: recortes de capturas de TikTok (memes en pixel art de @d4rkfox, @miguelfrancolon, @soy_hey_77 y otros) que aportó Tomás | terceros (autores de los memes); recorte y pixelado del proyecto | **sin licencia: solo uso privado** (decisión D21). Reemplazar por dibujo propio o CC0 antes de publicar el juego | — | 30/09/2026 |
+| ui/motos_taller.png | `tools/gen_motos_taller.py` (dibujo propio por código; sustituye al recorte de memes de D21) | proyecto | propia | — | 01/10/2026 |
 | sonidos/motor_bws_1700.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/motor_bws_2350.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/motor_bws_3240.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
@@ -68,9 +68,9 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | ui/logo_1280.png | `tools/gen_logo.py` | proyecto | propia | — | 30/09/2026 |
 | ui/icono.png | `tools/gen_icono.py` | proyecto | propia | — | 30/09/2026 |
 | ui/icono.ico | `tools/gen_icono.py` | proyecto | propia | — | 30/09/2026 |
-| ui/cinematica_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
 | sonidos/choque_carro.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | sonidos/pito.wav | `tools/gen_sonidos.py` | proyecto | propia | — | 30/09/2026 |
 | musica/conduccion.wav | `tools/gen_musica.py` | proyecto | propia | — | 30/09/2026 |
@@ -87,20 +87,20 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | texturas/marcas_hueco.png | `tools/gen_marcas_hueco.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/perros.png | `tools/gen_avisos.py` | proyecto | propia | — | 30/09/2026 |
 | texturas/vallas.png | `tools/gen_avisos.py` | proyecto | propia | — | 30/09/2026 |
-| ui/cinematica_bus_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_bus_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_bus_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_contravia_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_contravia_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_contravia_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_hueco_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_hueco_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_hueco_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_lluvia_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_lluvia_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_lluvia_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_perro_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_perro_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
-| ui/cinematica_perro_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`) | proyecto + imágenes de referencia de Tomás | **solo uso privado (D21)**: cambiar con las motos del taller antes de publicar | — | 30/09/2026 |
+| ui/cinematica_bus_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_bus_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_bus_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_contravia_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_contravia_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_contravia_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_hueco_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_hueco_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_hueco_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_lluvia_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_lluvia_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_lluvia_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_perro_bws.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_perro_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
+| ui/cinematica_perro_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
 | fuentes/PressStart2P-Regular.ttf | Google Fonts | CodeMan38 (The Press Start 2P Project Authors) | SIL OFL 1.1 | https://fonts.google.com/specimen/Press+Start+2P | 30/09/2026 |
 | fuentes/OFL.txt | Licencia de la fuente anterior | SIL | SIL OFL 1.1 | https://openfontlicense.org | 30/09/2026 |

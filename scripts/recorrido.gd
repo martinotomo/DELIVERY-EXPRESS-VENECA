@@ -118,7 +118,15 @@ func _ready() -> void:
 	capa.add_child(pausa)
 
 
-## Esc: en plena partida abre la pausa; ya caído (cinemática), va al menú como antes.
+## Si la ventana pierde el foco (otra pestaña, otra ventana, o el navegador sale de pantalla
+## completa con Esc), la partida se pausa sola.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and pausa != null and not partida.terminada and not pausa.visible:
+		_mapa.visible = false
+		pausa.abrir()
+
+
+## Esc (o P, que en el navegador no se roba la pantalla completa): en plena partida abre la pausa; ya caído (cinemática), va al menú como antes.
 ## Enter o R: otra jornada. Van aquí y no en _process para que la tecla que cierra la pausa (o que
 ## pulsa un botón de ella) no la reciba también la partida.
 func _unhandled_input(event: InputEvent) -> void:

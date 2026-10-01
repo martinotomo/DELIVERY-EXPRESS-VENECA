@@ -35,7 +35,7 @@ func run(t) -> void:
 		t.check(codigo.contains('var trucos := OS.is_debug_build() and not OS.has_feature("entrega")'), "F9/F10 se apagan en la versión de entrega (%s)" % pantalla)
 	var leeme := FileAccess.get_file_as_string("res://docs/entrega/LEEME.txt")
 	t.check(leeme.contains("Tomás Ardila Marín"), "el LEEME del zip nombra al autor")
-	t.check(leeme.contains("SOLO PARA USO PRIVADO"), "y avisa que las motos de los memes son solo para uso privado (D21)")
+	t.check(leeme.contains("CC BY 4.0") and leeme.contains("MIT"), "y dice las licencias del código y del arte (D32)")
 	t.check(leeme.contains(version), "y dice la versión")
 	# El .exe lleva Godot dentro (MIT): su licencia y los avisos de terceros van en el zip.
 	t.check(leeme.contains("Control inteligente de aplicaciones"), "el LEEME avisa que Windows puede bloquear el .exe sin firma (D31)")

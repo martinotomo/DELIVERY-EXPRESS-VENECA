@@ -14,7 +14,7 @@ const TECLAS_FABRICA := {
 }
 ## Teclas que no se pueden asignar: las fijas de cada acción y las del juego.
 const RESERVADAS := [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SPACE, KEY_ESCAPE, KEY_ENTER,
-	KEY_KP_ENTER, KEY_R, KEY_F9, KEY_F10]
+	KEY_KP_ENTER, KEY_R, KEY_P, KEY_F9, KEY_F10]
 const VOLUMEN_FABRICA := {"general": 1.0, "musica": 0.8, "efectos": 1.0}
 const BUSES := {"general": "Master", "musica": "Musica", "efectos": "Efectos"}
 

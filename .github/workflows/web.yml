@@ -1,0 +1,66 @@
+# Versión web en GitHub Pages (D32): en cada push a main se prueba, se exporta y se publica el
+# juego para jugarlo en el navegador. Queda APAGADA hasta que Tomás active Pages
+# (Settings -> Pages -> Source: GitHub Actions) y cree la variable del repo PAGES_ACTIVO = true
+# (Settings -> Secrets and variables -> Actions -> Variables). Sin eso el trabajo ni arranca.
+name: Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  construir:
+    if: vars.PAGES_ACTIVO == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Godot 4.7.2 y su plantilla web (comprobados con la lista SHA-512 oficial)
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          editor="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          plantillas="Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          curl -sSfLO "$base/$editor"
+          curl -sSfLO "$base/$plantillas"
+          curl -sSfL "$base/SHA512-SUMS.txt" -o sumas.txt
+          grep -E " ($editor|$plantillas)$" sumas.txt | sha512sum -c -
+          unzip -q "$editor" && mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot && chmod +x godot
+          d="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$d"
+          unzip -j -q "$plantillas" templates/version.txt templates/web_nothreads_release.zip -d "$d"
+          rm "$plantillas" "$editor" sumas.txt
+
+      - name: Pruebas, exportación web y «¿se puede publicar?»
+        run: GODOT="$PWD/godot" tools/build_web.sh
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web-publico
+
+  publicar:
+    needs: construir
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4

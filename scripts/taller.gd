@@ -10,7 +10,7 @@ const MOTOS := preload("res://scripts/motos.gd")
 const PROGRESO := preload("res://scripts/progreso.gd")
 const HOJA := preload("res://assets/ui/motos_taller.png")
 
-const MOTO_TAM := Vector2(128, 96)     # cada moto en la hoja (tools/recortar_motos.py)
+const MOTO_TAM := Vector2(128, 96)     # cada moto en la hoja (tools/gen_motos_taller.py)
 const PISO := Vector2(320, 176)        # dónde pisa la moto escogida
 const SEPARACION := 200.0              # px entre una moto y la siguiente en la fila
 const ESCALA_GRANDE := 1.5

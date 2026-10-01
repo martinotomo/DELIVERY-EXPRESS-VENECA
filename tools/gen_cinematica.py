@@ -48,9 +48,9 @@ X_ESQUINA = 262                  # donde acaba la fachada (la esquina)
 X_POSTE = 12                     # poste de la luz de sodio
 
 MOTOS = {  # cuadro en la hoja, giro, escala, centro y piso, color de la carenaza suelta y rueda al aire
-    "bws": {"cuadro": 0, "giro": 162, "escala": 0.70, "pos": (242, 126), "panel": "azul_bwis", "rueda": (17, 13, 17)},
+    "bws": {"cuadro": 0, "giro": 162, "escala": 0.70, "pos": (242, 126), "panel": "azul_bwis", "rueda": (20, 14, 17)},
     "nkd": {"cuadro": 1, "giro": 166, "escala": 0.66, "pos": (242, 126), "panel": "cromo", "rueda": (16, 13, 17)},
-    "ninja": {"cuadro": 2, "giro": 164, "escala": 0.68, "pos": (242, 126), "panel": "verde_ninja", "rueda": (15, 12, 16)},
+    "ninja": {"cuadro": 2, "giro": 164, "escala": 0.68, "pos": (242, 126), "panel": "verde_ninja", "rueda": (19, 15, 16)},
 }
 
 
@@ -616,7 +616,7 @@ def pegar_capa(q, L, noche=False):
 
 CAUSAS = ("hueco", "perro", "lluvia", "bus", "contravia")
 # centro de cada rueda en el cuadro de 128×96 del taller (volteado): trasera y delantera
-RUEDAS = {"bws": ((32, 66), (98, 75)), "nkd": ((24, 72), (105, 75)), "ninja": ((17, 70), (106, 73))}
+RUEDAS = {"bws": ((30, 76), (98, 76)), "nkd": ((24, 75), (105, 75)), "ninja": ((20, 75), (106, 75))}
 
 
 class Capa2(Capa):

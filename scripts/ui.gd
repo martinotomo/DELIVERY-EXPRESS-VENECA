@@ -8,6 +8,9 @@ const C_GRIS := Color("9a9aa2")
 const C_ROJO := Color("e0301e")
 const C_AMARILLO := Color("f0c040")
 
+## Corriendo en el navegador (exportación web): sin botón Salir. Las pruebas lo cambian.
+static var en_web := OS.has_feature("web")
+
 
 static func fondo(padre: Control) -> ColorRect:
 	var f := ColorRect.new()

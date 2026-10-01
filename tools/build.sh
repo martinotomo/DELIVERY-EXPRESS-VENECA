@@ -18,6 +18,7 @@ SALIDA="build/$NOMBRE"
 echo "== 1/6 licencias"
 python3 tools/check_entrega.py
 
+mkdir -p build && touch build/.gdignore # que Godot no importe lo exportado
 echo "== 2/6 importar"
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
 test -f localization/pantallas.en.translation
