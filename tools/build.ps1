@@ -31,6 +31,7 @@ $Version = (Select-String -Path project.godot -Pattern '^config/version="(.*)"')
 $Nombre = "DeliveryExpress-$Version-windows"
 $Salida = "build\$Nombre"
 New-Item -ItemType Directory -Force build | Out-Null
+New-Item -ItemType File -Force build\.gdignore | Out-Null  # que Godot no importe lo exportado
 
 # Corre Godot y guarda todo lo que diga (stdout y stderr) en un log, sin que stderr detenga nada.
 function Godot-A($log, [string[]]$argumentos) {

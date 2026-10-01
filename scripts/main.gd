@@ -39,6 +39,7 @@ func _ready() -> void:
 	progreso = PROGRESO.new(ruta_progreso)
 	opciones = OPCIONES.new(ruta_opciones)
 	opciones.aplicar()
+	print("opciones: idioma=%s volumen=%s guardado_persistente=%s" % [opciones.idioma, opciones.volumen, OS.is_userfs_persistent()])
 	_musica = AudioStreamPlayer.new()
 	_musica.name = "Musica"
 	_musica.bus = &"Musica"

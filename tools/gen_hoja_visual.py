@@ -98,7 +98,7 @@ def main():
     h.fila([cargar(A / "ui" / f) for f in ("manubrio.png", "manubrio_nkd.png", "manubrio_ninja.png")], escala=2,
            rotulos=["Bwis", "NKD 125", "Ninja 300"], fondo=PALETA["cielo_dia"] if "cielo_dia" in PALETA else GRIS)
 
-    h.titulo("MOTOS DEL TALLER (D21, solo uso privado)", "assets/ui/motos_taller.png")
+    h.titulo("MOTOS DEL TALLER (dibujo propio)", "assets/ui/motos_taller.png")
     h.fila([cargar(A / "ui" / "motos_taller.png")], escala=2)
 
     h.titulo("CAIDA DIBUJADA (cinematica)", "tools/gen_cinematica.py: una por moto, 320x180 a 2x")

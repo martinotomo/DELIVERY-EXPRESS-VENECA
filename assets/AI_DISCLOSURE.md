@@ -2,8 +2,8 @@
 
 ## Generado con IA generativa
 
-Nada hecho por el proyecto con IA generativa. Ojo: `ui/motos_taller.png` sale de capturas de memes de
-terceros (ver `LICENSES.md`, D21) cuyo origen no se conoce; pueden estar hechas con IA generativa.
+Nada hecho por el proyecto con IA generativa. Las motos del taller (`ui/motos_taller.png`) ya no salen
+de capturas de memes de terceros (D21): se dibujan por código con `tools/gen_motos_taller.py`.
 
 ## Generado por scripts deterministas (por transparencia)
 
@@ -34,7 +34,7 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | ui/manubrio.png | `tools/gen_manubrios.py` |
 | ui/manubrio_nkd.png | `tools/gen_manubrios.py` |
 | ui/manubrio_ninja.png | `tools/gen_manubrios.py` |
-| ui/motos_taller.png | `tools/recortar_motos.py` (recorte y pixelado de imágenes de terceros, ver arriba) |
+| ui/motos_taller.png | `tools/gen_motos_taller.py` |
 | sonidos/motor_bws_1700.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/motor_bws_2350.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/motor_bws_3240.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
@@ -76,9 +76,9 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | ui/logo_1280.png | `tools/gen_logo.py` |
 | ui/icono.png | `tools/gen_icono.py` |
 | ui/icono.ico | `tools/gen_icono.py` |
-| ui/cinematica_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
+| ui/cinematica_bws.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_nkd.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_ninja.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
 | sonidos/choque_carro.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | sonidos/pito.wav | `tools/gen_sonidos.py` (síntesis con numpy/scipy) |
 | musica/conduccion.wav | `tools/gen_musica.py` (síntesis con numpy/scipy) |
@@ -95,21 +95,21 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | texturas/marcas_hueco.png | `tools/gen_marcas_hueco.py` (dibujo por código) |
 | texturas/perros.png | `tools/gen_avisos.py` (dibujo por código; negocios y marcas inventados) |
 | texturas/vallas.png | `tools/gen_avisos.py` (dibujo por código; negocios y marcas inventados) |
-| ui/cinematica_bus_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_bus_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_bus_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_contravia_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_contravia_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_contravia_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_hueco_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_hueco_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_hueco_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_lluvia_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_lluvia_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_lluvia_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_perro_bws.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_perro_ninja.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
-| ui/cinematica_perro_nkd.png | `tools/gen_cinematica.py` (dibujo por código; reutiliza el recorte de `ui/motos_taller.png`, D21) |
+| ui/cinematica_bus_bws.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_bus_ninja.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_bus_nkd.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_contravia_bws.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_contravia_ninja.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_contravia_nkd.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_hueco_bws.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_hueco_ninja.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_hueco_nkd.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_lluvia_bws.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_lluvia_ninja.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_lluvia_nkd.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_perro_bws.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_perro_ninja.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
+| ui/cinematica_perro_nkd.png | `tools/gen_cinematica.py` (dibujo por código; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) |
 
 ## De terceros, sin IA
 

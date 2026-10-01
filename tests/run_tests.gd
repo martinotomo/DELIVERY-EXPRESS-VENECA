@@ -26,6 +26,7 @@ const SUITES := {
 	"pantallas": "res://tests/test_pantallas.gd",
 	"idiomas": "res://tests/test_idiomas.gd",
 	"entrega": "res://tests/test_entrega.gd",
+	"web": "res://tests/test_web.gd",
 	"escenas": "res://tests/test_escenas.gd",
 }
 const LIMITE_S := 150.0

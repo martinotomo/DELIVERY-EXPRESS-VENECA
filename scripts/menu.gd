@@ -57,6 +57,8 @@ func _ready() -> void:
 		["JUGAR", "Jugar", jugar], ["TALLER", "Taller", taller], ["OPCIONES", "Opciones", abrir_opciones],
 		["CRÉDITOS", "Creditos", abrir_creditos], ["SALIR", "Salir", salir],
 	]
+	if UI.en_web:
+		botones.pop_back() # una página no se cierra a sí misma
 	for b in botones:
 		var boton := UI.boton(col, b[0], b[1])
 		boton.custom_minimum_size.y = 22
