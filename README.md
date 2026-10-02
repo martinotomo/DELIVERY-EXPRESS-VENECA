@@ -9,7 +9,7 @@ cada 10 minutos. El chiste es uno solo: si entras demasiado rápido en la curva,
 de lado y «tu fe era más grande que el agarre de tu Bwis». Con lo que ganas compras la NKD 125
 y, al final, la Ninja 300.
 
-**Jugar en el navegador:** https://martinotomo.github.io/juego-motos-2d/ *(cuando se active
+**Jugar en el navegador:** https://martinotomo.github.io/DELIVERY-EXPRESS-VENECA/ *(cuando se active
 GitHub Pages)* · **Windows:** el `.exe` sale de `tools/build.ps1` o `tools/build.sh`.
 
 > Humor negro: caídas, choques y atropellos de caricatura, sin sangre. Nada de esto se hace en
@@ -32,8 +32,8 @@ Necesitas **Godot 4.7.2** (estable, el normal, no .NET):
 https://godotengine.org/download/archive/4.7.2-stable/
 
 ```bash
-git clone https://github.com/martinotomo/juego-motos-2d.git
-cd juego-motos-2d
+git clone https://github.com/martinotomo/DELIVERY-EXPRESS-VENECA.git
+cd DELIVERY-EXPRESS-VENECA
 godot --headless --path . --import      # obligatorio en una copia nueva: importa PNG, WAV, CSV…
 godot --path .                          # jugar
 ```

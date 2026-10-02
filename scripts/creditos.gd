@@ -33,7 +33,7 @@ const LINEAS := [
 	["y lo hecho con IA está en assets/AI_DISCLOSURE.md", 8, ""],
 	["", 8, ""],
 	["CÓDIGO ABIERTO", 8, "amarillo"],
-	["github.com/martinotomo/juego-motos-2d", 8, ""],
+	["github.com/martinotomo/DELIVERY-EXPRESS-VENECA", 8, ""],
 	["", 8, ""],
 	["", 8, ""],
 	["Ningún domiciliario salió herido haciendo este juego.", 8, "gris"],

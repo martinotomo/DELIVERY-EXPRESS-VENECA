@@ -33,8 +33,8 @@ La plata, las motos y las opciones quedan en
 
 
 CÓDIGO ABIERTO
-El código está en https://github.com/martinotomo/juego-motos-2d para quien quiera seguirlo.
-Versión para jugar en el navegador: https://martinotomo.github.io/juego-motos-2d/
+El código está en https://github.com/martinotomo/DELIVERY-EXPRESS-VENECA para quien quiera seguirlo.
+Versión para jugar en el navegador: https://martinotomo.github.io/DELIVERY-EXPRESS-VENECA/
 
 LICENCIAS
 - Hecho con Godot Engine 4.7.2 (licencia MIT, godotengine.org/license): GODOT_LICENSE.txt y
