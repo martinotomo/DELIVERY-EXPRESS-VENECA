@@ -340,3 +340,8 @@ func _poner_vallas(cruce: Vector2i) -> void:
 			k += 1
 	for q in range(k, _vallas.size()):
 		_vallas[q].visible = false
+
+
+## Para el precalentado de la pantalla de carga (recorrido.gd): un perro de muestra.
+func muestras_precalentado() -> Array[Sprite3D]:
+	return _perros

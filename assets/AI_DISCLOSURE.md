@@ -116,4 +116,5 @@ El código de los scripts se escribió con ayuda de Claude Code.
 | Archivo | Nota |
 |---|---|
 | fuentes/PressStart2P-Regular.ttf | Fuente OFL descargada de Google Fonts |
+| fuentes/DeliveryPress-Regular.ttf | `tools/gen_fuente.py` (script determinista sobre la fuente OFL; sin IA generativa) |
 | fuentes/OFL.txt | Texto de la licencia |

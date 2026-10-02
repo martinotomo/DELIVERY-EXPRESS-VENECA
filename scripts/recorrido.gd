@@ -16,6 +16,7 @@ const AUDIO := preload("res://scripts/audio.gd")
 const LLUVIA := preload("res://scripts/lluvia_pantalla.gd")
 const MAPA := preload("res://scripts/mapa.gd")
 const PAUSA := preload("res://scripts/pausa.gd")
+const CARGA := preload("res://scripts/carga.gd")
 
 const ALTURA_OJOS := 1.5
 const MIRADA_ABAJO := 0.1   # rad que se inclina la vista hacia la calle (se ve más camino por encima del tablero)
@@ -80,6 +81,26 @@ var _mat_asfalto: StandardMaterial3D
 var _acelerando := false
 ## Teclas de prueba (F9 = lluvia, F10 = +$50.000): solo en versiones de desarrollo, nunca en el .exe exportado.
 var trucos := OS.is_debug_build() and not OS.has_feature("entrega") # F9/F10: solo en desarrollo
+
+## Precalentado (02/10/2026, versión web): el navegador prepara cada material la primera vez que lo
+## dibuja y, mientras, el juego se congela o la calle sale gris. Antes de soltar la partida se
+## dibuja todo una vez (cuatro direcciones con cada combinación de sol y farola, y una muestra de
+## cada cosa que aparece después: peatones, carros, perros, charcos, la moto caída) tapado por la
+## pantalla de carga, y se espera a que los fotogramas salgan rápidos. Las pruebas lo apagan.
+static var precalentar := true
+const VISTAS_PRECALENTADO := 4
+const LUCES_PRECALENTADO := [[true, false], [true, true], [false, true], [false, false]] # sol, farola
+const PASOS_PRECALENTADO := 16 # vistas × luces
+const CUADROS_POR_PASO := 2
+const CUADRO_RAPIDO_S := 0.1    # un fotograma más corto que esto ya no está preparando nada
+const CUADROS_ESTABLES := 6     # seguidos, para soltar
+const CARGA_MAX_S := 25         # si el navegador no se calma, se suelta igual
+var cargando := false
+var _carga: Control
+var _t_carga := 0.0
+var _paso_carga := 0
+var _cuadro_paso := 0
+var _estables := 0
 var _subtitulo: Label
 var _t_subtitulo := 0.0
 var _giro_visual := 0.0
@@ -116,6 +137,14 @@ func _ready() -> void:
 	pausa.opciones = opciones
 	pausa.al_menu.connect(func(): al_menu.emit())
 	capa.add_child(pausa)
+	if precalentar:
+		cargando = true
+		var capa_carga := CanvasLayer.new()
+		capa_carga.name = "CapaCarga"
+		capa_carga.layer = 9
+		add_child(capa_carga)
+		_carga = CARGA.new()
+		capa_carga.add_child(_carga)
 
 
 ## Si la ventana pierde el foco (otra pestaña, otra ventana, o el navegador sale de pantalla
@@ -157,6 +186,9 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	if cargando:
+		_precalentar(delta)
+		return
 	if not partida.terminada and not _mapa.visible: # con el mapa abierto, la partida espera
 		var giro := Input.get_action_strength("derecha") - Input.get_action_strength("izquierda")
 		_giro_visual = lerpf(_giro_visual, giro, minf(delta * 8.0, 1.0))
@@ -846,7 +878,7 @@ func _construir_letreros() -> void:
 	var nodo := Node3D.new()
 	nodo.name = "Letreros"
 	_mundo.add_child(nodo)
-	var fuente: Font = load("res://assets/fuentes/PressStart2P-Regular.ttf")
+	var fuente: Font = load("res://assets/fuentes/DeliveryPress-Regular.ttf")
 	var m_poste := _material(Color("5c5f66"))
 	for mat_color in [C_PLACA, C_PLACA_AV]:
 		_mats_placa.append(_material(mat_color))
@@ -1265,3 +1297,73 @@ func _al_estrellarse(mensaje: String) -> void:
 	await get_tree().create_timer(retraso_resultado, false).timeout
 	if is_inside_tree():
 		terminado.emit("estrellado", final_msg)
+
+
+# --- precalentado (pantalla de carga) -------------------------------------------------
+
+func _precalentar(delta: float) -> void:
+	_t_carga += delta
+	if _paso_carga < PASOS_PRECALENTADO:
+		_poner_paso_precalentado(_paso_carga)
+		_cuadro_paso += 1
+		if _cuadro_paso >= CUADROS_POR_PASO:
+			_cuadro_paso = 0
+			_paso_carga += 1
+			if _paso_carga == PASOS_PRECALENTADO:
+				_quitar_muestras()
+	else:
+		_estables = _estables + 1 if delta < CUADRO_RAPIDO_S else 0
+	_carga.poner_avance(0.85 * _paso_carga / float(PASOS_PRECALENTADO) + 0.15 * _estables / float(CUADROS_ESTABLES))
+	var listo := _paso_carga >= PASOS_PRECALENTADO and _estables >= CUADROS_ESTABLES
+	if listo or _t_carga >= CARGA_MAX_S:
+		_terminar_carga()
+
+
+## Un paso: la vista de la partida girada a una de las cuatro direcciones, con una combinación de
+## luces, y una muestra de todo lo que aparece después, delante de la cámara.
+func _poner_paso_precalentado(i: int) -> void:
+	_actualizar_vista(0.0)
+	var luces: Array = LUCES_PRECALENTADO[i / VISTAS_PRECALENTADO]
+	_sol.visible = luces[0]
+	_sol.light_energy = maxf(_sol.light_energy, 0.5)
+	_farola.visible = luces[1]
+	_camara.rotation.y += TAU * (i % VISTAS_PRECALENTADO) / VISTAS_PRECALENTADO
+	var base := _camara.global_transform
+	var frente := -base.basis.z
+	frente.y = 0.0
+	frente = frente.normalized()
+	var lado := Vector3(-frente.z, 0.0, frente.x)
+	var suelo := Vector3(base.origin.x, 0.0, base.origin.z)
+	_moto_caida.visible = true
+	_moto_caida.position = suelo + frente * 6.0
+	var muestras: Array[Sprite3D] = []
+	for pool in [_peatones, _transeuntes, _vehiculos, _detalles.muestras_precalentado()]:
+		if pool.size() > 0:
+			muestras.append(pool[0])
+	for k in muestras.size():
+		var sp: Sprite3D = muestras[k]
+		if sp.texture == null and not _hojas_vehiculos.is_empty():
+			sp.texture = _hojas_vehiculos.values()[0]
+		sp.visible = true
+		sp.position = suelo + frente * 9.0 + lado * (k - 1.5) * 2.0 + Vector3(0, 1.0, 0)
+	var mm := _charcos.multimesh
+	mm.instance_count = 1
+	mm.set_instance_transform(0, Transform3D(Basis.from_scale(Vector3(1.5, 1.0, 1.2)), suelo + frente * 5.0 + Vector3(0, 0.012, 0)))
+	mm.set_instance_color(0, Color.WHITE)
+
+
+func _quitar_muestras() -> void:
+	_moto_caida.visible = false
+	_charcos.multimesh.instance_count = 0
+	_version_charcos = -1 # que los charcos de verdad se vuelvan a poner
+	_actualizar_vista(0.0) # y todo lo demás, como va en la partida
+
+
+func _terminar_carga() -> void:
+	cargando = false
+	if _paso_carga < PASOS_PRECALENTADO:
+		_quitar_muestras()
+	if _carga != null:
+		_carga.visible = false
+		_carga.get_parent().queue_free()
+		_carga = null

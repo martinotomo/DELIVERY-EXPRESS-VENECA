@@ -35,6 +35,25 @@ async function abrir() {
 		window.__audios = [];
 		window.AudioContext = function (...a) { const c = new Orig(...a); window.__audios.push(c); return c; };
 		window.AudioContext.prototype = Orig.prototype;
+		// Y si de verdad sale sonido: todo lo que llega a los parlantes pasa también por un
+		// analizador, que guarda el volumen (RMS) más alto que ha oído.
+		window.__rms = 0;
+		const conectar = AudioNode.prototype.connect;
+		AudioNode.prototype.connect = function (destino, ...resto) {
+			if (destino instanceof AudioDestinationNode) {
+				const an = this.context.createAnalyser();
+				an.fftSize = 2048;
+				conectar.call(this, an);
+				const buf = new Float32Array(2048);
+				setInterval(() => {
+					an.getFloatTimeDomainData(buf);
+					let s = 0;
+					for (const v of buf) s += v * v;
+					window.__rms = Math.max(window.__rms, Math.sqrt(s / buf.length));
+				}, 50);
+			}
+			return conectar.call(this, destino, ...resto);
+		};
 		window.__fps = () => new Promise((res) => {
 			let n = 0; const t0 = performance.now();
 			const paso = () => { n++; if (performance.now() - t0 < 3000) requestAnimationFrame(paso); else res(n / ((performance.now() - t0) / 1000)); };
@@ -68,6 +87,7 @@ resultado.audio_antes_del_clic = await page.evaluate(() => window.__audios.map((
 await page.mouse.click(640, 360);
 await esperar(2500);
 resultado.audio_despues_del_clic = await page.evaluate(() => window.__audios.map((c) => c.state));
+resultado.audio_rms_menu = await page.evaluate(() => window.__rms); // la música del menú
 // El clic ya saltó la advertencia (cualquier tecla o clic pasados los 2 s).
 await page.screenshot({ path: `${salida}/2_menu.png` });
 await tecla(page, "Enter", 4000); // JUGAR

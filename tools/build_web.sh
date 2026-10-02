@@ -44,6 +44,7 @@ d = json.load(open("build/probar_web.json"))
 assert not d["errores"] and not d["errores_script"], d
 assert "(release)" in d["linea_version"], d["linea_version"]
 assert '"general": 0.95' in (d["linea_opciones_2"] or ""), "las opciones no se guardaron en el navegador"
+assert d["audio_rms_menu"] > 0.005, f"no suena nada en el navegador (RMS {d['audio_rms_menu']})"
 mb = sum(v["mb"] for v in d["archivos"].values()); gz = sum(v["mb_gzip"] for v in d["archivos"].values())
 print(f"   arrancó en {d['segundos_hasta_arrancar']:.1f} s; {mb:.1f} MB ({gz:.1f} MB con gzip); opciones guardadas al recargar")
 PY

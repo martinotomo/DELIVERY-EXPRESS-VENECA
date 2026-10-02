@@ -53,6 +53,10 @@ func _correr() -> void:
 		printerr("Faltan los assets importados: corre antes  godot --headless --path . --import")
 		quit(1)
 		return
+	# La pantalla de carga y el precalentado de la ciudad (versión web) los prueba solo test_web:
+	# las demás suites quieren la partida andando desde el primer fotograma.
+	load("res://scripts/recorrido.gd").precalentar = false
+	load("res://scripts/main.gd").pantalla_carga = false
 	var solo := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--solo="):

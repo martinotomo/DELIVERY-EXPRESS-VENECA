@@ -103,4 +103,5 @@ Una fila por archivo de `assets/`. Ningún asset entra sin su fila (`tools/check
 | ui/cinematica_perro_ninja.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
 | ui/cinematica_perro_nkd.png | `tools/gen_cinematica.py` (escenario propio; la moto sale de `ui/motos_taller.png`, `tools/gen_motos_taller.py`) | proyecto | propia | — | 01/10/2026 |
 | fuentes/PressStart2P-Regular.ttf | Google Fonts | CodeMan38 (The Press Start 2P Project Authors) | SIL OFL 1.1 | https://fonts.google.com/specimen/Press+Start+2P | 30/09/2026 |
+| fuentes/DeliveryPress-Regular.ttf | `tools/gen_fuente.py` sobre Press Start 2P (mayúsculas con tilde de alto completo; renombrada porque «Press Start 2P» es nombre reservado) | CodeMan38 (The Press Start 2P Project Authors) + proyecto | SIL OFL 1.1 (`fuentes/OFL.txt`) | https://fonts.google.com/specimen/Press+Start+2P | 02/10/2026 |
 | fuentes/OFL.txt | Licencia de la fuente anterior | SIL | SIL OFL 1.1 | https://openfontlicense.org | 30/09/2026 |

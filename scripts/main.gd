@@ -11,12 +11,16 @@ const OPCIONES := preload("res://scripts/opciones.gd")
 const PANTALLA_OPCIONES := preload("res://scenes/opciones.tscn")
 const CREDITOS := preload("res://scenes/creditos.tscn")
 const ADVERTENCIA := preload("res://scenes/advertencia.tscn")
+const CARGA := preload("res://scripts/carga.gd")
 
 ## Las pruebas la cambian antes de instanciar para no tocar la partida guardada de verdad.
 static var ruta_progreso := "user://progreso.cfg"
 static var ruta_opciones := "user://opciones.cfg"
 ## Advertencia de contenido al abrir el juego (CLAUDE.md §8). Las pruebas la apagan.
 static var mostrar_advertencia := true
+## Al darle Jugar sale primero la pantalla de carga (armar la ciudad tarda, sobre todo en el
+## navegador) y la calle se arma un par de fotogramas después, cuando ya se ve. Las pruebas la apagan.
+static var pantalla_carga := true
 
 var opciones # volumen, pantalla, idioma y teclas (opciones.gd); se aplican al abrir
 
@@ -136,6 +140,12 @@ func creditos() -> void:
 
 
 func reiniciar() -> void:
+	if pantalla_carga:
+		var carga := _mostrar_nodo(CARGA.new())
+		await get_tree().process_frame
+		await get_tree().process_frame # dos: el primero arma la pantalla, el segundo ya la dibujó
+		if pantalla_actual() != carga:
+			return # mientras tanto se fue a otra pantalla
 	var ride := _mostrar(RECORRIDO)
 	musica("conduccion")
 	ride.partida.pagado.connect(progreso.ganar)
@@ -161,14 +171,22 @@ func _mostrar_resultado(estado: String, mensaje: String, ilustracion: Texture2D 
 
 ## Cada pantalla recibe el progreso antes de entrar al árbol (su _ready ya lo tiene).
 func _mostrar(escena: PackedScene) -> Node:
-	get_tree().paused = false # salir de una partida en pausa no deja el juego congelado
-	for hijo in _pantallas.get_children():
-		_pantallas.remove_child(hijo)
-		hijo.queue_free()
-	var nueva := escena.instantiate()
+	_quitar_pantallas() # antes de instanciar: la nueva (la calle) puede tardar en armarse
+	return _mostrar_nodo(escena.instantiate())
+
+
+func _mostrar_nodo(nueva: Node) -> Node:
+	_quitar_pantallas()
 	if "progreso" in nueva:
 		nueva.progreso = progreso
 	if "opciones" in nueva:
 		nueva.opciones = opciones
 	_pantallas.add_child(nueva)
 	return nueva
+
+
+func _quitar_pantallas() -> void:
+	get_tree().paused = false # salir de una partida en pausa no deja el juego congelado
+	for hijo in _pantallas.get_children():
+		_pantallas.remove_child(hijo)
+		hijo.queue_free()

@@ -13,6 +13,10 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/ui/icono.png"
 config/windows_native_icon="res://assets/ui/icono.ico"
 
+[audio]
+
+general/default_playback_type.web=0
+
 [display]
 
 window/size/viewport_width=640
@@ -74,7 +78,7 @@ menu={
 
 [gui]
 
-theme/custom_font="res://assets/fuentes/PressStart2P-Regular.ttf"
+theme/custom_font="res://assets/fuentes/DeliveryPress-Regular.ttf"
 
 [internationalization]
 

@@ -22,7 +22,7 @@ Delivery Express contributors, licensed under **Creative Commons Attribution 4.0
 
 | Qué | De quién | Licencia |
 |---|---|---|
-| `assets/fuentes/PressStart2P-Regular.ttf` | CodeMan38 (The Press Start 2P Project Authors) | SIL Open Font License 1.1 (`assets/fuentes/OFL.txt`) |
+| `assets/fuentes/PressStart2P-Regular.ttf` y su versión `DeliveryPress-Regular.ttf` (tildes arregladas, `tools/gen_fuente.py`) | CodeMan38 (The Press Start 2P Project Authors) | SIL Open Font License 1.1 (`assets/fuentes/OFL.txt`) |
 | Godot Engine 4.7.2 (va dentro del `.exe` y de la versión web) | Godot Engine contributors | MIT (`docs/entrega/GODOT_LICENSE.txt`, `docs/entrega/GODOT_COPYRIGHT.txt`) |
 
 La lista archivo por archivo está en `assets/LICENSES.md` (y lo hecho con ayuda de IA, en
