@@ -1,7 +1,5 @@
 # Versión web en GitHub Pages (D32): en cada push a main se prueba, se exporta y se publica el
-# juego para jugarlo en el navegador. Queda APAGADA hasta que Tomás active Pages
-# (Settings -> Pages -> Source: GitHub Actions) y cree la variable del repo PAGES_ACTIVO = true
-# (Settings -> Secrets and variables -> Actions -> Variables). Sin eso el trabajo ni arranca.
+# juego para jugarlo en el navegador. Necesita Settings -> Pages -> Source: GitHub Actions.
 name: Web
 
 on:
@@ -23,7 +21,6 @@ env:
 
 jobs:
   construir:
-    if: vars.PAGES_ACTIVO == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:

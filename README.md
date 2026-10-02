@@ -79,7 +79,7 @@ Necesitan las plantillas de exportación de Godot 4.7.2. Los dos scripts corren 
 y las licencias, y el arranque se comprueba con `--prueba-arranque`. El `.exe` no va firmado, así
 que el *Control inteligente de aplicaciones* de Windows 11 lo bloquea; la versión web no tiene
 ese problema. La web se publica sola en GitHub Pages desde `main` con
-`.github/workflows/web.yml` (apagada mientras la variable `PAGES_ACTIVO` no valga `true`).
+`.github/workflows/web.yml`.
 
 ## Cómo está organizado
 
