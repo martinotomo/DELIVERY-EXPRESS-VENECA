@@ -90,11 +90,20 @@ resultado.audio_despues_del_clic = await page.evaluate(() => window.__audios.map
 resultado.audio_rms_menu = await page.evaluate(() => window.__rms); // la música del menú
 // El clic ya saltó la advertencia (cualquier tecla o clic pasados los 2 s).
 await page.screenshot({ path: `${salida}/2_menu.png` });
-await tecla(page, "Enter", 4000); // JUGAR
+resultado.log_menu = log.filter((l) => l.startsWith("calle precalentada"));
+await tecla(page, "Enter", 500); // JUGAR
+await page.screenshot({ path: `${salida}/3_carga.png` });
+{
+	// La pantalla de carga dura al menos 6 s (para leer) y como mucho 10; luego la calle.
+	const hasta = Date.now() + 90000;
+	while (!log.some((l) => l.startsWith("calle lista")) && Date.now() < hasta) await esperar(250);
+	resultado.log_carga = log.find((l) => l.startsWith("calle lista"));
+	await esperar(1000);
+}
 await page.keyboard.down("ArrowUp");
 await esperar(2500);
 resultado.fps_calle = Math.round(await page.evaluate(() => window.__fps()));
-await page.screenshot({ path: `${salida}/3_calle.png` });
+await page.screenshot({ path: `${salida}/3b_calle.png` });
 await page.keyboard.up("ArrowUp");
 await tecla(page, "p", 700);
 await page.screenshot({ path: `${salida}/4_pausa_p.png` });

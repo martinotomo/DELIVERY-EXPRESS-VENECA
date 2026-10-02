@@ -57,6 +57,7 @@ func _correr() -> void:
 	# las demás suites quieren la partida andando desde el primer fotograma.
 	load("res://scripts/recorrido.gd").precalentar = false
 	load("res://scripts/main.gd").pantalla_carga = false
+	load("res://scripts/main.gd").precargar_en_menu = false
 	var solo := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--solo="):

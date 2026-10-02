@@ -21,6 +21,14 @@ static var mostrar_advertencia := true
 ## Al darle Jugar sale primero la pantalla de carga (armar la ciudad tarda, sobre todo en el
 ## navegador) y la calle se arma un par de fotogramas después, cuando ya se ve. Las pruebas la apagan.
 static var pantalla_carga := true
+## Mientras se está en el menú (o en el resultado), la calle se arma y se precalienta detrás, sin
+## verse, para que al darle Jugar ya casi esté lista (Tomás, 02/10/2026). Las pruebas la apagan.
+static var precargar_en_menu := true
+const CARGA_DESDE_MENU_S := 6.0  # al darle Jugar: alcanza a leer cómo se pierde
+const CARGA_REINTENTO_S := 3.0   # al volver a salir tras caerse
+
+var _reserva: Node     # contenedor de la calle armada detrás del menú (no cuenta como pantalla)
+var _clave_reserva := ""
 
 var opciones # volumen, pantalla, idioma y teclas (opciones.gd); se aplican al abrir
 
@@ -49,6 +57,9 @@ func _ready() -> void:
 	_musica.bus = &"Musica"
 	_musica.process_mode = Node.PROCESS_MODE_ALWAYS # sigue sonando en la pausa
 	add_child(_musica)
+	_reserva = Node.new()
+	_reserva.name = "Reserva"
+	add_child(_reserva)
 	if "--prueba-arranque" in OS.get_cmdline_user_args():
 		_prueba_arranque()
 	elif mostrar_advertencia:
@@ -113,6 +124,7 @@ func menu() -> void:
 	m.abrir_opciones.connect(pantalla_opciones, CONNECT_DEFERRED)
 	m.abrir_creditos.connect(creditos, CONNECT_DEFERRED)
 	m.salir.connect(func(): get_tree().quit())
+	_preparar_reserva.call_deferred()
 
 
 func taller() -> void:
@@ -140,19 +152,75 @@ func creditos() -> void:
 
 
 func reiniciar() -> void:
-	if pantalla_carga:
-		var carga := _mostrar_nodo(CARGA.new())
-		await get_tree().process_frame
-		await get_tree().process_frame # dos: el primero arma la pantalla, el segundo ya la dibujó
-		if pantalla_actual() != carga:
-			return # mientras tanto se fue a otra pantalla
-	var ride := _mostrar(RECORRIDO)
+	var actual := pantalla_actual()
+	var desde_menu := actual != null and actual.scene_file_path == MENU.resource_path
+	var min_s := CARGA_DESDE_MENU_S if desde_menu else CARGA_REINTENTO_S
+	var ride := _sacar_reserva()
+	if ride != null:
+		_quitar_pantallas()
+		_pantallas.add_child(ride)
+		ride.activar(min_s)
+	else:
+		if pantalla_carga:
+			var carga := _mostrar_nodo(CARGA.new())
+			await get_tree().process_frame
+			await get_tree().process_frame # dos: el primero arma la pantalla, el segundo ya la dibujó
+			if pantalla_actual() != carga:
+				return # mientras tanto se fue a otra pantalla
+		_quitar_pantallas() # antes de instanciar: la calle puede tardar en armarse
+		ride = RECORRIDO.instantiate()
+		ride.carga_min_s = min_s
+		_mostrar_nodo(ride)
 	musica("conduccion")
 	ride.partida.pagado.connect(progreso.ganar)
 	ride.partida.terminada_por.connect(func(_m): musica("muerte"))
 	ride.terminado.connect(_al_terminar)
 	ride.reintentar.connect(reiniciar, CONNECT_DEFERRED)
 	ride.al_menu.connect(menu, CONNECT_DEFERRED)
+
+
+## Con qué se armó la calle de reserva: si cambia (otra moto, mejoras, el final, el idioma), se rehace.
+func _clave() -> String:
+	return "%s|%s|%s" % [progreso.datos_moto(), progreso.toca_final(), TranslationServer.get_locale()]
+
+
+## Arma la calle detrás de la pantalla actual, un par de fotogramas después (que la pantalla ya se vea).
+func _preparar_reserva() -> void:
+	if not precargar_en_menu:
+		return
+	if _reserva.get_child_count() > 0 and _clave_reserva == _clave():
+		return
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var actual := pantalla_actual()
+	if actual == null or actual.name == "Recorrido":
+		return # ya se fue a la calle
+	if _reserva.get_child_count() > 0 and _clave_reserva == _clave():
+		return
+	_tirar_reserva()
+	var ride: Node = RECORRIDO.instantiate()
+	ride.segundo_plano = true
+	ride.progreso = progreso
+	ride.opciones = opciones
+	_clave_reserva = _clave()
+	_reserva.add_child(ride)
+
+
+func _sacar_reserva() -> Node:
+	if _reserva == null or _reserva.get_child_count() == 0:
+		return null
+	if _clave_reserva != _clave():
+		_tirar_reserva()
+		return null
+	var ride := _reserva.get_child(0)
+	_reserva.remove_child(ride)
+	return ride
+
+
+func _tirar_reserva() -> void:
+	for hijo in _reserva.get_children():
+		_reserva.remove_child(hijo)
+		hijo.queue_free()
 
 
 func _al_terminar(estado: String, mensaje: String) -> void:
@@ -167,6 +235,7 @@ func _mostrar_resultado(estado: String, mensaje: String, ilustracion: Texture2D 
 	res.mostrar(estado, mensaje, ilustracion)
 	res.continuar.connect(reiniciar, CONNECT_DEFERRED)
 	res.al_menu.connect(menu, CONNECT_DEFERRED)
+	_preparar_reserva.call_deferred()
 
 
 ## Cada pantalla recibe el progreso antes de entrar al árbol (su _ready ya lo tiene).

@@ -30,7 +30,7 @@ const C_TEXTO := Color("e8e8e8")
 const C_ROJO := Color("e0301e")
 
 const SEMILLA := 20260929
-var partida = PARTIDA.new(SEMILLA)
+var partida # la arma _ready, con la moto del progreso (antes se armaba dos veces la ciudad)
 var progreso # lo pone el director; sin él se juega con la BWS de fábrica
 var opciones # también del director: la pausa las muestra
 var pausa: Control # menú de pausa (Esc)
@@ -94,8 +94,16 @@ const PASOS_PRECALENTADO := 16 # vistas × luces
 const CUADROS_POR_PASO := 2
 const CUADRO_RAPIDO_S := 0.1    # un fotograma más corto que esto ya no está preparando nada
 const CUADROS_ESTABLES := 6     # seguidos, para soltar
-const CARGA_MAX_S := 25         # si el navegador no se calma, se suelta igual
+const CARGA_MAX_S := 10.0       # la pantalla de carga nunca dura más que esto (Tomás: «entre 5 y 10 s»)
+const CALENTAR_MAX_S := 25.0    # detrás del menú se espera más: ahí no estorba
+const CARGA_MIN_S := 6.0        # al darle Jugar: tiempo para leer cómo se pierde
+const CARGA_MIN_REINTENTO_S := 3.0 # al volver a salir tras caerse: ya lo leyó
+## La arma el director detrás del menú (main.gd, precargar_en_menu) para que al darle Jugar ya esté.
+var segundo_plano := false
+var carga_min_s := CARGA_MIN_S
 var cargando := false
+var _t_calentar := 0.0
+var _us_ultimo := 0 # reloj de verdad del último fotograma de carga
 var _carga: Control
 var _t_carga := 0.0
 var _paso_carga := 0
@@ -114,8 +122,8 @@ const ILUSTRACION_ZOOM := 1.08  # acercamiento lento mientras se ve
 func _ready() -> void:
 	if progreso != null:
 		partida = PARTIDA.new(SEMILLA, progreso.datos_moto(), progreso.toca_final())
-		if progreso.estrenando() != "":
-			get_tree().create_timer(1.2, false).timeout.connect(func(): if is_inside_tree(): _al_evento("moto_nueva"))
+	else:
+		partida = PARTIDA.new(SEMILLA)
 	_construir_mundo()
 	_construir_hud()
 	_audio = AUDIO.new()
@@ -137,20 +145,56 @@ func _ready() -> void:
 	pausa.opciones = opciones
 	pausa.al_menu.connect(func(): al_menu.emit())
 	capa.add_child(pausa)
-	if precalentar:
+	if segundo_plano:
+		# Armada detrás del menú (main.gd): no se ve, no oye teclas y solo precalienta.
 		cargando = true
-		var capa_carga := CanvasLayer.new()
-		capa_carga.name = "CapaCarga"
-		capa_carga.layer = 9
-		add_child(capa_carga)
-		_carga = CARGA.new()
-		capa_carga.add_child(_carga)
+		visible = false
+		$HUD.visible = false
+		_mundo.render_target_update_mode = SubViewport.UPDATE_ALWAYS # aunque no se vea, que dibuje
+	elif precalentar:
+		cargando = true
+		_poner_carga()
+	if not segundo_plano:
+		_estreno()
+
+
+## Si se acaba de comprar la moto, el domiciliario lo celebra (al arrancar de verdad, no detrás del menú).
+func _estreno() -> void:
+	if progreso != null and progreso.estrenando() != "":
+		get_tree().create_timer(1.2, false).timeout.connect(func(): if is_inside_tree(): _al_evento("moto_nueva"))
+
+
+func _poner_carga() -> void:
+	var capa_carga := CanvasLayer.new()
+	capa_carga.name = "CapaCarga"
+	capa_carga.layer = 9
+	add_child(capa_carga)
+	_carga = CARGA.new()
+	capa_carga.add_child(_carga)
+	_t_carga = 0.0
+	_us_ultimo = 0 # lo que estuvo detrás del menú no cuenta como tiempo de carga
+
+
+## El director saca la calle de detrás del menú al darle Jugar: se muestra con la pantalla de carga
+## encima, que dura al menos `min_s` para alcanzar a leer, y termina de precalentar si le faltaba.
+func activar(min_s: float) -> void:
+	segundo_plano = false
+	visible = true
+	$HUD.visible = true
+	_mundo.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
+	carga_min_s = min_s
+	if not precalentar:
+		cargando = false
+		return
+	cargando = true
+	_poner_carga()
+	_estreno()
 
 
 ## Si la ventana pierde el foco (otra pestaña, otra ventana, o el navegador sale de pantalla
 ## completa con Esc), la partida se pausa sola.
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and pausa != null and not partida.terminada and not pausa.visible:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and pausa != null and not cargando and not partida.terminada and not pausa.visible:
 		_mapa.visible = false
 		pausa.abrir()
 
@@ -159,6 +203,8 @@ func _notification(what: int) -> void:
 ## Enter o R: otra jornada. Van aquí y no en _process para que la tecla que cierra la pausa (o que
 ## pulsa un botón de ella) no la reciba también la partida.
 func _unhandled_input(event: InputEvent) -> void:
+	if cargando:
+		return # detrás del menú o tapada por la carga: las teclas no son para ella
 	if event.is_action_pressed("menu"):
 		get_viewport().set_input_as_handled()
 		if partida.terminada:
@@ -172,6 +218,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if cargando:
+		return
 	if event.is_action_pressed("mapa") and not partida.terminada:
 		_mapa.visible = not _mapa.visible
 		get_viewport().set_input_as_handled()
@@ -1302,7 +1350,13 @@ func _al_estrellarse(mensaje: String) -> void:
 # --- precalentado (pantalla de carga) -------------------------------------------------
 
 func _precalentar(delta: float) -> void:
-	_t_carga += delta
+	# Con fotogramas muy lentos Godot recorta el delta (en el navegador llegaba 0,12 s por cuadros de
+	# 2 s): la carga se medía en «segundos de juego» y nunca soltaba. Se cuenta con el reloj de verdad.
+	var ahora := Time.get_ticks_usec()
+	if _us_ultimo > 0:
+		delta = maxf(delta, (ahora - _us_ultimo) / 1000000.0)
+	_us_ultimo = ahora
+	_t_calentar += delta
 	if _paso_carga < PASOS_PRECALENTADO:
 		_poner_paso_precalentado(_paso_carga)
 		_cuadro_paso += 1
@@ -1311,12 +1365,25 @@ func _precalentar(delta: float) -> void:
 			_paso_carga += 1
 			if _paso_carga == PASOS_PRECALENTADO:
 				_quitar_muestras()
-	else:
+	elif not calentada():
 		_estables = _estables + 1 if delta < CUADRO_RAPIDO_S else 0
-	_carga.poner_avance(0.85 * _paso_carga / float(PASOS_PRECALENTADO) + 0.15 * _estables / float(CUADROS_ESTABLES))
-	var listo := _paso_carga >= PASOS_PRECALENTADO and _estables >= CUADROS_ESTABLES
-	if listo or _t_carga >= CARGA_MAX_S:
+	if segundo_plano:
+		if calentada() or _t_calentar >= CALENTAR_MAX_S:
+			if _mundo.render_target_update_mode != SubViewport.UPDATE_DISABLED:
+				print("calle precalentada detrás del menú en %.1f s" % _t_calentar)
+			_estables = CUADROS_ESTABLES
+			_mundo.render_target_update_mode = SubViewport.UPDATE_DISABLED # lista: que no gaste en el menú
+		return
+	_t_carga += delta
+	var preparado := 1.0 if calentada() else 0.85 * _paso_carga / float(PASOS_PRECALENTADO) + 0.15 * _estables / float(CUADROS_ESTABLES)
+	_carga.poner_avance(minf(_t_carga / carga_min_s, preparado))
+	if (calentada() and _t_carga >= carga_min_s) or _t_carga >= CARGA_MAX_S:
 		_terminar_carga()
+
+
+## Ya se dibujó todo una vez y los fotogramas salen rápidos.
+func calentada() -> bool:
+	return _paso_carga >= PASOS_PRECALENTADO and _estables >= CUADROS_ESTABLES
 
 
 ## Un paso: la vista de la partida girada a una de las cuatro direcciones, con una combinación de
@@ -1343,7 +1410,9 @@ func _poner_paso_precalentado(i: int) -> void:
 	for k in muestras.size():
 		var sp: Sprite3D = muestras[k]
 		if sp.texture == null and not _hojas_vehiculos.is_empty():
-			sp.texture = _hojas_vehiculos.values()[0]
+			var hoja: String = _hojas_vehiculos.keys()[0]
+			sp.texture = _hojas_vehiculos[hoja]
+			sp.vframes = 3 if hoja == "vehiculos" else 2 # como en _actualizar_vehiculos, o luego no le cuadran los cuadros
 		sp.visible = true
 		sp.position = suelo + frente * 9.0 + lado * (k - 1.5) * 2.0 + Vector3(0, 1.0, 0)
 	var mm := _charcos.multimesh
@@ -1361,6 +1430,7 @@ func _quitar_muestras() -> void:
 
 func _terminar_carga() -> void:
 	cargando = false
+	print("calle lista: %.1f s de pantalla de carga (precalentado %.1f s en total)" % [_t_carga, _t_calentar])
 	if _paso_carga < PASOS_PRECALENTADO:
 		_quitar_muestras()
 	if _carga != null:
