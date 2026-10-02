@@ -60,7 +60,7 @@ func run(t) -> void:
 	var reproducciones: int = main.reproducciones
 	var menu: Node = main.pantalla_actual()
 	t.check_eq(menu.name, "Menu", "sin advertencia (pruebas) arranca en el menú")
-	for b in ["Jugar", "Taller", "Opciones", "Creditos", "Salir"]:
+	for b in ["Jugar", "Taller", "Ayuda", "Opciones", "Creditos", "Salir"]:
 		t.check(_boton(menu, b) != null, "el menú tiene el botón %s" % b)
 	_revisar_textos(t, menu, "menú (es)")
 
@@ -110,6 +110,10 @@ func run(t) -> void:
 	_revisar_textos(t, menu, "menú (en)")
 	t.check_eq(_boton(menu, "Jugar").atr(_boton(menu, "Jugar").text), "PLAY", "en inglés el menú dice PLAY")
 
+	# --- Ayuda en inglés: reglas de la carga y las teclas de verdad (la del pito ya es J).
+	await _revisar_ayuda(t, main, "en", reproducciones)
+	menu = main.pantalla_actual()
+
 	# --- Créditos en inglés: suben solos y se saltan.
 	_boton(menu, "Creditos").pressed.emit()
 	await t.process_frame
@@ -144,6 +148,7 @@ func run(t) -> void:
 	await t.process_frame
 	main.opciones.poner_idioma("es")
 	main.opciones.guardar()
+	await _revisar_ayuda(t, main, "es", reproducciones)
 
 	# --- Pausa: Esc en plena partida.
 	_boton(main.pantalla_actual(), "Jugar").pressed.emit()
@@ -158,7 +163,7 @@ func run(t) -> void:
 	t.check_eq(main.pantalla_actual().name, "Recorrido", "Esc ya no manda directo al menú")
 	var pausa: Node = ride.find_child("Pausa", true, false)
 	t.check(pausa != null and pausa.visible, "sale el menú de pausa")
-	for b in ["Continuar", "Opciones", "MenuInicial"]:
+	for b in ["Continuar", "Ayuda", "Opciones", "MenuInicial"]:
 		t.check(_boton(pausa, b) != null, "la pausa tiene el botón %s" % b)
 	_revisar_textos(t, pausa, "pausa (es)")
 	var p = ride.partida
@@ -180,6 +185,19 @@ func run(t) -> void:
 	await _pulsar_esc(t)
 	t.check(t.root.get_tree().paused, "Esc en las opciones de la pausa vuelve a la pausa, sin reanudar")
 	t.check(_boton(pausa, "Continuar").is_visible_in_tree(), "y vuelven los botones de la pausa")
+
+	# Ayuda desde la pausa: encima de la partida, y Esc vuelve a la pausa sin reanudar.
+	_boton(pausa, "Ayuda").pressed.emit()
+	await t.process_frame
+	var panel_ayuda: Node = pausa.find_child("PanelAyuda", true, false)
+	t.check(panel_ayuda != null and panel_ayuda.is_visible_in_tree(), "Ayuda abre la ayuda encima de la partida")
+	t.check(not _boton(pausa, "Continuar").is_visible_in_tree(), "y esconde los botones de la pausa")
+	t.check(_todo_el_texto(panel_ayuda).contains("TE MATA"), "con las mismas reglas")
+	_revisar_textos(t, panel_ayuda, "ayuda en la pausa (es)")
+	await _pulsar_esc(t)
+	t.check(t.root.get_tree().paused, "Esc en la ayuda de la pausa vuelve a la pausa, sin reanudar")
+	t.check(_boton(pausa, "Continuar").is_visible_in_tree(), "y vuelven los botones de la pausa")
+	t.check(pausa.find_child("PanelAyuda", true, false) == null or not pausa.find_child("PanelAyuda", true, false).is_visible_in_tree(), "y la ayuda se va")
 
 	# Continuar.
 	_boton(pausa, "Continuar").pressed.emit()
@@ -221,6 +239,26 @@ func run(t) -> void:
 	TranslationServer.set_locale("es")
 	for r in [RUTA, RUTA_OP]:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(r))
+
+
+## Abre la ayuda desde el menú, revisa lo que dice en ese idioma y vuelve con VOLVER.
+func _revisar_ayuda(t, main: Node, idioma: String, reproducciones: int) -> void:
+	var menu: Node = main.pantalla_actual()
+	_boton(menu, "Ayuda").pressed.emit()
+	await t.process_frame
+	var ayuda: Node = main.pantalla_actual()
+	t.check_eq(ayuda.name, "Ayuda", "el botón Ayuda abre la ayuda (%s)" % idioma)
+	t.check_eq(main.get_node("Pantallas").get_child_count(), 1, "sigue habiendo una sola pantalla")
+	t.check(main.reproducciones == reproducciones, "la música del menú no se corta en la ayuda")
+	var todo := _todo_el_texto(ayuda)
+	var esperado: Array = ["KILLS YOU", "COSTS YOU", "CURB", "PEDESTRIAN", "HORN: J", "MAP: TAB", "ESC"] if idioma == "en" \
+		else ["TE MATA", "TE CUESTA", "ANDÉN", "PEATÓN", "PITO: J", "MAPA: TAB", "ESC", "TALLER"]
+	for e in esperado:
+		t.check(todo.contains(e), "la ayuda (%s) dice «%s»" % [idioma, e])
+	_revisar_textos(t, ayuda, "ayuda (%s)" % idioma)
+	_boton(ayuda, "Volver").pressed.emit()
+	await t.process_frame
+	t.check_eq(main.pantalla_actual().name, "Menu", "Volver de la ayuda regresa al menú (%s)" % idioma)
 
 
 func _pulsar_esc(t) -> void:

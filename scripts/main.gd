@@ -12,6 +12,7 @@ const PANTALLA_OPCIONES := preload("res://scenes/opciones.tscn")
 const CREDITOS := preload("res://scenes/creditos.tscn")
 const ADVERTENCIA := preload("res://scenes/advertencia.tscn")
 const CARGA := preload("res://scripts/carga.gd")
+const AYUDA := preload("res://scripts/ayuda.gd")
 
 ## Las pruebas la cambian antes de instanciar para no tocar la partida guardada de verdad.
 static var ruta_progreso := "user://progreso.cfg"
@@ -121,6 +122,7 @@ func menu() -> void:
 	musica("menu")
 	m.jugar.connect(reiniciar, CONNECT_DEFERRED)
 	m.taller.connect(taller, CONNECT_DEFERRED)
+	m.abrir_ayuda.connect(ayuda, CONNECT_DEFERRED)
 	m.abrir_opciones.connect(pantalla_opciones, CONNECT_DEFERRED)
 	m.abrir_creditos.connect(creditos, CONNECT_DEFERRED)
 	m.salir.connect(func(): get_tree().quit())
@@ -137,6 +139,12 @@ func advertencia() -> void:
 	var a := _mostrar(ADVERTENCIA)
 	musica("menu")
 	a.listo.connect(menu, CONNECT_DEFERRED)
+
+
+func ayuda() -> void:
+	var a := _mostrar_nodo(AYUDA.new())
+	musica("menu")
+	a.volver.connect(menu, CONNECT_DEFERRED)
 
 
 func pantalla_opciones() -> void:

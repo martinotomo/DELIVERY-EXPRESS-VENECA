@@ -40,8 +40,8 @@ func _ready() -> void:
 	var fondo := UI.fondo(self)
 	fondo.color = UI.C_FONDO
 	UI.texto(self, "CÓMO NO MORIR REPARTIENDO", Vector2(0, 18), 16, UI.C_AMARILLO, 640.0, "Titulo")
-	_columna("TeMata", "TE MATA", UI.C_ROJO, TE_MATA, COL_X[0])
-	_columna("TeCuesta", "TE CUESTA", UI.C_AMARILLO, TE_CUESTA, COL_X[1])
+	columna_reglas(self, "TeMata", "TE MATA", UI.C_ROJO, TE_MATA, Vector2(COL_X[0], 54))
+	columna_reglas(self, "TeCuesta", "TE CUESTA", UI.C_AMARILLO, TE_CUESTA, Vector2(COL_X[1], 54))
 	UI.parrafo(self, "Morir no te quita la plata.", Vector2(0, 256), Vector2(640, 12), 8, UI.C_GRIS, "Plata")
 
 	UI.texto(self, "CARGANDO LA CIUDAD", Vector2(0, 284), 8, UI.C_GRIS, 640.0, "Cargando")
@@ -68,14 +68,16 @@ func _ready() -> void:
 
 
 ## Una columna: el encabezado de color y debajo cada regla, partida en líneas si no cabe.
-func _columna(nombre: String, titulo: String, color: Color, reglas: Array, x: float) -> void:
-	UI.texto(self, titulo, Vector2(x, 54), 8, color, 0.0, nombre + "Titulo")
+## También la usa la ayuda (ayuda.gd), para que las dos digan lo mismo.
+static func columna_reglas(padre: Control, nombre: String, titulo: String, color: Color, reglas: Array,
+		pos: Vector2, separacion := 10) -> VBoxContainer:
+	UI.texto(padre, titulo, pos, 8, color, 0.0, nombre + "Titulo")
 	var v := VBoxContainer.new()
 	v.name = nombre
-	v.position = Vector2(x, 72)
+	v.position = pos + Vector2(0, 18)
 	v.size = Vector2(COL_ANCHO, 0)
-	v.add_theme_constant_override("separation", 10)
-	add_child(v)
+	v.add_theme_constant_override("separation", separacion)
+	padre.add_child(v)
 	for regla in reglas:
 		var l := Label.new()
 		l.text = regla
@@ -85,6 +87,7 @@ func _columna(nombre: String, titulo: String, color: Color, reglas: Array, x: fl
 		l.add_theme_color_override("font_color", UI.C_TEXTO)
 		l.add_theme_constant_override("line_spacing", 3)
 		v.add_child(l)
+	return v
 
 
 func poner_avance(f: float) -> void:

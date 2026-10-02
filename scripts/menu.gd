@@ -1,8 +1,9 @@
 extends Control
-## Menú de inicio: Jugar, Taller, Opciones, Créditos y Salir. Muestra la moto y la plata que se tienen.
+## Menú de inicio: Jugar, Taller, Ayuda, Opciones, Créditos y Salir. Muestra la moto y la plata que se tienen.
 
 signal jugar
 signal taller
+signal abrir_ayuda
 signal abrir_opciones
 signal abrir_creditos
 signal salir
@@ -51,22 +52,22 @@ func _ready() -> void:
 		lema_y = 4 + LOGO_RECORTE.size.y * LOGO_ESCALA
 	UI.texto(self, "Domicilios a toda. La fe no frena.", Vector2(0, lema_y), 8, UI.C_GRIS, 640.0)
 
-	var col := UI.columna(self, Vector2(170, 136), 300.0)
-	col.add_theme_constant_override("separation", 4)
+	var col := UI.columna(self, Vector2(170, 132), 300.0)
+	col.add_theme_constant_override("separation", 3)
 	var botones := [
-		["JUGAR", "Jugar", jugar], ["TALLER", "Taller", taller], ["OPCIONES", "Opciones", abrir_opciones],
+		["JUGAR", "Jugar", jugar], ["TALLER", "Taller", taller], ["AYUDA", "Ayuda", abrir_ayuda], ["OPCIONES", "Opciones", abrir_opciones],
 		["CRÉDITOS", "Creditos", abrir_creditos], ["SALIR", "Salir", salir],
 	]
 	if UI.en_web:
 		botones.pop_back() # una página no se cierra a sí misma
 	for b in botones:
 		var boton := UI.boton(col, b[0], b[1])
-		boton.custom_minimum_size.y = 22
+		boton.custom_minimum_size.y = 20
 		var senal: Signal = b[2]
 		boton.pressed.connect(func(): senal.emit())
 	var b_jugar: Button = col.get_node("Jugar")
 
-	var estado := UI.texto(self, "", Vector2(0, 274), 8, UI.C_TEXTO, 640.0, "Estado")
+	var estado := UI.texto(self, "", Vector2(0, 280), 8, UI.C_TEXTO, 640.0, "Estado")
 	if progreso != null:
 		estado.text = tr("Moto: %s    Plata: %s") % [progreso.datos_moto().nombre, PROGRESO.pesos(progreso.dinero)]
 	b_jugar.grab_focus.call_deferred()

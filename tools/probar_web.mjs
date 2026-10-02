@@ -90,6 +90,12 @@ resultado.audio_despues_del_clic = await page.evaluate(() => window.__audios.map
 resultado.audio_rms_menu = await page.evaluate(() => window.__rms); // la música del menú
 // El clic ya saltó la advertencia (cualquier tecla o clic pasados los 2 s).
 await page.screenshot({ path: `${salida}/2_menu.png` });
+// Ayuda desde el menú (Jugar, Taller, Ayuda): ida y vuelta con Esc.
+await tecla(page, "ArrowDown", 1500);
+await tecla(page, "ArrowDown", 1500);
+await tecla(page, "Enter", 3000);
+await page.screenshot({ path: `${salida}/2b_ayuda.png` });
+await tecla(page, "Escape", 3000);
 resultado.log_menu = log.filter((l) => l.startsWith("calle precalentada"));
 await tecla(page, "Enter", 500); // JUGAR
 await page.screenshot({ path: `${salida}/3_carga.png` });
@@ -111,8 +117,9 @@ await tecla(page, "p", 700);
 await page.screenshot({ path: `${salida}/5_sigue.png` });
 await tecla(page, "Escape", 700);
 await page.screenshot({ path: `${salida}/6_pausa_esc.png` });
-// Opciones desde la pausa: bajar el volumen general un paso (queda en 95 %).
-await tecla(page, "ArrowDown");
+// Opciones desde la pausa (Continuar, Ayuda, Opciones): bajar el volumen general un paso (queda en 95 %).
+await tecla(page, "ArrowDown", 1500);
+await tecla(page, "ArrowDown", 1500);
 await tecla(page, "Enter", 2000); // a 1 fps (Chromium sin GPU) el foco llega un fotograma después
 await tecla(page, "ArrowLeft", 1500);
 await page.screenshot({ path: `${salida}/7_opciones.png` });
